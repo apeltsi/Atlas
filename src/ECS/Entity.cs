@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using SolidCode.Caerus.Components;
-
-namespace SolidCode.Caerus.ECS
+﻿namespace SolidCode.Caerus.ECS
 {
-    class Entity
+    using System.Numerics;
+    using SolidCode.Caerus.Components;
+
+    public class Entity
     {
+
         public string name = "Entity";
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
@@ -29,11 +25,12 @@ namespace SolidCode.Caerus.ECS
             {
                 sca = (Vector2)scale;
             }
-            AddComponent(new Transform(pos, sca));
+            AddComponent<Transform>();
         }
 
-        public void AddComponent(Component component)
+        public void AddComponent<T>() where T : Component, new()
         {
+            Component component = new T();
             component.entity = this;
 
             components.Add(component);

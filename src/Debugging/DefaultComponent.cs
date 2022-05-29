@@ -6,8 +6,11 @@ class DefaultComponent : Component
     int fixedUpdates = 0;
     public override void Start()
     {
+        if (entity == null) return;
         Debug.Log("Hello my name is " + entity.name);
-        Debug.Log("and im at " + entity.GetComponent<Transform>().position);
+        Transform? t = entity.GetComponent<Transform>();
+        if (t == null) return;
+        Debug.Log("and im at " + t.position);
     }
 
     public override void Update()
@@ -16,12 +19,7 @@ class DefaultComponent : Component
     }
     public override void FixedUpdate()
     {
-        fixedUpdates++;
-        if (fixedUpdates > 50)
-        {
-            Debug.Log("Heya");
-            fixedUpdates = 0;
-        }
+
     }
 
 }

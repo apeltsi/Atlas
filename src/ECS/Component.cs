@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SolidCode.Caerus.ECS
+﻿namespace SolidCode.Caerus.ECS
 {
-    class Component
+    public abstract class Component
     {
         private bool _enabled = true;
         public bool enabled
@@ -30,7 +24,10 @@ namespace SolidCode.Caerus.ECS
             }
         }
 
+
+
         public Entity? entity;
+
         public virtual void Start()
         {
 

@@ -3,7 +3,7 @@ using SolidCode.Caerus.ECS;
 
 namespace SolidCode.Caerus.Components
 {
-    class Transform : Component
+    public class Transform : Component
     {
         public Vector2 position;
         public Vector2 scale;
@@ -12,6 +12,11 @@ namespace SolidCode.Caerus.Components
         {
             this.position = position;
             this.scale = scale;
+        }
+        public Transform()
+        {
+            this.position = Vector2.Zero;
+            this.scale = Vector2.One;
         }
     }
 }
