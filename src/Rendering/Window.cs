@@ -41,7 +41,7 @@ namespace SolidCode.Caerus.Rendering
             0, 1, 3,   // first triangle
             1, 2, 3    // second triangle
         };
-        Shader shader;
+        Shader? shader;
         int VertexBufferObject;
         int VertexArrayObject;
         int ElementBufferObject;
@@ -76,6 +76,10 @@ namespace SolidCode.Caerus.Rendering
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            if (shader == null)
+            {
+                throw new NullReferenceException("Shader is null!");
+            }
             GL.Clear(ClearBufferMask.ColorBufferBit);
             shader.Use();
             GL.BindVertexArray(VertexArrayObject);
@@ -87,6 +91,10 @@ namespace SolidCode.Caerus.Rendering
 
         protected override void OnUnload()
         {
+            if (shader == null)
+            {
+                throw new NullReferenceException("Shader is null!");
+            }
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
             GL.DeleteBuffer(VertexBufferObject);
             shader.Dispose();

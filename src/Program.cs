@@ -10,8 +10,8 @@ namespace SolidCode.Caerus
         public const string Version = "0.1.0a";
 
         public static int updateFrequency = 50;
-        public static Timer timer;
-        static EntityComponentSystem ecs;
+        public static Timer? timer;
+        static EntityComponentSystem? ecs;
         public static void Main()
         {
             Debug.StartLogs();
@@ -37,7 +37,7 @@ namespace SolidCode.Caerus
             timer.Start();
         }
 
-        public static void FixedUpdate(object sender, ElapsedEventArgs e)
+        public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
             if (ecs != null)
                 ecs.FixedUpdate();
