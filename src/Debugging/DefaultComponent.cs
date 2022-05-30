@@ -3,7 +3,6 @@ using SolidCode.Caerus.ECS;
 
 class DefaultComponent : Component
 {
-    int fixedUpdates = 0;
     public override void Start()
     {
         if (entity == null) return;
