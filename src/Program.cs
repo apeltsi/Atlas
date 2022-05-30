@@ -7,6 +7,7 @@ namespace SolidCode.Caerus
 
     class Caerus
     {
+        public static string? DataDirectory = Path.Join(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "Data" + Path.DirectorySeparatorChar);
         public const string Version = "0.1.0a";
 
         public static int updateFrequency = 50;

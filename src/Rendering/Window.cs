@@ -53,7 +53,7 @@ namespace SolidCode.Caerus.Rendering
         protected override void OnLoad()
         {
             // Compile shaders
-            shader = new Shader("C:\\Users\\amosp\\Projects\\Caerus\\src\\Shaders\\shader.vert", "C:\\Users\\amosp\\Projects\\Caerus\\src\\Shaders\\shader.frag");
+            shader = new Shader(Path.Join(Caerus.DataDirectory, "Shaders" + Path.DirectorySeparatorChar + "shader.vert"), Path.Join(Caerus.DataDirectory, "Shaders" + Path.DirectorySeparatorChar + "shader.frag"));
 
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             VertexBufferObject = GL.GenBuffer();
