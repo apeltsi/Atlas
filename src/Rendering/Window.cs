@@ -1,117 +1,142 @@
-using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Numerics;
+using SolidCode.Caerus.ECS;
+using Veldrid;
+using Veldrid.Sdl2;
+using Veldrid.SPIRV;
+using Veldrid.StartupUtilities;
 
 namespace SolidCode.Caerus.Rendering
 {
     class Window
     {
-        public Window(string title = "Caerus")
+        public static GraphicsDevice _graphicsDevice;
+        private static CommandList _commandList;
+        private static List<Shader> _shaders = new List<Shader>();
+        private static List<Drawable> _drawables = new List<Drawable>();
+        Sdl2Window window;
+        Matrix4x4 WindowScalingMatrix = new Matrix4x4();
+        public const int TargetFramerate = 80;
+        /// <summary>
+        /// Creates a new window with a title. Also initializes rendering
+        /// </summary>
+        public Window(string title = "Caerus " + Caerus.Version)
         {
             // TODO(amos): allow to open windows that arent borderless fullscreen, also allow changing window type at runtime
-            var nativeWindowSettings = new NativeWindowSettings()
+            WindowCreateInfo windowCI = new WindowCreateInfo()
             {
-                Size = new Vector2i(Monitors.GetPrimaryMonitor().HorizontalResolution, Monitors.GetPrimaryMonitor().VerticalResolution),
-                Title = title,
-                // This is needed to run on macos
-                Flags = ContextFlags.ForwardCompatible,
-                WindowBorder = WindowBorder.Hidden,
-                CurrentMonitor = Monitors.GetPrimaryMonitor().Handle,
+                X = 100,
+                Y = 100,
+                WindowWidth = 960,
+                WindowHeight = 540,
+                WindowTitle = title,
+                WindowInitialState = WindowState.Hidden,
             };
-
-
-            using (var window = new WindowInstance(GameWindowSettings.Default, nativeWindowSettings))
+            window = VeldridStartup.CreateWindow(ref windowCI);
+            // Setup graphics device
+            GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
-                window.Run();
+                PreferStandardClipSpaceYDirection = true,
+                PreferDepthRangeZeroToOne = true
+            };
+            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
+            window.Resized += () => { WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height); };
+            CreateResources();
+
+            Debug.Log(LogCategories.Rendering, "Resources created!");
+        }
+
+        public void AddDrawables(List<Drawable> drawables)
+        {
+            _drawables.AddRange(drawables);
+            Debug.Log("Added " + drawables.Count + " drawables");
+        }
+
+        public void StartRenderLoop()
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            int frame = 0;
+            while (window.Exists)
+            {
+                // TODO(amos): Fix this nasty code
+                window.PumpEvents();
+                if (watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
+                {
+                    if (frame == 1)
+                    {
+                        window.Visible = true;
+                        window.WindowState = WindowState.BorderlessFullScreen;
+                    }
+                    frame++;
+                    Draw();
+                    watch = System.Diagnostics.Stopwatch.StartNew();
+                    Thread.Sleep((int)Math.Round(1000f / TargetFramerate));
+                }
             }
 
-        }
-    }
-    class WindowInstance : GameWindow
-    {
-        float[] vertices = {
-        0.5f,  0.5f, 0.0f,  // top right
-        0.5f, -0.5f, 0.0f,  // bottom right
-        -0.5f, -0.5f, 0.0f,  // bottom left
-        -0.5f,  0.5f, 0.0f   // top left
-        };
-        uint[] indices = {  // note that we start from 0!
-            0, 1, 3,   // first triangle
-            1, 2, 3    // second triangle
-        };
-        Shader shader;
-        int VertexBufferObject;
-        int VertexArrayObject;
-        int ElementBufferObject;
-        public WindowInstance(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
-            : base(gameWindowSettings, nativeWindowSettings)
-        {
+            DisposeResources();
         }
 
-        protected override void OnLoad()
+
+        public void Draw()
         {
-            // Compile shaders
-            shader = new Shader("C:\\Users\\amosp\\Projects\\Caerus\\src\\Shaders\\shader.vert", "C:\\Users\\amosp\\Projects\\Caerus\\src\\Shaders\\shader.frag");
+            // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
+            _commandList.Begin();
+            // Before we can issue a Draw command, we need to set a Framebuffer.
+            _commandList.SetFramebuffer(_graphicsDevice.SwapchainFramebuffer);
 
-            GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-            VertexBufferObject = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
-
-            VertexArrayObject = GL.GenVertexArray();
-            GL.BindVertexArray(VertexArrayObject);
-            GL.VertexAttribPointer(shader.GetAttribLocation("aPosition"), 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-            GL.EnableVertexAttribArray(0);
-
-            ElementBufferObject = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, ElementBufferObject);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-
-
-            shader.Use();
-            base.OnLoad();
-        }
-
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-            GL.Clear(ClearBufferMask.ColorBufferBit);
-            shader.Use();
-            GL.BindVertexArray(VertexArrayObject);
-            GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
-
-            SwapBuffers();
-            base.OnRenderFrame(e);
-        }
-
-        protected override void OnUnload()
-        {
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-            GL.DeleteBuffer(VertexBufferObject);
-            shader.Dispose();
-            base.OnUnload();
-        }
-        protected override void OnResize(ResizeEventArgs e)
-        {
-            base.OnResize(e);
-
-            // When the window gets resized, we have to call GL.Viewport to resize OpenGL's viewport to match the new size.
-            // If we don't, the NDC will no longer be correct.
-            GL.Viewport(0, 0, Size.X, Size.Y);
-        }
-
-        // This function runs on every update frame.
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            // Check if the Escape button is currently being pressed.
-            if (KeyboardState.IsKeyDown(Keys.Escape))
+            // At the beginning of every frame, we clear the screen to black. In a static scene, this is not really necessary, but I will do it anyway for demonstration.
+            _commandList.ClearColorTarget(0, RgbaFloat.Black);
+            foreach (Drawable drawable in _drawables)
             {
-                // If it is, close the window.
-                Close();
+                drawable.SetGlobalMatrix(_graphicsDevice, WindowScalingMatrix);
+                _commandList.SetVertexBuffer(0, drawable.vertexBuffer);
+                _commandList.SetIndexBuffer(drawable.indexBuffer, IndexFormat.UInt16);
+                if (drawable.pipeline == null)
+                {
+                    Debug.Error("EOepoaigpa");
+                }
+                _commandList.SetPipeline(drawable.pipeline);
+                _commandList.DrawIndexed(
+                    indexCount: 4,
+                    instanceCount: 1,
+                    indexStart: 0,
+                    vertexOffset: 0,
+                    instanceStart: 0);
             }
+            _commandList.End();
 
-            base.OnUpdateFrame(e);
+            // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
+            _graphicsDevice.SubmitCommands(_commandList);
+            _graphicsDevice.SwapBuffers();
         }
+
+
+        void CreateResources()
+        {
+            ResourceFactory factory = _graphicsDevice.ResourceFactory;
+            _commandList = factory.CreateCommandList();
+        }
+
+        private void DisposeResources()
+        {
+            foreach (Drawable drawable in _drawables)
+            {
+                drawable.Dispose();
+            }
+            _commandList.Dispose();
+            _graphicsDevice.Dispose();
+            Debug.Log(LogCategories.Rendering, "Disposed all resources");
+        }
+
+        public static Matrix4x4 GetScalingMatrix(float Width, float Height)
+        {
+            float max = Math.Max(Width, Height);
+            return new Matrix4x4(
+                Height / max, 0, 0, 0,
+                0, Width / max, 0, 0,
+                0, 0, 0, 0,
+                0, 0, 0, 1);
+        }
+
     }
 }

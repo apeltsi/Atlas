@@ -25,8 +25,14 @@
         </When>
     </Choose>
   <ItemGroup>
-    <PackageReference Include="OpenTK" Version="4.7.2" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+    <PackageReference Include="Veldrid" Version="4.8.0" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.13" />
   </ItemGroup>
-
+  <ItemGroup>
+      <Content Include="data\*\*.*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+   </ItemGroup>
 </Project>

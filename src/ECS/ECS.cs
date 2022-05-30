@@ -1,9 +1,11 @@
-﻿namespace SolidCode.Caerus.ECS
+﻿using SolidCode.Caerus.Rendering;
+
+namespace SolidCode.Caerus.ECS
 {
     class EntityComponentSystem
     {
         List<Entity> entities = new List<Entity>();
-
+        public Window window;
         public EntityComponentSystem()
         {
         }
@@ -25,6 +27,14 @@
                 if (e.enabled)
                     e.Start();
             }
+            List<Drawable> drawables = new List<Drawable>();
+            foreach (Entity e in entities)
+            {
+                if (e.enabled)
+                    drawables.AddRange(e.RenderStart());
+            }
+            Debug.Log("returning drawable to Window");
+            window.AddDrawables(drawables);
         }
         public void Update()
         {

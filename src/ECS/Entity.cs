@@ -2,6 +2,7 @@
 {
     using System.Numerics;
     using SolidCode.Caerus.Components;
+    using SolidCode.Caerus.Rendering;
 
     public class Entity
     {
@@ -10,6 +11,7 @@
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
         public List<Component> components = new List<Component>();
+        public List<RenderComponent> renderingComponents = new List<RenderComponent>();
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
             this.children = new List<Entity>();
@@ -34,12 +36,20 @@
             component.entity = this;
 
             components.Add(component);
+            if (typeof(RenderComponent).IsAssignableFrom(typeof(T)))
+            {
+                renderingComponents.Add((RenderComponent)component);
+            }
         }
         public void RemoveComponent(Component component)
         {
             component.OnRemove();
 
             components.Remove(component);
+            if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
+            {
+                renderingComponents.Remove((RenderComponent)component);
+            }
         }
         public T? GetComponent<T>() where T : Component
         {
@@ -76,6 +86,19 @@
                 if (component.enabled)
                     component.FixedUpdate();
             }
+        }
+        public List<Drawable> RenderStart()
+        {
+            List<Drawable> drawables = new List<Drawable>();
+            foreach (RenderComponent component in renderingComponents)
+            {
+                Debug.Log("starting render");
+                if (component.enabled)
+                    drawables.AddRange(component.StartRender(Window._graphicsDevice));
+            }
+            Debug.Log("returning drawable to ECS");
+
+            return drawables;
         }
 
     }

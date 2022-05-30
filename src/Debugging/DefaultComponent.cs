@@ -1,3 +1,4 @@
+using SolidCode.Caerus;
 using SolidCode.Caerus.Components;
 using SolidCode.Caerus.ECS;
 
