@@ -9,7 +9,6 @@ namespace SolidCode.Caerus.Rendering
         public virtual Drawable[] StartRender(GraphicsDevice _graphicsDevice)
         {
             throw new NotImplementedException("No StartRender() method implemented!");
-            return null;
         }
 
     }

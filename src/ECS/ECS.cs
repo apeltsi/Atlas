@@ -5,10 +5,7 @@ namespace SolidCode.Caerus.ECS
     class EntityComponentSystem
     {
         List<Entity> entities = new List<Entity>();
-        public Window window;
-        public EntityComponentSystem()
-        {
-        }
+        public Window? window;
 
         public void AddEntity(Entity entity)
         {
@@ -32,6 +29,10 @@ namespace SolidCode.Caerus.ECS
             {
                 if (e.enabled)
                     drawables.AddRange(e.RenderStart());
+            }
+            if (window == null)
+            {
+                throw new NullReferenceException("ECS > No window is assigned! Cannot perform StartRender()");
             }
             window.AddDrawables(drawables);
         }

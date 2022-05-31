@@ -31,12 +31,13 @@ namespace SolidCode.Caerus.Rendering
                 WindowTitle = title,
                 WindowInitialState = WindowState.Hidden,
             };
+
             window = VeldridStartup.CreateWindow(ref windowCI);
             // Setup graphics device
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
                 PreferStandardClipSpaceYDirection = true,
-                PreferDepthRangeZeroToOne = true
+                PreferDepthRangeZeroToOne = true,
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
@@ -52,20 +53,28 @@ namespace SolidCode.Caerus.Rendering
             Debug.Log("Added " + drawables.Count + " drawables");
         }
 
-        public void StartRenderLoop(EntityComponentSystem ecs)
+        public bool StartRenderLoop(EntityComponentSystem ecs)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
+            bool reopen = false;
             while (window.Exists)
             {
                 // TODO(amos): Fix this nasty code
-                window.PumpEvents();
                 if (watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
                 {
                     if (frame == 1)
                     {
                         window.Visible = true;
-                        window.WindowState = WindowState.BorderlessFullScreen;
+                        window.WindowState = WindowState.Normal;
+                    }
+                    InputSnapshot inputSnapshot = window.PumpEvents();
+                    for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
+                    {
+                        if (inputSnapshot.KeyEvents[i].Key == Key.F5 && inputSnapshot.KeyEvents[i].Down == true)
+                        {
+                            ReloadAllDrawables();
+                        }
                     }
                     frame++;
                     ecs.Update();
@@ -76,6 +85,22 @@ namespace SolidCode.Caerus.Rendering
             }
 
             DisposeResources();
+            return reopen;
+        }
+
+
+        public void ReloadAllDrawables()
+        {
+            Debug.Log(LogCategories.Rendering, "RELOADING ALL DRAWABLES...");
+            // First, lets recompile all our shaders
+            ShaderManager.ClearAllShaders();
+            // Next, lets dispose all drawables
+            foreach (Drawable drawable in _drawables)
+            {
+                drawable.Dispose();
+                drawable.CreateResources(_graphicsDevice);
+            }
+            Debug.Log(LogCategories.Rendering, "All drawables have been reloaded...");
         }
 
 
@@ -91,6 +116,7 @@ namespace SolidCode.Caerus.Rendering
             foreach (Drawable drawable in _drawables)
             {
                 drawable.SetGlobalMatrix(_graphicsDevice, WindowScalingMatrix);
+                drawable.SetScreenSize(_graphicsDevice, new Vector2(window.Width, window.Height));
                 drawable.Draw(_commandList);
             }
             _commandList.End();

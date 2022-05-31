@@ -23,7 +23,7 @@ public class DebugRenderer : RenderComponent
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
         mesh = new Mesh<VertexPositionColor>(quadVertices, quadIndices, layout);
-        var drawable = new Drawable<VertexPositionColor>(_graphicsDevice, ShaderManager.GetShader("shader"), mesh, entity.GetComponent<Transform>());
+        var drawable = new Drawable<VertexPositionColor>(_graphicsDevice, "hex/shader", mesh, entity.GetComponent<Transform>());
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);
         return drawables.ToArray();

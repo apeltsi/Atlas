@@ -34,5 +34,8 @@
       <Content Include="data\*\*.*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="data\*\*\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
    </ItemGroup>
 </Project>

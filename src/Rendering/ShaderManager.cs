@@ -16,10 +16,27 @@ namespace SolidCode.Caerus.Rendering
             {
                 return shaders[path];
             }
-            Debug.Log("Generating shader");
+            Debug.Log(LogCategories.Rendering, "Generating shader");
             Shader shader = new Shader(Window._graphicsDevice.ResourceFactory, path + ".vert", path + ".frag");
             shaders.Add(path, shader);
             return shader;
+        }
+
+        public static void ClearAllShaders()
+        {
+            shaders.Clear();
+        }
+
+        public static void RecompileAllShaders()
+        {
+            var watch = System.Diagnostics.Stopwatch.StartNew();
+            Debug.Log(LogCategories.Rendering, "Recompiling shaders...");
+            foreach (KeyValuePair<string, Shader> shader in shaders)
+            {
+                shaders[shader.Key] = new Shader(Window._graphicsDevice.ResourceFactory, shader.Key + ".vert", shader.Key + ".frag");
+            }
+            watch.Stop();
+            Debug.Log(LogCategories.Rendering, "All shaders have been recompiled [" + watch.ElapsedMilliseconds + "ms]");
         }
 
     }

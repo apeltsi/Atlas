@@ -1,8 +1,7 @@
-using System.Numerics;
-using SolidCode.Caerus.ECS;
-
 namespace SolidCode.Caerus.Components
 {
+    using System.Numerics;
+    using SolidCode.Caerus.ECS;
     public class Transform : Component
     {
         public Vector2 position;
@@ -11,6 +10,10 @@ namespace SolidCode.Caerus.Components
         {
             get
             {
+                if (entity == null)
+                {
+                    return Vector2.Zero;
+                }
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
@@ -23,16 +26,36 @@ namespace SolidCode.Caerus.Components
                 }
                 return position;
             }
-            //TODO(amos) implement set
             set
             {
-                throw new NotImplementedException("Gahh");
+                if (entity == null)
+                {
+                    position = value;
+                    return;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>();
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global position and add it to ours
+                        position = value - t.globalPosition;
+                    }
+                }
+
+                position = value;
             }
         }
         public Vector2 globalScale
         {
+
             get
             {
+                if (entity == null)
+                {
+                    return Vector2.One;
+                }
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
@@ -44,11 +67,6 @@ namespace SolidCode.Caerus.Components
                     }
                 }
                 return scale;
-            }
-            //TODO(amos) implement set
-            set
-            {
-                throw new NotImplementedException("Gahh");
             }
         }
         public Vector2 inheritedScale = Vector2.One;

@@ -11,8 +11,6 @@ namespace SolidCode.Caerus.Rendering
         public Veldrid.Shader[] shaders { get; protected set; }
         public Shader(ResourceFactory factory, string vertPath, string fragPath)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategories.Rendering, "Loading shader: ['" + vertPath + "' and '" + fragPath + "']");
             vertPath = Path.Join(Caerus.ShaderDirectory, vertPath);
             fragPath = Path.Join(Caerus.ShaderDirectory, fragPath);
 
@@ -35,8 +33,6 @@ namespace SolidCode.Caerus.Rendering
             {
                 Debug.Error(LogCategories.Rendering, ex.ToString());
             }
-            watch.Stop();
-            Debug.Log(LogCategories.Rendering, "Shader loaded & compiled  [" + watch.ElapsedMilliseconds + "ms]");
         }
 
         public void Dispose()

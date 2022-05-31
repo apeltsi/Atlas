@@ -28,6 +28,15 @@ namespace SolidCode.Caerus
             var watch = System.Diagnostics.Stopwatch.StartNew();
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
             Debug.Log(LogCategories.Framework, "Coeus " + Version + " starting up...");
+#if DEBUG
+            if (Directory.Exists("./data/shaders"))
+            {
+                // Were running in from the development path. Lets grab our shaders from there instead!
+                ShaderDirectory = "./data/shaders";
+                Debug.Log("It looks like Caerus is running from a development enviroment. Loading shaders from dev enviroment instead.");
+            }
+#endif
+
             ecs = new EntityComponentSystem();
             Entity e = new Entity("Hello World");
             e.AddComponent<DefaultComponent>();
@@ -35,19 +44,19 @@ namespace SolidCode.Caerus
 
             ecs.AddEntity(e);
 
-            Debug.Log(LogCategories.Framework, "Opening window");
 
-            Debug.Log(LogCategories.Framework, "Core framework functionalities started within " + watch.ElapsedMilliseconds + "ms");
-
+            Debug.Log(LogCategories.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
             Window w = new Window();
+            Debug.Log(LogCategories.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
             ecs.window = w;
             ecs.Start();
+            Debug.Log(LogCategories.Framework, "ECS started after " + watch.ElapsedMilliseconds + "ms");
             StartFixedUpdateLoop(ecs);
-            Debug.Log(LogCategories.Rendering, "Starting renderloop");
+            Debug.Log(LogCategories.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
+            bool rerun = false;
             try
             {
-                w.StartRenderLoop(ecs);
-
+                rerun = w.StartRenderLoop(ecs);
             }
             catch (Exception ex)
             {
@@ -55,6 +64,10 @@ namespace SolidCode.Caerus
             }
             watch.Stop();
             Debug.Log(LogCategories.Framework, "Caerus shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
+            if (rerun)
+            {
+                Main();
+            }
         }
 
         public static void StartFixedUpdateLoop(EntityComponentSystem ecs)
