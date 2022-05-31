@@ -33,7 +33,6 @@ namespace SolidCode.Caerus.ECS
                 if (e.enabled)
                     drawables.AddRange(e.RenderStart());
             }
-            Debug.Log("returning drawable to Window");
             window.AddDrawables(drawables);
         }
         public void Update()

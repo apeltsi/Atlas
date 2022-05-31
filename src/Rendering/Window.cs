@@ -38,6 +38,7 @@ namespace SolidCode.Caerus.Rendering
                 PreferStandardClipSpaceYDirection = true,
                 PreferDepthRangeZeroToOne = true
             };
+            WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
             window.Resized += () => { WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height); };
             CreateResources();
@@ -51,7 +52,7 @@ namespace SolidCode.Caerus.Rendering
             Debug.Log("Added " + drawables.Count + " drawables");
         }
 
-        public void StartRenderLoop()
+        public void StartRenderLoop(EntityComponentSystem ecs)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
@@ -67,6 +68,7 @@ namespace SolidCode.Caerus.Rendering
                         window.WindowState = WindowState.BorderlessFullScreen;
                     }
                     frame++;
+                    ecs.Update();
                     Draw();
                     watch = System.Diagnostics.Stopwatch.StartNew();
                     Thread.Sleep((int)Math.Round(1000f / TargetFramerate));
@@ -89,19 +91,7 @@ namespace SolidCode.Caerus.Rendering
             foreach (Drawable drawable in _drawables)
             {
                 drawable.SetGlobalMatrix(_graphicsDevice, WindowScalingMatrix);
-                _commandList.SetVertexBuffer(0, drawable.vertexBuffer);
-                _commandList.SetIndexBuffer(drawable.indexBuffer, IndexFormat.UInt16);
-                if (drawable.pipeline == null)
-                {
-                    Debug.Error("EOepoaigpa");
-                }
-                _commandList.SetPipeline(drawable.pipeline);
-                _commandList.DrawIndexed(
-                    indexCount: 4,
-                    instanceCount: 1,
-                    indexStart: 0,
-                    vertexOffset: 0,
-                    instanceStart: 0);
+                drawable.Draw(_commandList);
             }
             _commandList.End();
 

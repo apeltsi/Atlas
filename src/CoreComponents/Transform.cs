@@ -19,21 +19,14 @@ namespace SolidCode.Caerus.Components
             this.scale = Vector2.One;
         }
 
-        public Matrix4x4 GetPositionMatrix()
+        public Matrix4x4 GetTransformationMatrix()
         {
             return new Matrix4x4(
-                1, 0, 0, this.position.X,
-                0, 1, 0, this.position.Y,
+                this.scale.X, 0, 0, this.position.X,
+                0, this.scale.Y, 0, this.position.Y,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
         }
-        public Matrix4x4 GetScaleMatrix()
-        {
-            return new Matrix4x4(
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 0,
-                0, 0, 0, 1);
-        }
+
     }
 }

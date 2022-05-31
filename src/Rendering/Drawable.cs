@@ -5,6 +5,9 @@ using Veldrid;
 
 namespace SolidCode.Caerus.Rendering
 {
+    /// <summary>
+    /// A representation of something that will be drawn onscreen
+    /// </summary>
     public abstract class Drawable
     {
         public Pipeline pipeline;
@@ -12,28 +15,34 @@ namespace SolidCode.Caerus.Rendering
         public DeviceBuffer vertexBuffer;
         public DeviceBuffer indexBuffer;
         public DeviceBuffer uniformBuffer;
+        public ResourceSet _transformSet;
+        public uint indexCount = 0;
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             Debug.Log(LogCategories.Rendering, "Something went wrong! You shouldn't be disposing an abstract class!");
         }
 
-        public void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public virtual void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
             _graphicsDevice.UpdateBuffer(uniformBuffer, 0, matrix);
         }
 
+        public virtual void Draw(CommandList cl)
+        {
+
+        }
+
     }
-    /// <summary>
-    /// A representation of something that will be drawn onscreen
-    /// </summary>
     public struct TransformStruct
     {
-        Matrix4x4 Matrix;
+        Matrix4x4 Screen;
+        Matrix4x4 Transform;
 
-        public TransformStruct(Matrix4x4 matrix)
+        public TransformStruct(Matrix4x4 matrix, Matrix4x4 transform)
         {
-            Matrix = matrix;
+            Screen = matrix;
+            Transform = transform;
         }
     }
     public class Drawable<T> : Drawable where T : struct
@@ -43,6 +52,7 @@ namespace SolidCode.Caerus.Rendering
         {
             this.transform = t;
             CreateResources(_graphicsDevice, mesh, shader);
+            indexCount = (uint)mesh.Indicies.Length;
             Debug.Log(LogCategories.Rendering, "Drawable resources created");
         }
         void CreateResources(GraphicsDevice _graphicsDevice, Mesh<T> mesh, Shader shader)
@@ -55,11 +65,9 @@ namespace SolidCode.Caerus.Rendering
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             uniformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
             var uniformLayout = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, ShaderStages.Vertex);
-            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(new ResourceLayoutDescription(uniformLayout));
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, mesh.Indicies);
-            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(Matrix4x4.Identity));
-
+            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity));
 
             VertexLayoutDescription vertexLayout = mesh.VertexLayout;
 
@@ -67,7 +75,9 @@ namespace SolidCode.Caerus.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
-
+            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+                new ResourceLayoutDescription(
+                    new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, ShaderStages.Vertex)));
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
                 depthTestEnabled: true,
                 depthWriteEnabled: true,
@@ -89,15 +99,33 @@ namespace SolidCode.Caerus.Rendering
 
             pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
+            _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
+                uniformResourceLayout,
+                uniformBuffer));
+
         }
 
-        public void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public override void Draw(CommandList cl)
         {
-            Debug.Log("setting global matrix");
-            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(matrix));
+            cl.SetVertexBuffer(0, vertexBuffer);
+            cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
+            cl.SetPipeline(pipeline);
+            cl.SetGraphicsResourceSet(0, _transformSet);
+            cl.DrawIndexed(
+                indexCount: indexCount,
+                instanceCount: 1,
+                indexStart: 0,
+                vertexOffset: 0,
+                instanceStart: 0);
+
         }
 
-        public void Dispose()
+        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        {
+            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix()));
+        }
+
+        public override void Dispose()
         {
             pipeline.Dispose();
             foreach (Veldrid.Shader shader in _shaders)

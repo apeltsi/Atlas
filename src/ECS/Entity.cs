@@ -96,7 +96,6 @@
                 if (component.enabled)
                     drawables.AddRange(component.StartRender(Window._graphicsDevice));
             }
-            Debug.Log("returning drawable to ECS");
 
             return drawables;
         }

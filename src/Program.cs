@@ -46,7 +46,7 @@ namespace SolidCode.Caerus
             Debug.Log(LogCategories.Rendering, "Starting renderloop");
             try
             {
-                w.StartRenderLoop();
+                w.StartRenderLoop(ecs);
 
             }
             catch (Exception ex)

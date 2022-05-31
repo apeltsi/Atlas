@@ -24,17 +24,13 @@ public class DebugRenderer : RenderComponent
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
         mesh = new Mesh<VertexPositionColor>(quadVertices, quadIndices, layout);
         var drawable = new Drawable<VertexPositionColor>(_graphicsDevice, ShaderManager.GetShader("shader"), mesh, entity.GetComponent<Transform>());
-        Debug.Log("im still alive");
         List<Drawable> drawables = new List<Drawable>();
-        Debug.Log("after all this");
         drawables.Add(drawable);
-        Debug.Log("returning drawable");
         return drawables.ToArray();
     }
 
     public override void Update()
     {
-        Debug.Log("Update time!");
     }
     public override void FixedUpdate()
     {
