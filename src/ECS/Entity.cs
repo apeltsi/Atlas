@@ -10,6 +10,7 @@
         public string name = "Entity";
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
+        public Entity? parent;
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
@@ -28,6 +29,16 @@
                 sca = (Vector2)scale;
             }
             AddComponent<Transform>();
+        }
+
+        public void SetParent(Entity e)
+        {
+            if (parent != null)
+            {
+                parent.children.Remove(this);
+            }
+            parent = e;
+            parent.children.Add(this);
         }
 
         public void AddComponent<T>() where T : Component, new()
