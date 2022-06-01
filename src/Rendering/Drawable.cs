@@ -14,8 +14,7 @@ namespace SolidCode.Caerus.Rendering
         public Veldrid.Shader[] _shaders;
         public DeviceBuffer vertexBuffer;
         public DeviceBuffer indexBuffer;
-        public DeviceBuffer uniformBuffer;
-        public DeviceBuffer screenSizeUniformBuffer;
+        public DeviceBuffer transformBuffer;
         public ResourceSet _transformSet;
         public uint indexCount = 0;
 
@@ -30,8 +29,13 @@ namespace SolidCode.Caerus.Rendering
 
         public virtual void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, matrix);
         }
+
+        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, string buffer, TBufferType value) where TBufferType : struct
+        {
+
+        }
+
 
         public virtual void Draw(CommandList cl)
         {
@@ -65,18 +69,51 @@ namespace SolidCode.Caerus.Rendering
             this.WindowSize = new Vector4(size.X, size.Y, 0, 0);
         }
     }
+    public abstract class Uniform
+    {
+        public ShaderStages shaderStages;
+        public string name = "";
+    }
+
+    public class Uniform<T> : Uniform where T : struct
+    {
+        public T initialValue;
+
+        public Uniform(T initialValue, ShaderStages shaderStages, string name)
+        {
+            this.initialValue = initialValue;
+            this.shaderStages = shaderStages;
+            this.name = name;
+        }
+    }
 
     public class Drawable<T> : Drawable where T : struct
     {
         public Transform transform;
         private string _shader;
         private Mesh<T> _mesh;
+        private List<Uniform> _uniformsPrototypes;
+        private List<string> _texturePrototypes;
+        private Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
+        private Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
 
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t)
+
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, List<Uniform>? uniforms = null, List<string>? textures = null)
         {
             this._shader = shaderPath;
             this._mesh = mesh;
             this.transform = t;
+            if (uniforms == null)
+            {
+                uniforms = new List<Uniform>();
+            }
+            this._uniformsPrototypes = uniforms;
+            if (textures == null)
+            {
+                textures = new List<string>();
+            }
+            this._texturePrototypes = textures;
+
             CreateResources(_graphicsDevice, mesh, shaderPath);
             indexCount = (uint)mesh.Indicies.Length;
             Debug.Log(LogCategories.Rendering, "Drawable resources created");
@@ -89,18 +126,33 @@ namespace SolidCode.Caerus.Rendering
         {
             Shader shader = ShaderManager.GetShader(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
-
+            List<Texture> _loadedTextures = new List<Texture>();
+            foreach (string texPath in _texturePrototypes)
+            {
+                _loadedTextures.Add(new Texture(texPath + ".ktx", texPath, _graphicsDevice, factory));
+            }
 
 
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-            uniformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
-            screenSizeUniformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<ScreenSizeStruct>(), BufferUsage.UniformBuffer));
+            transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
+            foreach (Uniform<T> uniform in _uniformsPrototypes)
+            {
+                _uniformBuffers.Add(uniform.name, factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(uniform.initialValue), BufferUsage.UniformBuffer)));
+                _graphicsDevice.UpdateBuffer(_uniformBuffers[uniform.name], 0, uniform.initialValue);
+            }
+
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, mesh.Indicies);
-            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
-            _graphicsDevice.UpdateBuffer(screenSizeUniformBuffer, 0, new ScreenSizeStruct(Vector2.One));
+            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
+
+            // Next lest load textures to the gpu
+            foreach (Texture texture in _loadedTextures)
+            {
+                _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
+            }
+
 
             VertexLayoutDescription vertexLayout = mesh.VertexLayout;
 
@@ -108,10 +160,23 @@ namespace SolidCode.Caerus.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
+            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[1 + _uniformBuffers.Count + _textures.Count * 2];
+            elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, ShaderStages.Vertex);
+            int i = 1;
+            foreach (Uniform<T> uniform in _uniformsPrototypes)
+            {
+                elementDescriptions[i] = new ResourceLayoutElementDescription(uniform.name, ResourceKind.UniformBuffer, uniform.shaderStages);
+                i++;
+            }
+            foreach (Texture texture in _loadedTextures)
+            {
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+                i++;
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
+                i++;
+            }
             ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
-                new ResourceLayoutDescription(
-                    new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-                    new ResourceLayoutElementDescription("ScreenSize", ResourceKind.UniformBuffer, ShaderStages.Fragment)));
+                new ResourceLayoutDescription(elementDescriptions));
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
                 depthTestEnabled: true,
                 depthWriteEnabled: true,
@@ -133,9 +198,24 @@ namespace SolidCode.Caerus.Rendering
 
             pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
+            BindableResource[] buffers = new BindableResource[1 + _uniformBuffers.Count + _textures.Count * 2];
+            buffers[0] = transformBuffer;
+            i = 1;
+            foreach (DeviceBuffer buffer in _uniformBuffers.Values)
+            {
+                buffers[i] = buffer;
+                i++;
+            }
+            foreach (TextureView texView in _textures.Values)
+            {
+                buffers[i] = texView;
+                i++;
+                buffers[i] = _graphicsDevice.Aniso4xSampler;
+                i++;
+            }
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 uniformResourceLayout,
-                uniformBuffer, screenSizeUniformBuffer));
+                buffers));
 
         }
 
@@ -153,14 +233,14 @@ namespace SolidCode.Caerus.Rendering
                 instanceStart: 0);
         }
 
-        public override void SetScreenSize(GraphicsDevice _graphicsDevice, Vector2 size)
+        public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, string buffer, TBufferType value) where TBufferType : struct
         {
-            _graphicsDevice.UpdateBuffer(screenSizeUniformBuffer, 0, new ScreenSizeStruct(size));
+            _graphicsDevice.UpdateBuffer(_uniformBuffers[buffer], 0, value);
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            _graphicsDevice.UpdateBuffer(uniformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
+            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
         }
 
         public override void Dispose()
@@ -172,8 +252,18 @@ namespace SolidCode.Caerus.Rendering
             }
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
-            uniformBuffer.Dispose();
-            screenSizeUniformBuffer.Dispose();
+            transformBuffer.Dispose();
+            foreach (DeviceBuffer buffer in _uniformBuffers.Values)
+            {
+                buffer.Dispose();
+            }
+            _uniformBuffers.Clear();
+            foreach (TextureView texView in _textures.Values)
+            {
+                texView.Dispose();
+            }
+            _textures.Clear();
+
         }
 
     }

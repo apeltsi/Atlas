@@ -15,9 +15,10 @@ namespace SolidCode.Caerus
 
     class Caerus
     {
-        public static string? DataDirectory = Path.Join(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "data" + Path.DirectorySeparatorChar);
-        public static string? ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
+        public static string DataDirectory = Path.Join(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "data" + Path.DirectorySeparatorChar);
+        public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
+        public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public const string Version = "0.1.0a";
 
         public static int updateFrequency = 50;
@@ -44,6 +45,12 @@ namespace SolidCode.Caerus
 
             ecs.AddEntity(e);
 
+            Entity e2 = new Entity("Beep Boop");
+            e2.AddComponent<DefaultComponent>();
+            e2.AddComponent<TextRenderer>();
+            e2.AddComponent<FrameCounter>();
+
+            ecs.AddEntity(e2);
 
             Debug.Log(LogCategories.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
             Window w = new Window();

@@ -25,10 +25,17 @@ namespace SolidCode.Caerus.ECS
                     e.Start();
             }
             List<Drawable> drawables = new List<Drawable>();
-            foreach (Entity e in entities)
+            try
             {
-                if (e.enabled)
-                    drawables.AddRange(e.RenderStart());
+                foreach (Entity e in entities)
+                {
+                    if (e.enabled)
+                        drawables.AddRange(e.RenderStart());
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Error(LogCategories.ECS, e.ToString());
             }
             if (window == null)
             {

@@ -8,22 +8,24 @@ using Veldrid;
 public class DebugRenderer : RenderComponent
 {
     int fixedUpdates = 0;
-    Mesh<VertexPositionColor> mesh;
+    Mesh<VertexPositionUV> mesh;
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        VertexPositionColor[] quadVertices =
+        VertexPositionUV[] quadVertices =
                {
-                new VertexPositionColor(new Vector2(-0.75f, 0.75f), RgbaFloat.Red),
-                new VertexPositionColor(new Vector2(0.75f, 0.75f), RgbaFloat.Green),
-                new VertexPositionColor(new Vector2(-0.75f, -0.75f), RgbaFloat.Blue),
-                new VertexPositionColor(new Vector2(0.75f, -0.75f), RgbaFloat.Yellow)
+                new VertexPositionUV(new Vector2(-0.75f, 0.75f), new Vector4(0, 1,0,0)),
+                new VertexPositionUV(new Vector2(0.75f, 0.75f), new Vector4(1, 1,0,0)),
+                new VertexPositionUV(new Vector2(-0.75f, -0.75f), new Vector4(0, 0,0,0)),
+                new VertexPositionUV(new Vector2(0.75f, -0.75f), new Vector4(1, 0,0,0))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
-        mesh = new Mesh<VertexPositionColor>(quadVertices, quadIndices, layout);
-        var drawable = new Drawable<VertexPositionColor>(_graphicsDevice, "hex/shader", mesh, entity.GetComponent<Transform>());
+        mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
+        List<string> textures = new List<string>();
+        textures.Add("bg");
+        var drawable = new Drawable<VertexPositionUV>(_graphicsDevice, "bg/shader", mesh, entity.GetComponent<Transform>(), null, textures);
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);
         return drawables.ToArray();
@@ -37,14 +39,14 @@ public class DebugRenderer : RenderComponent
 
     }
 
-    struct VertexPositionColor
+    struct VertexPositionUV
     {
         public Vector2 Position; // This is the position, in normalized device coordinates.
-        public RgbaFloat Color; // This is the color of the vertex.
-        public VertexPositionColor(Vector2 position, RgbaFloat color)
+        public Vector4 UV; // This is the color of the vertex.
+        public VertexPositionUV(Vector2 position, Vector4 uv)
         {
             Position = position;
-            Color = color;
+            UV = uv;
         }
         public const uint SizeInBytes = 24;
     }

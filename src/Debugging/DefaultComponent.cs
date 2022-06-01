@@ -12,15 +12,14 @@ class DefaultComponent : Component
         Transform? t = entity.GetComponent<Transform>();
         if (t == null) return;
         Debug.Log("and im at " + t.position);
-        t.position = new Vector2(0.1f, 0.2f);
+        t.position = new Vector2(0f, 0f);
     }
 
     public override void Update()
     {
         Transform? t = entity.GetComponent<Transform>();
         if (t == null) return;
-        t.position += new Vector2(0.0001f, 0.0001f);
-        t.scale += new Vector2(0.0025f, 0.0025f);
+        t.scale *= new Vector2(1.0005f, 1.0005f);
     }
     public override void FixedUpdate()
     {

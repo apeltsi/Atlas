@@ -7,11 +7,11 @@ layout(set = 0, binding = 0) uniform TransformMatrices
 };
 
 layout(location = 0) in vec2 Position;
-layout(location = 1) in vec4 Color;
-layout(location = 0) out vec4 fsin_Color;
+layout(location = 1) in vec4 UV;
+layout(location = 0) out vec4 fsin_UV;
 
 void main()
 {
     gl_Position = vec4(Position, 0, 1) * Matrix * Transform * Camera;
-    fsin_Color = Color;
+    fsin_UV = vec4(UV.x * 148, UV.y * 256, UV.z, UV.w);
 } 
