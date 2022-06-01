@@ -49,10 +49,8 @@ namespace SolidCode.Caerus.Rendering
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
-            window.Resized += () =>
-            {
-                WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
-            };
+            Debug.Log(LogCategories.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
+            window.Resized += () => { WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height); };
             CreateResources();
 
             Debug.Log(LogCategories.Rendering, "Resources created!");
