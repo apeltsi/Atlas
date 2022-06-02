@@ -11,8 +11,6 @@ class FrameCounter : Component
     float time = 0f;
     public override void Start()
     {
-        if (entity == null) return;
-        Debug.Log("Hello my name is " + entity.name);
         TextRenderer? textRenderer = entity.GetComponent<TextRenderer>();
         if (textRenderer == null) return;
         tr = textRenderer;

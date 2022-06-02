@@ -88,8 +88,8 @@ namespace SolidCode.Caerus.Components
             Vector2 scale = this.globalScale;
 
             return new Matrix4x4(
-                scale.X, 0, 0, pos.X,
-                0, scale.Y, 0, pos.Y,
+                scale.X, 0, 0, pos.X / 1000f,
+                0, scale.Y, 0, pos.Y / 1000f,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
         }

@@ -196,7 +196,7 @@ namespace SolidCode.Caerus.Rendering
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
 
-            pipelineDescription.Outputs = _graphicsDevice.SwapchainFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Window.DuplicatorFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[1 + _uniformBuffers.Count + _textures.Count * 2];
             buffers[0] = transformBuffer;

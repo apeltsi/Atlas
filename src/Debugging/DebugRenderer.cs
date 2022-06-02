@@ -13,10 +13,10 @@ public class DebugRenderer : RenderComponent
     {
         VertexPositionUV[] quadVertices =
                {
-                new VertexPositionUV(new Vector2(-0.75f, 0.75f), new Vector4(0, 1,0,0)),
-                new VertexPositionUV(new Vector2(0.75f, 0.75f), new Vector4(1, 1,0,0)),
-                new VertexPositionUV(new Vector2(-0.75f, -0.75f), new Vector4(0, 0,0,0)),
-                new VertexPositionUV(new Vector2(0.75f, -0.75f), new Vector4(1, 0,0,0))
+                new VertexPositionUV(new Vector2(-0.75f, 0.75f), new Vector4(0, 0,0,0)),
+                new VertexPositionUV(new Vector2(0.75f, 0.75f), new Vector4(1, 0,0,0)),
+                new VertexPositionUV(new Vector2(-0.75f, -0.75f), new Vector4(0, 1,0,0)),
+                new VertexPositionUV(new Vector2(0.75f, -0.75f), new Vector4(1, 1,0,0))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(
@@ -24,7 +24,7 @@ public class DebugRenderer : RenderComponent
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         List<string> textures = new List<string>();
-        textures.Add("bg");
+        textures.Add("infile");
         var drawable = new Drawable<VertexPositionUV>(_graphicsDevice, "bg/shader", mesh, entity.GetComponent<Transform>(), null, textures);
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);

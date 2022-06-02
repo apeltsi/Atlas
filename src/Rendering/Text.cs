@@ -37,7 +37,7 @@ namespace SolidCode.Caerus.Rendering
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
 
-            textRenderer = new VeldridTextRenderer(_graphicsDevice, Window.GetCommandList(), font);
+            textRenderer = new VeldridTextRenderer(_graphicsDevice, Window.GetCommandList(), font, Window.DuplicatorFramebuffer);
             textRenderer.DrawText(text, transform.position, new Color(255, 255, 255, 1), 1f);
         }
         public override void Draw(CommandList cl)

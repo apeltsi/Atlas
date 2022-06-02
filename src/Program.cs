@@ -4,6 +4,7 @@ namespace SolidCode.Caerus
     using System.Timers;
     using SolidCode.Caerus.Rendering;
     using SolidCode.Caerus.ECS;
+    using SolidCode.Caerus.Components;
 
     public enum LogCategories
     {
@@ -46,11 +47,17 @@ namespace SolidCode.Caerus
             ecs.AddEntity(e);
 
             Entity e2 = new Entity("Beep Boop");
-            e2.AddComponent<DefaultComponent>();
             e2.AddComponent<TextRenderer>();
             e2.AddComponent<FrameCounter>();
 
             ecs.AddEntity(e2);
+            Entity e3 = new Entity("Beep Boop");
+            e3.AddComponent<TextRenderer>();
+
+            ecs.AddEntity(e3);
+            e3.GetComponent<TextRenderer>().Text = "PLAY GAME NOW!!!";
+            e3.GetComponent<Transform>().position = new System.Numerics.Vector2(870, 530);
+
 
             Debug.Log(LogCategories.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
             Window w = new Window();

@@ -1,5 +1,6 @@
 using System.Numerics;
 using SolidCode.Caerus.ECS;
+using SolidCode.Caerus.Input;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.SPIRV;
@@ -16,6 +17,12 @@ namespace SolidCode.Caerus.Rendering
         Sdl2Window window;
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
         public const int TargetFramerate = 80;
+        public static Framebuffer DuplicatorFramebuffer { get; protected set; }
+        Veldrid.Texture MainColorTexture;
+        Veldrid.Texture MainDepthTexture;
+        Veldrid.Texture MainSceneResolvedColorTexture;
+        public static Veldrid.TextureView MainSceneResolvedColorView { get; protected set; }
+        PostProcess postProcess;
         /// <summary>
         /// Time elapsed between frames, in seconds.
         /// </summary>
@@ -77,9 +84,12 @@ namespace SolidCode.Caerus.Rendering
                         window.Visible = true;
                         window.WindowState = WindowState.FullScreen;
                     }
+                    InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();
+
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
+                        InputManager.KeyPress(inputSnapshot.KeyEvents[i].Key);
                         if (inputSnapshot.KeyEvents[i].Key == Key.F5 && inputSnapshot.KeyEvents[i].Down == true)
                         {
                             ReloadAllDrawables();
@@ -87,11 +97,11 @@ namespace SolidCode.Caerus.Rendering
                     }
                     frame++;
                     ecs.Update();
-                    Draw();
-                    watch.Stop();
                     frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
+                    float frameRenderTime = Math.Clamp(frameDeltaTime * 1000f, 0f, 1000f / TargetFramerate);
                     watch = System.Diagnostics.Stopwatch.StartNew();
-                    Thread.Sleep((int)Math.Round(1000f / TargetFramerate));
+                    Draw();
+                    Thread.Sleep((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
                 }
             }
 
@@ -124,37 +134,6 @@ namespace SolidCode.Caerus.Rendering
             // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             _commandList.Begin();
-            TextureDescription mainColorDesc = TextureDescription.Texture2D(
-                _graphicsDevice.SwapchainFramebuffer.Width,
-                _graphicsDevice.SwapchainFramebuffer.Height,
-                1,
-                1,
-                PixelFormat.R16_G16_B16_A16_Float,
-                TextureUsage.RenderTarget | TextureUsage.Sampled,
-            TextureSampleCount.Count4);
-            TextureDescription mainDepthDesc = TextureDescription.Texture2D(
-                _graphicsDevice.SwapchainFramebuffer.Width,
-                _graphicsDevice.SwapchainFramebuffer.Height,
-                1,
-                1,
-                PixelFormat.R32_Float,
-                TextureUsage.DepthStencil,
-            TextureSampleCount.Count4);
-            Veldrid.Texture MainColorTexture = factory.CreateTexture(ref mainColorDesc);
-            Veldrid.Texture MainDepthTexture = factory.CreateTexture(ref mainDepthDesc);
-
-            mainColorDesc.SampleCount = TextureSampleCount.Count1;
-            Veldrid.Texture MainSceneResolvedColorTexture = factory.CreateTexture(ref mainColorDesc);
-            Veldrid.TextureView MainSceneResolvedColorView = factory.CreateTextureView(MainSceneResolvedColorTexture);
-            // Welcome back! This is where im at:
-            // Basically we have to render everything in our other framebuffer
-            // Then copy that buffer to our main buffer. The problem is that our pipeline doesn't know what our buffer looks like.
-            // Also we still have to copy the buffer back to the main swapchain buffer.
-            // https://github.com/mellinoe/veldrid/blob/54938031c6518a3b3b3221e0e02fbcc8f318b11f/src/NeoDemo/Scene.cs#L210
-            // https://github.com/mellinoe/veldrid/blob/master/src/NeoDemo/SceneContext.cs#L201
-            // ok i go to sleep now goodluck!
-            FramebufferDescription fbDesc = new FramebufferDescription(MainDepthTexture, MainColorTexture);
-            Framebuffer DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
             // Before we can issue a Draw command, we need to set a Framebuffer.
             _commandList.SetFramebuffer(DuplicatorFramebuffer);
 
@@ -170,7 +149,8 @@ namespace SolidCode.Caerus.Rendering
 
             _commandList.ResolveTexture(MainColorTexture, MainSceneResolvedColorTexture);
 
-            _commandList.SetFramebuffer(DuplicatorFramebuffer);
+            _commandList.SetFramebuffer(_graphicsDevice.MainSwapchain.Framebuffer);
+            postProcess.Draw(_commandList);
             _commandList.End();
 
             // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
@@ -184,6 +164,40 @@ namespace SolidCode.Caerus.Rendering
         {
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             _commandList = factory.CreateCommandList();
+            TextureDescription mainColorDesc = TextureDescription.Texture2D(
+                _graphicsDevice.SwapchainFramebuffer.Width,
+                _graphicsDevice.SwapchainFramebuffer.Height,
+                1,
+                1,
+                PixelFormat.R16_G16_B16_A16_Float,
+                TextureUsage.RenderTarget | TextureUsage.Sampled,
+            TextureSampleCount.Count2);
+
+            TextureDescription mainDepthDesc = TextureDescription.Texture2D(
+    _graphicsDevice.SwapchainFramebuffer.Width,
+    _graphicsDevice.SwapchainFramebuffer.Height,
+    1,
+    1,
+    PixelFormat.R32_Float,
+    TextureUsage.DepthStencil,
+TextureSampleCount.Count2);
+            MainColorTexture = factory.CreateTexture(ref mainColorDesc);
+            MainDepthTexture = factory.CreateTexture(ref mainDepthDesc);
+
+            mainColorDesc.SampleCount = TextureSampleCount.Count1;
+            MainSceneResolvedColorTexture = factory.CreateTexture(ref mainColorDesc);
+            MainSceneResolvedColorView = factory.CreateTextureView(MainSceneResolvedColorTexture);
+            // Welcome back! This is where im at:
+            // Basically we have to render everything in our other framebuffer
+            // Then copy that buffer to our main buffer. The problem is that our pipeline doesn't know what our buffer looks like.
+            // Also we still have to copy the buffer back to the main swapchain buffer.
+            // https://github.com/mellinoe/veldrid/blob/54938031c6518a3b3b3221e0e02fbcc8f318b11f/src/NeoDemo/Scene.cs#L210
+            // https://github.com/mellinoe/veldrid/blob/master/src/NeoDemo/SceneContext.cs#L201
+            // ok i go to sleep now goodluck!
+            FramebufferDescription fbDesc = new FramebufferDescription(MainDepthTexture, MainColorTexture);
+            DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
+
+            postProcess = new PostProcess(_graphicsDevice, MainSceneResolvedColorView);
         }
 
         private void DisposeResources()
@@ -192,6 +206,10 @@ namespace SolidCode.Caerus.Rendering
             {
                 drawable.Dispose();
             }
+            MainColorTexture.Dispose();
+            MainSceneResolvedColorTexture.Dispose();
+            MainDepthTexture.Dispose();
+            MainSceneResolvedColorView.Dispose();
             _commandList.Dispose();
             _graphicsDevice.Dispose();
             Debug.Log(LogCategories.Rendering, "Disposed all resources");
