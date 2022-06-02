@@ -12,6 +12,6 @@ layout(location = 0) out vec4 fsin_Color;
 
 void main()
 {
-    gl_Position = vec4(Position, 0, 1) * Matrix * Transform * Camera;
+    gl_Position = vec4(Position, 0, 1) * Transform * Matrix * Camera;
     fsin_Color = Color;
 } 

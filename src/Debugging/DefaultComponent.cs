@@ -3,6 +3,7 @@ using SolidCode.Caerus;
 using SolidCode.Caerus.Components;
 using SolidCode.Caerus.ECS;
 using SolidCode.Caerus.Input;
+using SolidCode.Caerus.Rendering;
 
 class DefaultComponent : Component
 {
@@ -15,36 +16,20 @@ class DefaultComponent : Component
         if (t == null) return;
         Debug.Log("and im at " + t.position);
         t.scale = new Vector2(1f, 1f);
+        t.position = new Vector2(0f, 0f);
     }
-
+    float time = 0f;
+    int frames = 0;
     public override void Update()
     {
+
         Transform? t = entity.GetComponent<Transform>();
         if (t == null) return;
+        t.rotation += 0.001f;
+        //t.scale *= 1.0001f;
         if (InputManager.GetKey(Veldrid.Key.A))
         {
-            t.position += new Vector2(-5f, 0f);
-        }
-        if (InputManager.GetKey(Veldrid.Key.D))
-        {
-            t.position += new Vector2(5f, 0f);
-
-        }
-        if (dir)
-        {
-            t.scale *= new Vector2(1.04f, 1.04f);
-        }
-        else
-        {
-            t.scale *= new Vector2(0.96f, 0.96f);
-        }
-        if (t.scale.X > 2f)
-        {
-            dir = false;
-        }
-        else if (t.scale.X < 0.5f)
-        {
-            dir = true;
+            t.position += new Vector2(-0.01f, 0f);
         }
     }
     public override void FixedUpdate()

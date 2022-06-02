@@ -16,7 +16,7 @@ namespace SolidCode.Caerus.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         Sdl2Window window;
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 80;
+        public const int TargetFramerate = 8000;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -37,8 +37,8 @@ namespace SolidCode.Caerus.Rendering
             {
                 X = 100,
                 Y = 100,
-                WindowWidth = 1920,
-                WindowHeight = 1080,
+                WindowWidth = 1280,
+                WindowHeight = 720,
                 WindowTitle = title,
                 WindowInitialState = WindowState.Hidden,
             };
@@ -49,7 +49,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 PreferStandardClipSpaceYDirection = true,
                 PreferDepthRangeZeroToOne = true,
-                SyncToVerticalBlank = true,
+                SyncToVerticalBlank = false,
                 SwapchainDepthFormat = PixelFormat.R16_UNorm,
                 ResourceBindingModel = ResourceBindingModel.Improved,
                 SwapchainSrgbFormat = false
@@ -82,7 +82,7 @@ namespace SolidCode.Caerus.Rendering
                     if (frame == 1)
                     {
                         window.Visible = true;
-                        window.WindowState = WindowState.FullScreen;
+                        window.WindowState = WindowState.Normal;
                     }
                     InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();

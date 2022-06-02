@@ -1,8 +1,7 @@
 
 namespace SolidCode.Caerus.Rendering
 {
-    using SharpText.Core;
-    using SharpText.Veldrid;
+    using FontStashSharp;
     using SolidCode.Caerus.Components;
     using Veldrid;
 
@@ -10,44 +9,32 @@ namespace SolidCode.Caerus.Rendering
     {
         public Transform transform;
         string text;
-        Font font;
-        VeldridTextRenderer textRenderer;
+        FontSystem font;
+        string fontPath;
         public TextDrawable(string text, string fontPath, int size, Transform transform)
         {
             this.text = text;
             this.transform = transform;
-            try
-            {
-                font = new Font(Path.Join(Caerus.AssetsDirectory, fontPath), size);
-            }
-            catch (Exception e)
-            {
-                Debug.Error("Font couldn't be loaded: " + e.ToString());
-            }
+            this.fontPath = fontPath;
             CreateResources(Window._graphicsDevice);
         }
 
         public void UpdateText(string text)
         {
-            Window._graphicsDevice.WaitForIdle();
-            textRenderer.Update();
-            textRenderer.DrawText(text, transform.position, new Color(255, 255, 255, 1), 1f);
         }
 
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-
-            textRenderer = new VeldridTextRenderer(_graphicsDevice, Window.GetCommandList(), font, Window.DuplicatorFramebuffer);
-            textRenderer.DrawText(text, transform.position, new Color(255, 255, 255, 1), 1f);
+            this.font = new FontSystem();
+            FontManager.AddFont(this.font, this.fontPath);
         }
         public override void Draw(CommandList cl)
         {
-            textRenderer.Draw();
         }
 
         public override void Dispose()
         {
-            textRenderer.Dispose();
+            this.font.Dispose();
         }
 
 
