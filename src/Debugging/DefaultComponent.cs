@@ -25,8 +25,8 @@ class DefaultComponent : Component
 
         Transform? t = entity.GetComponent<Transform>();
         if (t == null) return;
-        t.rotation += 0.001f;
-        //t.scale *= 1.0001f;
+        t.rotation = 0.001f;
+        t.scale *= 1.0001f;
         if (InputManager.GetKey(Veldrid.Key.A))
         {
             t.position += new Vector2(-0.01f, 0f);

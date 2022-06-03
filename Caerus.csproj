@@ -31,7 +31,7 @@
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup> 
       <Content Include="data\*\*.*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>

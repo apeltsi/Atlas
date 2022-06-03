@@ -7,6 +7,7 @@ namespace SolidCode.Caerus.Components
         public Vector2 position;
         public Vector2 scale;
         public float rotation = 0f;
+        public float z;
         public Vector2 globalPosition
         {
             get
@@ -112,6 +113,47 @@ namespace SolidCode.Caerus.Components
             }
 
         }
+        public float globalZ
+        {
+            get
+            {
+                if (entity == null)
+                {
+                    return 0f;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>();
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global z and add it to ours
+                        return t.globalZ + z;
+                    }
+                }
+                return z;
+            }
+            set
+            {
+                if (entity == null)
+                {
+                    z = value;
+                    return;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>();
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global z and add it to ours
+                        z = value - t.globalZ;
+                    }
+                }
+
+                z = value;
+            }
+        }
 
         public Vector2 inheritedScale = Vector2.One;
 
@@ -131,10 +173,11 @@ namespace SolidCode.Caerus.Components
             Vector2 pos = this.globalPosition;
             Vector2 scale = this.globalScale;
             float rot = this.globalRotation;
+            float z = this.globalZ;
             Matrix4x4 translationAndPosition = new Matrix4x4(
                 scale.X, 0, 0, pos.X,
                 0, scale.Y, 0, pos.Y,
-                0, 0, 1, 0,
+                0, 0, 1, z,
                 0, 0, 0, 1);
             Matrix4x4 rotation = new Matrix4x4(
                 (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,

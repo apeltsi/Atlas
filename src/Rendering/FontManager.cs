@@ -13,7 +13,7 @@ namespace SolidCode.Caerus.Rendering
             }
             else
             {
-                loadedFonts.Add(font, File.ReadAllBytes(font));
+                loadedFonts.Add(font, File.ReadAllBytes(Path.Join(Caerus.AssetsDirectory, font)));
                 result.AddFont(loadedFonts[font]);
 
             }
