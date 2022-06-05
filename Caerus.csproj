@@ -1,29 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ApplicationIcon>Caerus.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-    <Choose>
-        <When Condition=" '$(Configuration)'=='Debug' ">
-          <PropertyGroup>
-                <DebugSymbols>true</DebugSymbols>
-                <DebugType>full</DebugType>
-                <Optimize>false</Optimize>
-                <OutputType>Exe</OutputType>
-          </PropertyGroup>
-        </When>
-        <When Condition=" '$(Configuration)'=='Release' ">
-          <PropertyGroup>
-                <DebugSymbols>false</DebugSymbols>
-                <Optimize>true</Optimize>
-                <OutputType>WinExe</OutputType>
-          </PropertyGroup>
-        </When>
-    </Choose>
   <ItemGroup>
     <PackageReference Include="FontStashSharp" Version="1.0.8" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />

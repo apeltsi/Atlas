@@ -8,15 +8,15 @@ using Veldrid.StartupUtilities;
 
 namespace SolidCode.Caerus.Rendering
 {
-    class Window
+    public class Window
     {
         public static GraphicsDevice _graphicsDevice;
         private static CommandList _commandList;
         private static List<Shader> _shaders = new List<Shader>();
         private static List<Drawable> _drawables = new List<Drawable>();
-        Sdl2Window window;
+        public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 8000;
+        public const int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -35,10 +35,10 @@ namespace SolidCode.Caerus.Rendering
             // TODO(amos): allow to open windows that arent borderless fullscreen, also allow changing window type at runtime
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
-                X = 100,
-                Y = 100,
-                WindowWidth = 1280,
-                WindowHeight = 720,
+                X = 20,
+                Y = 50,
+                WindowWidth = 600,
+                WindowHeight = 500,
                 WindowTitle = title,
                 WindowInitialState = WindowState.Hidden,
             };
@@ -49,7 +49,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 PreferStandardClipSpaceYDirection = true,
                 PreferDepthRangeZeroToOne = true,
-                SyncToVerticalBlank = false,
+                SyncToVerticalBlank = true,
                 SwapchainDepthFormat = PixelFormat.R16_UNorm,
                 ResourceBindingModel = ResourceBindingModel.Improved,
                 SwapchainSrgbFormat = false
@@ -57,10 +57,20 @@ namespace SolidCode.Caerus.Rendering
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
             Debug.Log(LogCategories.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
-            window.Resized += () => { WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height); };
+            window.Resized += () =>
+            {
+                _graphicsDevice.ResizeMainWindow((uint)window.Width, (uint)window.Height);
+                WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
+                CreateResources();
+            };
             CreateResources();
 
             Debug.Log(LogCategories.Rendering, "Resources created!");
+        }
+
+        public static void SetWindowState(WindowState state)
+        {
+            window.WindowState = state;
         }
 
         public void AddDrawables(List<Drawable> drawables)
@@ -69,14 +79,12 @@ namespace SolidCode.Caerus.Rendering
             Debug.Log("Added " + drawables.Count + " drawables");
         }
 
-        public bool StartRenderLoop(EntityComponentSystem ecs)
+        public void StartRenderLoop(EntityComponentSystem ecs)
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
-            bool reopen = false;
             while (window.Exists)
             {
-                // TODO(amos): Fix this nasty code
                 if (watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
                 {
                     if (frame == 1)
@@ -86,7 +94,6 @@ namespace SolidCode.Caerus.Rendering
                     }
                     InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();
-
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
                         InputManager.KeyPress(inputSnapshot.KeyEvents[i].Key);
@@ -106,7 +113,6 @@ namespace SolidCode.Caerus.Rendering
             }
 
             DisposeResources();
-            return reopen;
         }
 
 
@@ -164,6 +170,22 @@ namespace SolidCode.Caerus.Rendering
         {
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             _commandList = factory.CreateCommandList();
+            if (MainColorTexture != null && !MainColorTexture.IsDisposed)
+            {
+                MainColorTexture.Dispose();
+            }
+            if (MainDepthTexture != null && !MainDepthTexture.IsDisposed)
+            {
+                MainDepthTexture.Dispose();
+            }
+            if (MainSceneResolvedColorTexture != null && !MainSceneResolvedColorTexture.IsDisposed)
+            {
+                MainSceneResolvedColorTexture.Dispose();
+            }
+            if (DuplicatorFramebuffer != null && !DuplicatorFramebuffer.IsDisposed)
+            {
+                DuplicatorFramebuffer.Dispose();
+            }
             TextureDescription mainColorDesc = TextureDescription.Texture2D(
                 _graphicsDevice.SwapchainFramebuffer.Width,
                 _graphicsDevice.SwapchainFramebuffer.Height,
@@ -174,26 +196,19 @@ namespace SolidCode.Caerus.Rendering
             TextureSampleCount.Count2);
 
             TextureDescription mainDepthDesc = TextureDescription.Texture2D(
-    _graphicsDevice.SwapchainFramebuffer.Width,
-    _graphicsDevice.SwapchainFramebuffer.Height,
-    1,
-    1,
-    PixelFormat.R32_Float,
-    TextureUsage.DepthStencil,
-TextureSampleCount.Count2);
+            _graphicsDevice.SwapchainFramebuffer.Width,
+                _graphicsDevice.SwapchainFramebuffer.Height,
+                1,
+                1,
+                PixelFormat.R32_Float,
+                TextureUsage.DepthStencil,
+                TextureSampleCount.Count2);
             MainColorTexture = factory.CreateTexture(ref mainColorDesc);
             MainDepthTexture = factory.CreateTexture(ref mainDepthDesc);
 
             mainColorDesc.SampleCount = TextureSampleCount.Count1;
             MainSceneResolvedColorTexture = factory.CreateTexture(ref mainColorDesc);
             MainSceneResolvedColorView = factory.CreateTextureView(MainSceneResolvedColorTexture);
-            // Welcome back! This is where im at:
-            // Basically we have to render everything in our other framebuffer
-            // Then copy that buffer to our main buffer. The problem is that our pipeline doesn't know what our buffer looks like.
-            // Also we still have to copy the buffer back to the main swapchain buffer.
-            // https://github.com/mellinoe/veldrid/blob/54938031c6518a3b3b3221e0e02fbcc8f318b11f/src/NeoDemo/Scene.cs#L210
-            // https://github.com/mellinoe/veldrid/blob/master/src/NeoDemo/SceneContext.cs#L201
-            // ok i go to sleep now goodluck!
             FramebufferDescription fbDesc = new FramebufferDescription(MainDepthTexture, MainColorTexture);
             DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
 

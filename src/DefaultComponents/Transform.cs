@@ -168,7 +168,7 @@ namespace SolidCode.Caerus.Components
             this.scale = Vector2.One;
         }
 
-        public Matrix4x4 GetTransformationMatrix()
+        public virtual Matrix4x4 GetTransformationMatrix()
         {
             Vector2 pos = this.globalPosition;
             Vector2 scale = this.globalScale;

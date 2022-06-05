@@ -5,6 +5,7 @@ namespace SolidCode.Caerus
     using SolidCode.Caerus.Rendering;
     using SolidCode.Caerus.ECS;
     using SolidCode.Caerus.Components;
+    using SolidCode.Caerus.ECS.SceneManagement;
 
     public enum LogCategories
     {
@@ -14,7 +15,7 @@ namespace SolidCode.Caerus
         ECS
     }
 
-    class Caerus
+    public static class Caerus
     {
         public static string DataDirectory = Path.Join(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location), "data" + Path.DirectorySeparatorChar);
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
@@ -24,10 +25,11 @@ namespace SolidCode.Caerus
 
         public static int updateFrequency = 50;
         public static Timer timer;
-        static EntityComponentSystem ecs;
-        public static void Main()
+        public static EntityComponentSystem? ecs;
+        private static System.Diagnostics.Stopwatch watch;
+        public static void Start(Scene defaultScene, string windowTitle)
         {
-            var watch = System.Diagnostics.Stopwatch.StartNew();
+            watch = System.Diagnostics.Stopwatch.StartNew();
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
             Debug.Log(LogCategories.Framework, "Coeus " + Version + " starting up...");
 #if DEBUG
@@ -40,46 +42,27 @@ namespace SolidCode.Caerus
 #endif
 
             ecs = new EntityComponentSystem();
-            Entity e = new Entity("Hello World");
-            e.AddComponent<DefaultComponent>();
-            e.AddComponent<DebugRenderer>();
-
-            ecs.AddEntity(e);
-            Entity e2 = new Entity("Beep Boop");
-            e2.AddComponent<TextRenderer>();
-            e2.AddComponent<FrameCounter>();
-
-            ecs.AddEntity(e2);
-            Entity e3 = new Entity("Beep Boop");
-            e3.AddComponent<TextRenderer>();
-
-            ecs.AddEntity(e3);
-            e3.GetComponent<TextRenderer>().Text = "PLAY GAME NOW!!!";
-            e3.GetComponent<Transform>().position = new System.Numerics.Vector2(870, 530);
 
             Debug.Log(LogCategories.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
-            Window w = new Window();
+            Window w = new Window(windowTitle);
             Debug.Log(LogCategories.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
             ecs.window = w;
             ecs.Start();
+            SceneManager.LoadScene(defaultScene);
             Debug.Log(LogCategories.Framework, "ECS started after " + watch.ElapsedMilliseconds + "ms");
             StartFixedUpdateLoop(ecs);
             Debug.Log(LogCategories.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
-            bool rerun = false;
             try
             {
-                rerun = w.StartRenderLoop(ecs);
+                w.StartRenderLoop(ecs);
             }
             catch (Exception ex)
             {
                 Debug.Error(ex.ToString());
             }
+            ecs.Dispose();
             watch.Stop();
             Debug.Log(LogCategories.Framework, "Caerus shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
-            if (rerun)
-            {
-                Main();
-            }
         }
 
         public static void StartFixedUpdateLoop(EntityComponentSystem ecs)
@@ -95,6 +78,11 @@ namespace SolidCode.Caerus
         {
             if (ecs != null)
                 ecs.FixedUpdate();
+        }
+
+        public static float GetUptime()
+        {
+            return (watch.ElapsedMilliseconds) / 1000f;
         }
     }
 }

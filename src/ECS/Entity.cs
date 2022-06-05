@@ -41,7 +41,7 @@
             parent.children.Add(this);
         }
 
-        public void AddComponent<T>() where T : Component, new()
+        public Entity AddComponent<T>() where T : Component, new()
         {
             Component component = new T();
             component.entity = this;
@@ -51,8 +51,9 @@
             {
                 renderingComponents.Add((RenderComponent)component);
             }
+            return this;
         }
-        public void RemoveComponent(Component component)
+        public Entity RemoveComponent(Component component)
         {
             component.OnRemove();
 
@@ -61,6 +62,7 @@
             {
                 renderingComponents.Remove((RenderComponent)component);
             }
+            return this;
         }
         public T? GetComponent<T>() where T : Component
         {
@@ -80,6 +82,11 @@
                 if (component.enabled)
                     component.Start();
             }
+            foreach (Entity e in children)
+            {
+                e.Start();
+            }
+
         }
         public void Update()
         {
@@ -88,6 +95,11 @@
                 if (component.enabled)
                     component.Update();
             }
+            foreach (Entity e in children)
+            {
+                e.Update();
+            }
+
         }
 
         public void FixedUpdate()
@@ -97,6 +109,11 @@
                 if (component.enabled)
                     component.FixedUpdate();
             }
+            foreach (Entity e in children)
+            {
+                e.FixedUpdate();
+            }
+
         }
         public List<Drawable> RenderStart()
         {
@@ -108,7 +125,33 @@
                     drawables.AddRange(component.StartRender(Window._graphicsDevice));
             }
 
+            foreach (Entity e in children)
+            {
+                drawables.AddRange(e.RenderStart());
+            }
+
             return drawables;
+        }
+        /// <summary>
+        /// Assigns children to Entity
+        /// </summary>
+        public Entity WithChildren(params Entity[] children)
+        {
+            foreach (Entity e in children)
+            {
+                e.parent = this;
+                this.children.Add(e);
+            }
+            return this;
+        }
+
+        public void Destroy()
+        {
+            foreach (Component c in components)
+            {
+                c.OnRemove();
+            }
+            components.Clear();
         }
 
     }

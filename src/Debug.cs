@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace SolidCode.Caerus
 {
-    class Debug
+    public static class Debug
     {
         public static List<string> Categories;
         public static void StartLogs(params string[] categories)
