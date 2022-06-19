@@ -43,6 +43,7 @@
 
         public Entity AddComponent<T>() where T : Component, new()
         {
+            // FIXME(amos): Adding components should only happen when all threads are idle. This is done to avoid a race-condition
             Component component = new T();
             component.entity = this;
 
@@ -55,6 +56,7 @@
         }
         public Entity RemoveComponent(Component component)
         {
+            // FIXME(amos): Removing components should only happen when all threads are idle. This is done to avoid a race-condition
             component.OnRemove();
 
             components.Remove(component);
@@ -64,11 +66,15 @@
             }
             return this;
         }
-        public T? GetComponent<T>() where T : Component
+        public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             foreach (Component c in components)
             {
                 if (typeof(T) == c.GetType())
+                {
+                    return (T)c;
+                }
+                else if (allowInheritedClasses && (c as T) != null)
                 {
                     return (T)c;
                 }
@@ -120,7 +126,6 @@
             List<Drawable> drawables = new List<Drawable>();
             foreach (RenderComponent component in renderingComponents)
             {
-                Debug.Log("starting render");
                 if (component.enabled)
                     drawables.AddRange(component.StartRender(Window._graphicsDevice));
             }

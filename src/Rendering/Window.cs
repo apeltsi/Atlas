@@ -22,6 +22,7 @@ namespace SolidCode.Caerus.Rendering
         Veldrid.Texture MainDepthTexture;
         Veldrid.Texture MainSceneResolvedColorTexture;
         public static Veldrid.TextureView MainSceneResolvedColorView { get; protected set; }
+        public static Vector2 MousePosition = Vector2.Zero;
         PostProcess postProcess;
         /// <summary>
         /// Time elapsed between frames, in seconds.
@@ -102,6 +103,7 @@ namespace SolidCode.Caerus.Rendering
                             ReloadAllDrawables();
                         }
                     }
+                    MousePosition = inputSnapshot.MousePosition;
                     frame++;
                     ecs.Update();
                     frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
@@ -129,6 +131,7 @@ namespace SolidCode.Caerus.Rendering
             }
             Debug.Log(LogCategories.Rendering, "All drawables have been reloaded...");
         }
+
 
         public static CommandList GetCommandList()
         {
@@ -236,7 +239,7 @@ namespace SolidCode.Caerus.Rendering
             return new Matrix4x4(
                 Height / max, 0, 0, 0,
                 0, Width / max, 0, 0,
-                0, 0, 0, 0,
+                0, 0, 0, 1,
                 0, 0, 0, 1);
         }
 

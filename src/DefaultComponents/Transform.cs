@@ -7,7 +7,7 @@ namespace SolidCode.Caerus.Components
         public Vector2 position;
         public Vector2 scale;
         public float rotation = 0f;
-        public float z;
+        public float z = 0.1f;
         public Vector2 globalPosition
         {
             get
@@ -19,7 +19,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
@@ -38,7 +38,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
@@ -61,7 +61,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global scale and multiply it by ours
@@ -82,7 +82,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
@@ -101,7 +101,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
@@ -124,7 +124,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours
@@ -143,7 +143,7 @@ namespace SolidCode.Caerus.Components
                 if (entity.parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>();
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours
@@ -173,11 +173,11 @@ namespace SolidCode.Caerus.Components
             Vector2 pos = this.globalPosition;
             Vector2 scale = this.globalScale;
             float rot = this.globalRotation;
-            float z = this.globalZ;
+            float trueZ = this.globalZ;
             Matrix4x4 translationAndPosition = new Matrix4x4(
                 scale.X, 0, 0, pos.X,
                 0, scale.Y, 0, pos.Y,
-                0, 0, 1, z,
+                0, 0, 1, 1f - trueZ,
                 0, 0, 0, 1);
             Matrix4x4 rotation = new Matrix4x4(
                 (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,

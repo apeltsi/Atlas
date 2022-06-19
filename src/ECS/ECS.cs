@@ -9,11 +9,13 @@ namespace SolidCode.Caerus.ECS
 
         public void AddEntity(Entity entity)
         {
+            // FIXME(amos): Adding of entities should only happen when all threads are idle. This is done to avoid a race-condition
             rootEntities.Add(entity);
         }
 
         public void RemoveEntity(Entity entity)
         {
+            // FIXME(amos): Removing of entities should only happen when all threads are idle. This is done to avoid a race-condition
             rootEntities.Remove(entity);
         }
 

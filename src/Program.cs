@@ -37,7 +37,7 @@ namespace SolidCode.Caerus
             {
                 // Were running in from the development path. Lets grab our shaders from there instead!
                 ShaderDirectory = "./data/shaders";
-                Debug.Log("It looks like Caerus is running from a development enviroment. Loading shaders from dev enviroment instead.");
+                Debug.Log(LogCategories.Framework, "It looks like Caerus is running from a development enviroment. Loading shaders from dev enviroment instead.");
             }
 #endif
 

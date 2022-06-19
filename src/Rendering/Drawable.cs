@@ -73,13 +73,15 @@ namespace SolidCode.Caerus.Rendering
         private Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
 
         ShaderStages uniformShaderStages;
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null)
+        ShaderStages transformShaderStages;
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex)
         {
             this._shader = shaderPath;
             this._mesh = mesh;
             this.transform = t;
             this.uniform = uniform;
             this.uniformShaderStages = uniformShaderStages;
+            this.transformShaderStages = transformShaderStages;
             if (textures == null)
             {
                 textures = new List<string>();
@@ -134,7 +136,7 @@ namespace SolidCode.Caerus.Rendering
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
             ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[1 + _uniformBuffers.Count + _textures.Count * 2];
-            elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, ShaderStages.Vertex);
+            elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, transformShaderStages);
             int i = 1;
 
             elementDescriptions[i] = new ResourceLayoutElementDescription("Default Uniform", ResourceKind.UniformBuffer, uniformShaderStages);
