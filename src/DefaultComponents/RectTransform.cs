@@ -19,13 +19,19 @@ namespace SolidCode.Caerus.Components
         public bool widthRelative = false;
         public bool heightRelative = false;
         public PositionMode positionMode = PositionMode.Relative;
+
+        public override void Start()
+        {
+            Debug.Log(LogCategories.General, "Hello, im '" + entity.name +"' and this is my scale: " + GetAdjustedScale().ToString());
+        }
+
         Vector2 GetParentBoundingBox()
         {
             if (positionMode == PositionMode.Absolute || entity.parent == null || entity.parent.GetComponent<RectTransform>() == null)
             {
                 return new Vector2(Window.window.Width, Window.window.Height);
             }
-            return entity.parent.GetComponent<RectTransform>().GetAdjustedScale();
+            return new Vector2(Window.window.Width, Window.window.Height) * entity.parent.GetComponent<RectTransform>().GetAdjustedScale();
         }
         public Vector2 GetAdjustedScale()
         {

@@ -27,10 +27,12 @@ namespace SolidCode.Caerus
         public static Timer timer;
         public static EntityComponentSystem? ecs;
         private static System.Diagnostics.Stopwatch watch;
+        public static void InitializeLogging() {
+            Debug.StartLogs("General", "Framework", "Rendering", "ECS");
+        }
         public static void Start(Scene defaultScene, string windowTitle)
         {
             watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.StartLogs("General", "Framework", "Rendering", "ECS");
             Debug.Log(LogCategories.Framework, "Coeus " + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
