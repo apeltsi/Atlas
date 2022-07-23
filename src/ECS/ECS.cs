@@ -16,6 +16,7 @@ namespace SolidCode.Caerus.ECS
         public void RemoveEntity(Entity entity)
         {
             // FIXME(amos): Removing of entities should only happen when all threads are idle. This is done to avoid a race-condition
+            // FIXME(amos): This only removes entity if its at root
             rootEntities.Remove(entity);
         }
 
