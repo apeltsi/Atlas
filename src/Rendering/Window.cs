@@ -5,7 +5,7 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
-
+using static Veldrid.Sdl2.Sdl2Native;
 namespace SolidCode.Caerus.Rendering
 {
     public class Window
@@ -16,18 +16,29 @@ namespace SolidCode.Caerus.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 72;
+        public const int TargetFramerate = 0;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
         Veldrid.Texture MainSceneResolvedColorTexture;
         public static Veldrid.TextureView MainSceneResolvedColorView { get; protected set; }
+        Veldrid.Texture[] ColorTextures = new Veldrid.Texture[0];
+        public static Veldrid.TextureView[] ColorViews = new Veldrid.TextureView[0];
+        Veldrid.Framebuffer[] framebuffers = new Veldrid.Framebuffer[0];
         public static Vector2 MousePosition = Vector2.Zero;
-        PostProcess postProcess;
+        PostProcess[] postProcess;
         /// <summary>
         /// Time elapsed between frames, in seconds.
         /// </summary>
         public static float frameDeltaTime = 0f;
+        /// <summary>
+        /// What framerate the previous 60 frames were rendered in
+        /// </summary>
+        public static float AverageFramerate = 0f;
+
+        private int frames = 0;
+        private float frameTimes = 0f;
+        public static bool reloadShaders = false;
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
@@ -49,11 +60,10 @@ namespace SolidCode.Caerus.Rendering
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
                 PreferStandardClipSpaceYDirection = true,
-                PreferDepthRangeZeroToOne = true,
-                SyncToVerticalBlank = true,
-                SwapchainDepthFormat = PixelFormat.R16_UNorm,
+                SyncToVerticalBlank = TargetFramerate != 0,
                 ResourceBindingModel = ResourceBindingModel.Improved,
-                SwapchainSrgbFormat = false
+                SwapchainSrgbFormat = false,
+                SwapchainDepthFormat = null
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
@@ -86,7 +96,7 @@ namespace SolidCode.Caerus.Rendering
             int frame = 0;
             while (window.Exists)
             {
-                if (watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
+                if (TargetFramerate == 0 || watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
                 {
                     if (frame == 1)
                     {
@@ -95,32 +105,62 @@ namespace SolidCode.Caerus.Rendering
                     }
                     InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();
+                    if (reloadShaders)
+                    {
+                        reloadShaders = false;
+                        ReloadAllShaders();
+                    }
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
                         InputManager.KeyPress(inputSnapshot.KeyEvents[i].Key);
                         if (inputSnapshot.KeyEvents[i].Key == Key.F5 && inputSnapshot.KeyEvents[i].Down == true)
                         {
-                            ReloadAllDrawables();
+                            ReloadAllShaders();
                         }
                     }
                     MousePosition = inputSnapshot.MousePosition;
                     frame++;
+#if DEBUG
+                    Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+#endif
                     ecs.Update();
                     frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
+                    frameTimes += frameDeltaTime;
+                    if (frames >= 60)
+                    {
+                        frames = 0;
+                        AverageFramerate = 1f / (frameTimes / 60f);
+                        frameTimes = 0f;
+                    }
+                    frames++;
+
                     float frameRenderTime = Math.Clamp(frameDeltaTime * 1000f, 0f, 1000f / TargetFramerate);
                     watch = System.Diagnostics.Stopwatch.StartNew();
+#if DEBUG
+                    Profiler.EndTimer();
+#endif
+
                     Draw();
-                    Thread.Sleep((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
+                    if (TargetFramerate != 0)
+                        Thread.Sleep((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
                 }
             }
 
             DisposeResources();
         }
 
-
-        public void ReloadAllDrawables()
+        public static void MoveToFront()
         {
-            Debug.Log(LogCategories.Rendering, "RELOADING ALL DRAWABLES...");
+            window.WindowState = WindowState.Minimized;
+            Thread.Sleep(100);
+            window.WindowState = WindowState.Maximized;
+
+        }
+
+
+        public void ReloadAllShaders()
+        {
+            Debug.Log(LogCategories.Rendering, "RELOADING ALL SHADERS...");
             // First, lets recompile all our shaders
             ShaderManager.ClearAllShaders();
             // Next, lets dispose all drawables
@@ -129,7 +169,8 @@ namespace SolidCode.Caerus.Rendering
                 drawable.Dispose();
                 drawable.CreateResources(_graphicsDevice);
             }
-            Debug.Log(LogCategories.Rendering, "All drawables have been reloaded...");
+            CreateResources();
+            Debug.Log(LogCategories.Rendering, "All shaders have been reloaded...");
         }
 
 
@@ -140,16 +181,30 @@ namespace SolidCode.Caerus.Rendering
 
         public void Draw()
         {
+#if DEBUG
+            Profiler.StartTimer(Profiler.FrameTimeType.PreRender);
+#endif
+
             // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             _commandList.Begin();
+            // Lets start by clearing all of our framebuffers
+            for (int i = 0; i < framebuffers.Length; i++)
+            {
+                _commandList.SetFramebuffer(framebuffers[i]);
+                _commandList.ClearColorTarget(0, RgbaFloat.Clear);
+            }
             // Before we can issue a Draw command, we need to set a Framebuffer.
             _commandList.SetFramebuffer(DuplicatorFramebuffer);
 
             // At the beginning of every frame, we clear the screen to black. In a static scene, this is not really necessary, but I will do it anyway for demonstration.
             _commandList.ClearColorTarget(0, RgbaFloat.Black);
-            _commandList.ClearDepthStencil(1f);
-            foreach (Drawable drawable in _drawables)
+
+            // First we have to sort our drawables in order to perform the back-to-front render pass
+            Drawable[] sortedDrawbles = _drawables.ToArray();
+            // TODO(amos): vvv - this could be improved a lot! by sorting only when z leves change or a drawable is added
+            Array.Sort(sortedDrawbles, Compare);
+            foreach (Drawable drawable in sortedDrawbles)
             {
                 drawable.SetGlobalMatrix(_graphicsDevice, WindowScalingMatrix);
                 drawable.SetScreenSize(_graphicsDevice, new Vector2(window.Width, window.Height));
@@ -159,27 +214,39 @@ namespace SolidCode.Caerus.Rendering
             _commandList.ResolveTexture(MainColorTexture, MainSceneResolvedColorTexture);
 
             _commandList.SetFramebuffer(_graphicsDevice.MainSwapchain.Framebuffer);
-            postProcess.Draw(_commandList);
+            for (int i = 0; i < postProcess.Length; i++)
+            {
+                postProcess[i].Draw(_commandList);
+            }
             _commandList.End();
 
             // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
+#if DEBUG
+            Profiler.EndTimer();
+            Profiler.StartTimer(Profiler.FrameTimeType.Rendering);
+#endif
+
             _graphicsDevice.SubmitCommands(_commandList);
             _graphicsDevice.WaitForIdle();
             _graphicsDevice.SwapBuffers();
+#if DEBUG
+            Profiler.EndTimer();
+            Profiler.SubmitTimes();
+#endif
         }
 
 
         void CreateResources()
         {
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
+            if (_commandList != null && !_commandList.IsDisposed)
+            {
+                _commandList.Dispose();
+            }
             _commandList = factory.CreateCommandList();
             if (MainColorTexture != null && !MainColorTexture.IsDisposed)
             {
                 MainColorTexture.Dispose();
-            }
-            if (MainDepthTexture != null && !MainDepthTexture.IsDisposed)
-            {
-                MainDepthTexture.Dispose();
             }
             if (MainSceneResolvedColorTexture != null && !MainSceneResolvedColorTexture.IsDisposed)
             {
@@ -188,6 +255,22 @@ namespace SolidCode.Caerus.Rendering
             if (DuplicatorFramebuffer != null && !DuplicatorFramebuffer.IsDisposed)
             {
                 DuplicatorFramebuffer.Dispose();
+            }
+            if (MainSceneResolvedColorView != null && !MainSceneResolvedColorView.IsDisposed)
+            {
+                MainSceneResolvedColorView.Dispose();
+            }
+            for (int i = 0; i < ColorTextures.Length; i++)
+            {
+                ColorTextures[i].Dispose();
+            }
+            for (int i = 0; i < ColorViews.Length; i++)
+            {
+                ColorViews[i].Dispose();
+            }
+            for (int i = 0; i < framebuffers.Length; i++)
+            {
+                framebuffers[i].Dispose();
             }
             TextureDescription mainColorDesc = TextureDescription.Texture2D(
                 _graphicsDevice.SwapchainFramebuffer.Width,
@@ -198,24 +281,54 @@ namespace SolidCode.Caerus.Rendering
                 TextureUsage.RenderTarget | TextureUsage.Sampled,
             TextureSampleCount.Count2);
 
-            TextureDescription mainDepthDesc = TextureDescription.Texture2D(
-            _graphicsDevice.SwapchainFramebuffer.Width,
-                _graphicsDevice.SwapchainFramebuffer.Height,
-                1,
-                1,
-                PixelFormat.R32_Float,
-                TextureUsage.DepthStencil,
-                TextureSampleCount.Count2);
-            MainColorTexture = factory.CreateTexture(ref mainColorDesc);
-            MainDepthTexture = factory.CreateTexture(ref mainDepthDesc);
+            MainColorTexture = factory.CreateTexture(mainColorDesc);
 
-            mainColorDesc.SampleCount = TextureSampleCount.Count1;
+            mainColorDesc.SampleCount = TextureSampleCount.Count1; // Reset the sample count for the target texture (the texture that is rendered on screen cant be multisampeled)
             MainSceneResolvedColorTexture = factory.CreateTexture(ref mainColorDesc);
             MainSceneResolvedColorView = factory.CreateTextureView(MainSceneResolvedColorTexture);
-            FramebufferDescription fbDesc = new FramebufferDescription(MainDepthTexture, MainColorTexture);
+            FramebufferDescription fbDesc = new FramebufferDescription(null, MainColorTexture);
             DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
 
-            postProcess = new PostProcess(_graphicsDevice, MainSceneResolvedColorView);
+            // A texture with all the bright pixels
+            ColorTextures = new Veldrid.Texture[3];
+            ColorViews = new Veldrid.TextureView[3];
+            framebuffers = new Veldrid.Framebuffer[3];
+
+            ColorTextures[0] = factory.CreateTexture(ref mainColorDesc);
+            ColorViews[0] = factory.CreateTextureView(ColorTextures[0]);
+            FramebufferDescription desc = new FramebufferDescription(null, ColorTextures[0]);
+
+            framebuffers[0] = factory.CreateFramebuffer(ref desc);
+
+
+            ColorTextures[1] = factory.CreateTexture(ref mainColorDesc);
+            ColorViews[1] = factory.CreateTextureView(ColorTextures[1]);
+            FramebufferDescription desc2 = new FramebufferDescription(null, ColorTextures[1]);
+
+            framebuffers[1] = factory.CreateFramebuffer(ref desc2);
+
+
+            ColorTextures[2] = factory.CreateTexture(ref mainColorDesc);
+            ColorViews[2] = factory.CreateTextureView(ColorTextures[2]);
+            FramebufferDescription desc3 = new FramebufferDescription(null, ColorTextures[2]);
+
+            framebuffers[2] = factory.CreateFramebuffer(ref desc3);
+
+            if (postProcess != null)
+            {
+                for (int i = 0; i < postProcess.Length; i++)
+                {
+                    postProcess[i].Dispose();
+                }
+            }
+            postProcess = new PostProcess[4];
+
+            postProcess[0] = new PostProcess(_graphicsDevice, new[] { MainSceneResolvedColorView }, "post/bright/shader", framebuffers[0]);
+            postProcess[1] = new PostProcess(_graphicsDevice, new[] { ColorViews[0] }, "post/blur_horizontal/shader", framebuffers[1]);
+            postProcess[2] = new PostProcess(_graphicsDevice, new[] { ColorViews[1] }, "post/blur_vertical/shader", framebuffers[2]);
+            postProcess[3] = new PostProcess(_graphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[2] }, "post/combine/shader");
+
+
         }
 
         private void DisposeResources()
@@ -226,10 +339,26 @@ namespace SolidCode.Caerus.Rendering
             }
             MainColorTexture.Dispose();
             MainSceneResolvedColorTexture.Dispose();
-            MainDepthTexture.Dispose();
             MainSceneResolvedColorView.Dispose();
             _commandList.Dispose();
             _graphicsDevice.Dispose();
+            for (int i = 0; i < postProcess.Length; i++)
+            {
+                postProcess[i].Dispose();
+            }
+            for (int i = 0; i < ColorTextures.Length; i++)
+            {
+                ColorTextures[i].Dispose();
+            }
+            for (int i = 0; i < ColorViews.Length; i++)
+            {
+                ColorViews[i].Dispose();
+            }
+            for (int i = 0; i < framebuffers.Length; i++)
+            {
+                framebuffers[i].Dispose();
+            }
+
             Debug.Log(LogCategories.Rendering, "Disposed all resources");
         }
 
@@ -239,8 +368,29 @@ namespace SolidCode.Caerus.Rendering
             return new Matrix4x4(
                 Height / max, 0, 0, 0,
                 0, Width / max, 0, 0,
-                0, 0, 0, 1,
+                0, 0, 1, 0,
                 0, 0, 0, 1);
+        }
+
+        private static int Compare(Drawable x, Drawable y)
+        {
+            if (x == null)
+            {
+                return 0;
+            }
+            if (y == null)
+            {
+                return 0;
+            }
+            if (x.transform == null)
+            {
+                return 0;
+            }
+            if (y.transform == null)
+            {
+                return 0;
+            }
+            return x.transform.globalZ.CompareTo(y.transform.globalZ);
         }
 
     }

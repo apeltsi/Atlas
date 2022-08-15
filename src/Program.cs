@@ -21,19 +21,22 @@ namespace SolidCode.Caerus
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
+        public static string AppName = "Caerus";
         public const string Version = "0.1.0a";
 
         public static int updateFrequency = 50;
         public static Timer timer;
         public static EntityComponentSystem? ecs;
-        private static System.Diagnostics.Stopwatch watch;
-        public static void InitializeLogging() {
+        public static System.Diagnostics.Stopwatch watch { get; private set; }
+        public static void InitializeLogging()
+        {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
         public static void Start(Scene defaultScene, string windowTitle)
         {
+            AppName = windowTitle;
             watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategories.Framework, "Coeus " + Version + " starting up...");
+            Debug.Log(LogCategories.Framework, "Caerus " + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {
@@ -54,6 +57,7 @@ namespace SolidCode.Caerus
             Debug.Log(LogCategories.Framework, "ECS started after " + watch.ElapsedMilliseconds + "ms");
             StartFixedUpdateLoop(ecs);
             Debug.Log(LogCategories.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
+            Audio.AudioManager.InitializeAudio();
             try
             {
                 w.StartRenderLoop(ecs);
@@ -62,15 +66,17 @@ namespace SolidCode.Caerus
             {
                 Debug.Error(ex.ToString());
             }
+            timer.Stop();
             ecs.Dispose();
             watch.Stop();
             Debug.Log(LogCategories.Framework, "Caerus shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
+            Debug.Stop();
         }
 
         public static void StartFixedUpdateLoop(EntityComponentSystem ecs)
         {
             Debug.Log(LogCategories.Framework, "Starting fixed update loop");
-            timer = new System.Timers.Timer(1000 / updateFrequency);
+            timer = new System.Timers.Timer(1000f / updateFrequency);
             timer.Elapsed += new System.Timers.ElapsedEventHandler(FixedUpdate);
             timer.AutoReset = true;
             timer.Start();

@@ -1,0 +1,341 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(37, 39, 46);
+  color: white;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#logs {
+  display: none;
+}
+
+.log {
+  height: 32px;
+  background-color: #2c2c2c;
+  color: white;
+  margin-left: 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+
+.log::after {
+  content: "";
+  position: absolute;
+  width: 50%;
+  height: 100%;
+  z-index: 0;
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.log.info::after {
+  background-image: linear-gradient(90deg, #1282ff55, transparent);
+}
+
+.log.warn::after {
+  background-image: linear-gradient(90deg, #d4aa0055, transparent);
+}
+
+.log.error::after {
+  background-image: linear-gradient(90deg, #ff292955, transparent);
+}
+
+
+.log:hover {
+  background-color: rgb(70, 70, 70);
+}
+
+.log span {
+  margin-right: 5px;
+  z-index: 1;
+}
+
+.log img {
+  height: 32px;
+  transform: translateX(-16px);
+  z-index: 1;
+}
+
+#filters {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+#filters div {
+  padding: 15px;
+  padding-left: 30px;
+  margin-right: 10px;
+  background-color: #2c2c2c;
+  border-radius: 32px;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+  transition-duration: 0.2s;
+  opacity: 0.7;
+}
+
+#filters div:hover {
+  opacity: 1 !important;
+}
+
+#filters div::after {
+  content: "";
+  left: 7.5px;
+  top: calc(50% - 7.5px);
+  position: absolute;
+  height: 15px;
+  width: 15px;
+  border-radius: 15px;
+  background-color: grey;
+  transition-duration: 0.2s;
+  transform: scale(0.5);
+}
+
+#filters div:hover::after {
+  transform: scale(0.7);
+}
+
+#filters div.selected::after {
+  background-color: lime;
+  transform: scale(1);
+
+}
+
+#filters div.selected:hover::after {
+  transform: scale(1.3);
+}
+
+#filters div.selected {
+  background-color: rgb(6, 68, 6);
+  opacity: 0.9;
+}
+
+#debugger {
+  max-height: calc(100vh - 30px);
+  display: flex;
+  flex-direction: column;
+}
+
+#logList {
+  overflow: auto;
+  max-height: 100%;
+}
+
+.liveheader {
+  display: flex;
+}
+
+.liveheader div {
+  background-color: rgb(71, 50, 50);
+  border-radius: 35px;
+  line-height: 20px;
+  padding: 15px;
+  color: rgb(230, 140, 140);
+  font-weight: 700;
+  margin-right: 10px;
+}
+
+.liveheader.offline div {
+  background-color: rgb(43, 43, 43);
+  color: rgb(158, 158, 158);
+}
+
+.interactable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.interactable:hover {
+  color: white;
+  background-color: rgb(85, 60, 60);
+
+}
+
+.liveheader .live {
+  width: fit-content;
+  padding-left: 45px;
+  position: relative;
+}
+
+.live::before {
+  position: absolute;
+  display: inline-block;
+  content: "";
+  width: 20px;
+  height: 20px;
+  left: 15px;
+  background-color: red;
+  border-radius: 10px;
+  margin-right: 10px;
+}
+
+.live::after {
+  position: absolute;
+  display: inline-block;
+  content: "";
+  width: 20px;
+  height: 20px;
+  left: 15px;
+  background-color: red;
+  border-radius: 10px;
+  margin-right: 10px;
+  animation-name: live;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+.live.offline::before {
+  background-color: grey;
+}
+
+.live.offline::after {
+  opacity: 0;
+  animation: none;
+}
+
+@keyframes live {
+  0% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(2);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+
+}
+
+.apexcharts-svg {
+  background-color: transparent !important;
+}
+
+#charttooltip {
+  padding: 5px;
+}
+
+.subsystem {
+  padding-left: 10px;
+  padding-right: 10px;
+  background-color: rgba(53, 53, 53, 0.75);
+  border-radius: 10px;
+}
+
+.loadingContainer {
+  z-index: 10;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+}
+
+.loading {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 150px;
+  height: 100vh;
+  overflow: hidden;
+  justify-content: center;
+}
+
+.circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: white;
+  margin: 10px;
+  animation-name: loadingCircle;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  opacity: 0.2;
+}
+
+.circle:nth-child(4n+3) {
+  animation-delay: 1.5s;
+}
+
+
+.circle:nth-child(4n+2) {
+  animation-delay: 1s;
+}
+
+.circle:nth-child(4n+1) {
+  animation-delay: 0.5s;
+}
+
+
+@keyframes loadingCircle {
+  0% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.loadingText {
+  position: absolute;
+  width: 600px;
+  z-index: 11;
+  height: 200px;
+  top: calc(50vh - 100px);
+  left: calc(50vw - 300px);
+  text-align: center;
+  background: linear-gradient(0deg, #111111, white, #111111);
+  background-size: 600px 600px;
+  background-position: 0 -300px;
+  animation-name: loadingTextAnimation;
+  animation-duration: 4s;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+}
+
+@keyframes loadingTextAnimation {
+  from {
+    background-position: 0 300px;
+  }
+
+  to {
+    background-position: 0 -300px;
+  }
+}
+
+.loadingText:after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  bottom: 2px;
+  right: 2px;
+  z-index: -1;
+  background-color: black;
+}

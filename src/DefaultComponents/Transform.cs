@@ -119,6 +119,7 @@ namespace SolidCode.Caerus.Components
             {
                 if (entity == null)
                 {
+                    Debug.Error("Entity is null, cant return global z");
                     return 0f;
                 }
                 if (entity.parent != null)
@@ -177,7 +178,7 @@ namespace SolidCode.Caerus.Components
             Matrix4x4 translationAndPosition = new Matrix4x4(
                 scale.X, 0, 0, pos.X,
                 0, scale.Y, 0, pos.Y,
-                0, 0, 1, 1f - trueZ,
+                0, 0, 1, 0,
                 0, 0, 0, 1);
             Matrix4x4 rotation = new Matrix4x4(
                 (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,

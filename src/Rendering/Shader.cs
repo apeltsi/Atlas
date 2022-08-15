@@ -37,6 +37,7 @@ namespace SolidCode.Caerus.Rendering
 
         public void Dispose()
         {
+            // TODO(amos): There should probably be a way to unload shaders that haven't been used for a while
             for (int i = 0; i < shaders.Length; i++)
             {
                 shaders[i].Dispose();

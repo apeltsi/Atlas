@@ -19,10 +19,76 @@ namespace SolidCode.Caerus.Components
         public bool widthRelative = false;
         public bool heightRelative = false;
         public PositionMode positionMode = PositionMode.Relative;
+        public Vector2 globalPosition
+        {
+            get
+            {
+                if (entity == null)
+                {
+                    return Vector2.Zero;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global position and add it to ours
+                        // parents position + (parents size * anchor) + (position / window size)
+                        //                                                  converted size (pixels to screenspace) 
+                        return (t.globalPosition - t.globalScale) + (t.globalScale * anchor) + (position / new Vector2(Window.window.Width, Window.window.Height));
+                    }
+                }
+                return position;
+            }
+            set
+            {
+                throw new NotImplementedException("Yaah! This isnt implemented yet!");
+                if (entity == null)
+                {
+                    position = value;
+                    return;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global position and add it to ours
+                        position = value - t.globalPosition;
+                    }
+                }
+
+                position = value;
+            }
+        }
+        public Vector2 globalScale
+        {
+
+            get
+            {
+                if (entity == null)
+                {
+                    return Vector2.One;
+                }
+                if (entity.parent != null)
+                {
+                    // We have a parent! Lets check if it has a transform
+                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    if (t != null)
+                    {
+                        // We have a parent with a transform. Lets get its global scale and multiply it by ours
+                        return t.globalScale * scale;
+                    }
+                }
+                return scale;
+            }
+        }
 
         public override void Start()
         {
-            Debug.Log(LogCategories.General, "Hello, im '" + entity.name +"' and this is my scale: " + GetAdjustedScale().ToString());
+            Debug.Log(LogCategories.General, "Hello, im '" + entity.name + "' and this is my scale: " + GetAdjustedScale().ToString());
         }
 
         Vector2 GetParentBoundingBox()
@@ -61,16 +127,15 @@ namespace SolidCode.Caerus.Components
 
         public Vector4 GetBounds()
         {
-            Vector2 win = GetParentBoundingBox();
-            Vector2 pos = (this.globalPosition + new Vector2(win.X * anchor.X, win.Y * anchor.Y)) / win - new Vector2(0.5f, 0.5f);
-            Vector2 scale = this.scale;
+            Vector2 parent = GetParentBoundingBox();
+            Vector2 pos = this.globalPosition;
             if (!widthRelative)
             {
-                scale.X = scale.X / win.X;
+                scale.X = scale.X / parent.X;
             }
             if (!heightRelative)
             {
-                scale.Y = scale.Y / win.Y;
+                scale.Y = scale.Y / parent.Y;
             }
 
             float rot = this.globalRotation;
@@ -81,7 +146,7 @@ namespace SolidCode.Caerus.Components
         public override Matrix4x4 GetTransformationMatrix()
         {
             Vector2 win = GetParentBoundingBox();
-            Vector2 pos = (this.globalPosition + new Vector2(win.X * anchor.X, win.Y * anchor.Y)) / win - new Vector2(0.5f, 0.5f);
+            Vector2 pos = this.globalPosition;
             Vector2 scale = this.scale;
             if (!widthRelative)
             {
@@ -97,7 +162,7 @@ namespace SolidCode.Caerus.Components
             Matrix4x4 translationAndPosition = new Matrix4x4(
                 scale.X, 0, 0, pos.X,
                 0, scale.Y, 0, pos.Y,
-                0, 0, 1, 1f - trueZ,
+                0, 0, 1, 0,
                 0, 0, 0, 1);
             Matrix4x4 rotation = new Matrix4x4(
                 (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,

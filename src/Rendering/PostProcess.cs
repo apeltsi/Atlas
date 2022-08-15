@@ -10,8 +10,8 @@ namespace SolidCode.Caerus.Rendering
         public Transform transform;
         private string _shader;
         private Mesh<VertexPositionUV> _mesh;
-        private Veldrid.TextureView texView;
-        private Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
+        private Veldrid.TextureView[] texViews;
+        private Veldrid.Framebuffer? buffer = null;
         struct VertexPositionUV
         {
             Vector4 Position;
@@ -24,10 +24,10 @@ namespace SolidCode.Caerus.Rendering
             }
         }
 
-        public PostProcess(GraphicsDevice _graphicsDevice, Veldrid.TextureView texture)
+        public PostProcess(GraphicsDevice _graphicsDevice, Veldrid.TextureView[] textures, string path, Veldrid.Framebuffer? buffer = null)
         {
-            this._shader = "post";
-            this.texView = texture;
+            this._shader = path;
+            this.texViews = textures;
             VertexPositionUV[] positions = {
                 new VertexPositionUV(new Vector4(-1f, 1f, 0,0), new Vector4(0, 0,0,0)),
                 new VertexPositionUV(new Vector4(1f, 1f, 0,0), new Vector4(1, 0,0,0)),
@@ -40,16 +40,16 @@ namespace SolidCode.Caerus.Rendering
                 new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
 
             this._mesh = new Mesh<VertexPositionUV>(positions, quadIndices, layout);
+            this.buffer = buffer;
 
-
-            CreateResources(_graphicsDevice, _mesh, texture);
+            CreateResources(_graphicsDevice, _mesh, textures);
             indexCount = (uint)_mesh.Indicies.Length;
         }
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-            CreateResources(_graphicsDevice, _mesh, this.texView);
+            CreateResources(_graphicsDevice, _mesh, this.texViews);
         }
-        void CreateResources(GraphicsDevice _graphicsDevice, Mesh<VertexPositionUV> mesh, TextureView texture)
+        void CreateResources(GraphicsDevice _graphicsDevice, Mesh<VertexPositionUV> mesh, TextureView[] textures)
         {
             Shader shader = ShaderManager.GetShader(_shader);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
@@ -71,14 +71,17 @@ namespace SolidCode.Caerus.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleOverrideBlend;
-            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[2];
-            elementDescriptions[0] = new ResourceLayoutElementDescription("Texture", ResourceKind.TextureReadOnly, ShaderStages.Fragment);
-            elementDescriptions[1] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
+            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[textures.Length + 1];
+            for (int i = 0; i < textures.Length; i++)
+            {
+                elementDescriptions[i] = new ResourceLayoutElementDescription("Texture" + i, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+            }
+            elementDescriptions[textures.Length] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
             ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
-                depthTestEnabled: true,
-                depthWriteEnabled: true,
+                depthTestEnabled: false,
+                depthWriteEnabled: false,
                 comparisonKind: ComparisonKind.LessEqual);
 
             pipelineDescription.RasterizerState = new RasterizerStateDescription(
@@ -94,12 +97,24 @@ namespace SolidCode.Caerus.Rendering
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
-
-            pipelineDescription.Outputs = _graphicsDevice.MainSwapchain.Framebuffer.OutputDescription;
+            if (buffer == null)
+            {
+                pipelineDescription.Outputs = _graphicsDevice.MainSwapchain.Framebuffer.OutputDescription;
+                buffer = _graphicsDevice.MainSwapchain.Framebuffer;
+            }
+            else
+            {
+                pipelineDescription.Outputs = buffer.OutputDescription;
+            }
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
-            BindableResource[] buffers = new BindableResource[2];
-            buffers[0] = texView;
-            buffers[1] = _graphicsDevice.Aniso4xSampler;
+            BindableResource[] buffers = new BindableResource[textures.Length + 1];
+            for (int i = 0; i < textures.Length; i++)
+            {
+                buffers[i] = textures[i];
+            }
+            SamplerDescription sdesc = new SamplerDescription(SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerFilter.Anisotropic, null, 4, 0, uint.MaxValue, 0, SamplerBorderColor.TransparentBlack);
+            Sampler s = factory.CreateSampler(sdesc);
+            buffers[textures.Length] = s;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 uniformResourceLayout,
@@ -109,6 +124,11 @@ namespace SolidCode.Caerus.Rendering
 
         public override void Draw(CommandList cl)
         {
+            if (buffer != null)
+            {
+                cl.SetFramebuffer(buffer);
+            }
+
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
             cl.SetPipeline(pipeline);
@@ -124,14 +144,9 @@ namespace SolidCode.Caerus.Rendering
         public override void Dispose()
         {
             pipeline.Dispose();
-            foreach (Veldrid.Shader shader in _shaders)
-            {
-                shader.Dispose();
-            }
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             transformBuffer.Dispose();
-            this.texView.Dispose();
         }
 
     }

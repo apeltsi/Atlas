@@ -13,6 +13,7 @@
         public Entity? parent;
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();
+        private bool componentsLocked = false;
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
             this.children = new List<Entity>();
@@ -43,6 +44,10 @@
 
         public Entity AddComponent<T>() where T : Component, new()
         {
+            while (componentsLocked)
+            {
+                Thread.Sleep(20);
+            }
             // FIXME(amos): Adding components should only happen when all threads are idle. This is done to avoid a race-condition
             Component component = new T();
             component.entity = this;
@@ -56,6 +61,11 @@
         }
         public Entity RemoveComponent(Component component)
         {
+            while (componentsLocked)
+            {
+                Thread.Sleep(20);
+            }
+
             // FIXME(amos): Removing components should only happen when all threads are idle. This is done to avoid a race-condition
             component.OnRemove();
 
@@ -83,6 +93,7 @@
         }
         public void Start()
         {
+            componentsLocked = true;
             foreach (Component component in components)
             {
                 if (component.enabled)
@@ -92,10 +103,13 @@
             {
                 e.Start();
             }
+            componentsLocked = false;
 
         }
         public void Update()
         {
+            componentsLocked = true;
+
             foreach (Component component in components)
             {
                 if (component.enabled)
@@ -105,11 +119,14 @@
             {
                 e.Update();
             }
+            componentsLocked = false;
 
         }
 
         public void FixedUpdate()
         {
+            componentsLocked = true;
+
             foreach (Component component in components)
             {
                 if (component.enabled)
@@ -119,6 +136,7 @@
             {
                 e.FixedUpdate();
             }
+            componentsLocked = false;
 
         }
         public List<Drawable> RenderStart()

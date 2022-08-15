@@ -16,6 +16,7 @@ namespace SolidCode.Caerus.Rendering
         public DeviceBuffer indexBuffer;
         public DeviceBuffer transformBuffer;
         public ResourceSet _transformSet;
+        public Transform transform;
         public uint indexCount = 0;
 
         public virtual void CreateResources(GraphicsDevice _graphicsDevice)
@@ -64,7 +65,6 @@ namespace SolidCode.Caerus.Rendering
 
     public class Drawable<T, Uniform> : Drawable where T : struct where Uniform : struct
     {
-        public Transform transform;
         private string _shader;
         private Mesh<T> _mesh;
         private Uniform uniform;
@@ -152,15 +152,15 @@ namespace SolidCode.Caerus.Rendering
             ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
-                depthTestEnabled: true,
-                depthWriteEnabled: true,
+                depthTestEnabled: false,
+                depthWriteEnabled: false,
                 comparisonKind: ComparisonKind.LessEqual);
 
             pipelineDescription.RasterizerState = new RasterizerStateDescription(
                 cullMode: FaceCullMode.Back,
                 fillMode: PolygonFillMode.Solid,
                 frontFace: FrontFace.Clockwise,
-                depthClipEnabled: true,
+                depthClipEnabled: false,
                 scissorTestEnabled: false);
 
             pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
@@ -220,10 +220,7 @@ namespace SolidCode.Caerus.Rendering
         public override void Dispose()
         {
             pipeline.Dispose();
-            foreach (Veldrid.Shader shader in _shaders)
-            {
-                shader.Dispose();
-            }
+
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             transformBuffer.Dispose();

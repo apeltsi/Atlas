@@ -11,6 +11,7 @@
     <PackageReference Include="Veldrid" Version="4.8.0" />
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
   <ItemGroup> 
       <Content Include="data\*\*.*">
@@ -19,5 +20,10 @@
       <Content Include="data\*\*\*">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="data\*\*\*\*">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+
+      <EmbeddedResource Include="debugger\dist\LogViewer.html" />
    </ItemGroup>
 </Project>
