@@ -1,4 +1,4 @@
-lockfileVersion: 5.3
+lockfileVersion: 5.4
 
 specifiers:
   solid-apexcharts: ^0.1.6
@@ -854,7 +854,6 @@ packages:
 
   /solid-js/1.4.7:
     resolution: {integrity: sha512-u3hoe5w3xseAc/8zLwYaQVGanWXknMMQkzryNz7lOPy2ygW6DhCtfMseun4kLflRNRzrUUpTV3W5p7j2SGcHCQ==}
-    dev: false
 
   /solid-refresh/0.4.1_solid-js@1.4.7:
     resolution: {integrity: sha512-v3tD/OXQcUyXLrWjPW1dXZyeWwP7/+GQNs8YTL09GBq+5FguA6IejJWUvJDrLIA4M0ho9/5zK2e9n+uy+4488g==}

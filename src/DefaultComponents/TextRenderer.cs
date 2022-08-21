@@ -27,10 +27,8 @@ public class TextRenderer : RenderComponent
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        textDrawable = new TextDrawable(Text, "Comfortaa-Regular.ttf", Size, entity.GetComponent<Transform>());
-        List<Drawable> drawables = new List<Drawable>();
-        drawables.Add(textDrawable);
-        return drawables.ToArray();
+        Drawable drawable = new TextDrawable(Text, "Comfortaa-Regular.ttf", Size, entity.GetComponent<Transform>());
+        return new Drawable[] { drawable };
     }
 
     public override void Update()

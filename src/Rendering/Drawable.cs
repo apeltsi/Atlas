@@ -17,7 +17,6 @@ namespace SolidCode.Caerus.Rendering
         public DeviceBuffer transformBuffer;
         public ResourceSet _transformSet;
         public Transform transform;
-        public uint indexCount = 0;
 
         public virtual void CreateResources(GraphicsDevice _graphicsDevice)
         {
@@ -46,6 +45,9 @@ namespace SolidCode.Caerus.Rendering
         public virtual void SetScreenSize(GraphicsDevice _graphicsDevice, Vector2 size)
         {
         }
+        public virtual void UpdateMeshBuffers() {
+            
+        }
     }
     public struct TransformStruct
     {
@@ -65,19 +67,20 @@ namespace SolidCode.Caerus.Rendering
 
     public class Drawable<T, Uniform> : Drawable where T : struct where Uniform : struct
     {
-        private string _shader;
-        private Mesh<T> _mesh;
-        private Uniform uniform;
-        private List<string> _texturePrototypes;
-        private Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
-        private Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
+        protected string _shader;
+        protected Mesh<T> _mesh;
+        protected Uniform uniform;
+        protected List<string> _texturePrototypes;
+        protected Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
+        protected Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
 
-        ShaderStages uniformShaderStages;
-        ShaderStages transformShaderStages;
+        protected ShaderStages uniformShaderStages;
+        protected ShaderStages transformShaderStages;
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex)
         {
             this._shader = shaderPath;
-            this._mesh = mesh;
+            if(mesh != null)
+                this._mesh = mesh;
             this.transform = t;
             this.uniform = uniform;
             this.uniformShaderStages = uniformShaderStages;
@@ -87,16 +90,14 @@ namespace SolidCode.Caerus.Rendering
                 textures = new List<string>();
             }
             this._texturePrototypes = textures;
-
-            CreateResources(_graphicsDevice, mesh, shaderPath);
-            indexCount = (uint)mesh.Indicies.Length;
-            Debug.Log(LogCategories.Rendering, "Drawable resources created");
+            if(mesh != null)
+                CreateResources(_graphicsDevice, shaderPath);
         }
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-            CreateResources(_graphicsDevice, _mesh, _shader);
+            CreateResources(_graphicsDevice, _shader);
         }
-        void CreateResources(GraphicsDevice _graphicsDevice, Mesh<T> mesh, string shaderPath)
+        protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
         {
             Shader shader = ShaderManager.GetShader(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
@@ -105,10 +106,8 @@ namespace SolidCode.Caerus.Rendering
             {
                 _loadedTextures.Add(new Texture(texPath + ".ktx", texPath, _graphicsDevice, factory));
             }
-
-
-            vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
 
             // Uniform
@@ -118,8 +117,8 @@ namespace SolidCode.Caerus.Rendering
 
 
 
-            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, mesh.Indicies);
+            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
             // Next lest load textures to the gpu
@@ -129,7 +128,7 @@ namespace SolidCode.Caerus.Rendering
             }
 
 
-            VertexLayoutDescription vertexLayout = mesh.VertexLayout;
+            VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
 
             _shaders = shader.shaders;
 
@@ -193,6 +192,19 @@ namespace SolidCode.Caerus.Rendering
 
         }
 
+        public override void UpdateMeshBuffers() {
+            if(vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>()) {
+                vertexBuffer.Dispose();
+                vertexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
+            }
+            if(indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort)) {
+                indexBuffer.Dispose();
+                indexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            }
+            Window._graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            Window._graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+        }
+
         public override void Draw(CommandList cl)
         {
             cl.SetVertexBuffer(0, vertexBuffer);
@@ -200,7 +212,7 @@ namespace SolidCode.Caerus.Rendering
             cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.DrawIndexed(
-                indexCount: indexCount,
+                indexCount: (uint)_mesh.Indicies.Length,
                 instanceCount: 1,
                 indexStart: 0,
                 vertexOffset: 0,

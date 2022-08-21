@@ -42,30 +42,29 @@ namespace SolidCode.Caerus.Rendering
             this._mesh = new Mesh<VertexPositionUV>(positions, quadIndices, layout);
             this.buffer = buffer;
 
-            CreateResources(_graphicsDevice, _mesh, textures);
-            indexCount = (uint)_mesh.Indicies.Length;
+            CreateResources(_graphicsDevice, textures);
         }
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-            CreateResources(_graphicsDevice, _mesh, this.texViews);
+            CreateResources(_graphicsDevice, this.texViews);
         }
-        void CreateResources(GraphicsDevice _graphicsDevice, Mesh<VertexPositionUV> mesh, TextureView[] textures)
+        void CreateResources(GraphicsDevice _graphicsDevice, TextureView[] textures)
         {
             Shader shader = ShaderManager.GetShader(_shader);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
 
 
-            vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionUV>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionUV>(), BufferUsage.VertexBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
 
 
-            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, mesh.Indicies);
+            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
 
 
 
-            VertexLayoutDescription vertexLayout = mesh.VertexLayout;
+            VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
 
             _shaders = shader.shaders;
 
@@ -134,7 +133,7 @@ namespace SolidCode.Caerus.Rendering
             cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.DrawIndexed(
-                indexCount: indexCount,
+                indexCount: (uint)_mesh.Indicies.Length,
                 instanceCount: 1,
                 indexStart: 0,
                 vertexOffset: 0,
