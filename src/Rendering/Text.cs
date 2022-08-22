@@ -13,7 +13,9 @@ namespace SolidCode.Caerus.Rendering
     public class TextDrawable : Drawable
     {
         public Transform transform;
+        bool dirty = false;
         string text;
+        int size;
         FontSystem font;
         string[] fontPaths;
         FontRenderer renderer;
@@ -22,18 +24,21 @@ namespace SolidCode.Caerus.Rendering
             this.text = text;
             this.transform = transform;
             this.fontPaths = fontPaths;
+            this.size = size;
             CreateResources(Window._graphicsDevice);
             // TODO
             // #1 Get the texture to the gpu
             // #2 only update vertices on text update
             renderer = new FontRenderer(Window._graphicsDevice, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
+            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
         }
 
         public void UpdateText(string text, int size)
         {
             renderer.ClearAllQuads();
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
+            this.size = size;
+            this.text = text;
+            dirty = true;
         }
 
         public override void CreateResources(GraphicsDevice _graphicsDevice)
@@ -46,6 +51,10 @@ namespace SolidCode.Caerus.Rendering
         }
         public override void Draw(CommandList cl)
         {
+            if(dirty) {
+                this.font.GetFont(this.size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
+                dirty = false;
+            }
             renderer.Draw(cl);
         }
 
