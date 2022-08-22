@@ -15,18 +15,36 @@ namespace SolidCode.Caerus.Rendering
             this.VertexLayout = vertexLayout;
         }
 
+        public Mesh(Mesh<T> mesh) {
+            
+            this.Vertices = (T[])mesh.Vertices.Clone();
+            this.Indicies = (ushort[])mesh.Indicies.Clone();
+            this.VertexLayout = mesh.VertexLayout;
+        }
+
         public void AddVertices(T[] vertices) {
-            var z = new T[Vertices.Length + vertices.Length];
-            Vertices.CopyTo(z, 0);
-            vertices.CopyTo(z, Vertices.Length);
+            var a = (T[])Vertices.Clone();
+            var b = (T[])vertices.Clone();
+            var z = new T[a.Length + b.Length];
+            a.CopyTo(z, 0);
+            b.CopyTo(z, a.Length);
             Vertices = z;
         }
 
         public void AddIndicies(ushort[] indicies) {
-            var z = new ushort[Indicies.Length + indicies.Length];
-            Indicies.CopyTo(z, 0);
-            indicies.CopyTo(z, Indicies.Length);
+            var a = (ushort[])Indicies.Clone();
+            var b = (ushort[])indicies.Clone();
+            var z = new ushort[a.Length + b.Length];
+            a.CopyTo(z, 0);
+            b.CopyTo(z, a.Length);
             Indicies = z;
+        }
+
+        public void ClearIndicies() {
+            Indicies = new ushort[0];
+        }
+        public void ClearVertices() {
+            Vertices = new T[0];
         }
     }
 }

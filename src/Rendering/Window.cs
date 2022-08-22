@@ -294,25 +294,25 @@ namespace SolidCode.Caerus.Rendering
             ColorViews = new Veldrid.TextureView[3];
             framebuffers = new Veldrid.Framebuffer[3];
 
-            ColorTextures[0] = factory.CreateTexture(ref mainColorDesc);
+            ColorTextures[0] = factory.CreateTexture(mainColorDesc);
             ColorViews[0] = factory.CreateTextureView(ColorTextures[0]);
             FramebufferDescription desc = new FramebufferDescription(null, ColorTextures[0]);
 
             framebuffers[0] = factory.CreateFramebuffer(ref desc);
 
 
-            ColorTextures[1] = factory.CreateTexture(ref mainColorDesc);
+            ColorTextures[1] = factory.CreateTexture(mainColorDesc);
             ColorViews[1] = factory.CreateTextureView(ColorTextures[1]);
             FramebufferDescription desc2 = new FramebufferDescription(null, ColorTextures[1]);
 
             framebuffers[1] = factory.CreateFramebuffer(ref desc2);
 
 
-            ColorTextures[2] = factory.CreateTexture(ref mainColorDesc);
+            ColorTextures[2] = factory.CreateTexture(mainColorDesc);
             ColorViews[2] = factory.CreateTextureView(ColorTextures[2]);
             FramebufferDescription desc3 = new FramebufferDescription(null, ColorTextures[2]);
 
-            framebuffers[2] = factory.CreateFramebuffer(ref desc3);
+            framebuffers[2] = factory.CreateFramebuffer(desc3);
 
             if (postProcess != null)
             {

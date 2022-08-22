@@ -15,13 +15,13 @@ namespace SolidCode.Caerus.Rendering
         public Transform transform;
         string text;
         FontSystem font;
-        string fontPath;
+        string[] fontPaths;
         FontRenderer renderer;
-        public TextDrawable(string text, string fontPath, int size, Transform transform)
+        public TextDrawable(string text, string[] fontPaths, int size, Transform transform)
         {
             this.text = text;
             this.transform = transform;
-            this.fontPath = fontPath;
+            this.fontPaths = fontPaths;
             CreateResources(Window._graphicsDevice);
             // TODO
             // #1 Get the texture to the gpu
@@ -30,14 +30,19 @@ namespace SolidCode.Caerus.Rendering
             this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
         }
 
-        public void UpdateText(string text)
+        public void UpdateText(string text, int size)
         {
+            renderer.ClearAllQuads();
+            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
         }
 
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
             this.font = new FontSystem();
-            FontManager.AddFont(this.font, this.fontPath);
+            for (int i = 0; i < this.fontPaths.Length; i++)
+            {
+                FontManager.AddFont(this.font, this.fontPaths[i]);
+            }
         }
         public override void Draw(CommandList cl)
         {
@@ -47,6 +52,11 @@ namespace SolidCode.Caerus.Rendering
         public override void Dispose()
         {
             this.font.Dispose();
+        }
+
+        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        {
+            renderer.SetGlobalMatrix(_graphicsDevice, matrix);
         }
 
 
@@ -62,7 +72,7 @@ namespace SolidCode.Caerus.Rendering
         public object CreateTexture(int width, int height)
         {
             ResourceFactory factory = Window._graphicsDevice.ResourceFactory;
-            Veldrid.Texture t = factory.CreateTexture(new TextureDescription((uint)width, (uint)height, 1, 1, 1, PixelFormat.R8_G8_B8_A8_UInt, TextureUsage.Sampled, TextureType.Texture2D));
+            Veldrid.Texture t = factory.CreateTexture(new TextureDescription((uint)width, (uint)height, 1, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled, TextureType.Texture2D));
             return t;
         }
 
@@ -84,6 +94,7 @@ namespace SolidCode.Caerus.Rendering
     class FontRenderer : Drawable<VertexPositionColorTexture, Uniform>, IFontStashRenderer2 
     {
         bool resourcesCreated = false;
+        Mesh<VertexPositionColorTexture> virtualMesh; // This is needed when the mesh is updated during rendering
         public FontRenderer(GraphicsDevice _graphicsDevice, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<string>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
@@ -92,6 +103,7 @@ namespace SolidCode.Caerus.Rendering
                         new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
 
             this._mesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
+            this.virtualMesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.transform = t;
             this.uniform = uniform;
             this.uniformShaderStages = uniformShaderStages;
@@ -101,23 +113,26 @@ namespace SolidCode.Caerus.Rendering
 
         TextureView texView;
         private FontTextureManager texManager;
+        Veldrid.Texture texture;
         ITexture2DManager IFontStashRenderer2.TextureManager {
             get { return texManager; }
 
         }
+        bool buffersDirty = false;
 
         public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
         {
-            CommandList cl = Window.GetCommandList();
-            int c = this._mesh.Vertices.Length;
-            //this._mesh.AddIndicies(new ushort[4] { (ushort)(c + 0), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 3) });
-            this._mesh.AddIndicies(new ushort[6] {(ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 3), (ushort)(c) });
-            this._mesh.AddVertices(new VertexPositionColorTexture[4] {topLeft, topRight, bottomRight, bottomLeft});
-            if(!resourcesCreated) {
-                CreateResources(Window._graphicsDevice, (Veldrid.Texture)texture);
-                resourcesCreated = true;
-            }
-            UpdateMeshBuffers();
+            int c = this.virtualMesh.Vertices.Length;
+            this.virtualMesh.AddIndicies(new ushort[6] {(ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2),  (ushort)(c + 1),  (ushort)(c + 3)});
+            this.virtualMesh.AddVertices(new VertexPositionColorTexture[4] {topLeft, topRight, bottomLeft, bottomRight});
+            this.texture = (Veldrid.Texture)texture;
+            buffersDirty = true;
+        }
+
+        public void ClearAllQuads() {
+            this.virtualMesh.ClearIndicies();
+            this.virtualMesh.ClearVertices();
+            buffersDirty = true;
         }
 
         protected void CreateResources(GraphicsDevice _graphicsDevice, Veldrid.Texture texture)
@@ -170,7 +185,7 @@ namespace SolidCode.Caerus.Rendering
                 depthClipEnabled: false,
                 scissorTestEnabled: false);
 
-            pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+            pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleList;
             pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
@@ -191,9 +206,27 @@ namespace SolidCode.Caerus.Rendering
         }
 
         public override void Draw(CommandList cl) {
+            if(!resourcesCreated && buffersDirty && texture != null) {
+                _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
+                CreateResources(Window._graphicsDevice, this.texture);
+                resourcesCreated = true;
+            }
+
             if(!resourcesCreated) {
                 return;
             }
+            if(buffersDirty && virtualMesh.Vertices.Length == 0) {
+                return;
+            }
+            if(buffersDirty) {
+                buffersDirty = false;
+                _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
+                UpdateMeshBuffers();
+            }
+            if(_mesh.Vertices.Length == 0) {
+                return;
+            }
+
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
             cl.SetPipeline(pipeline);

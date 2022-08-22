@@ -8,8 +8,8 @@ using Veldrid;
 public class TextRenderer : RenderComponent
 {
     private TextDrawable? textDrawable;
-    private string _text = "A new text component";
-    public int Size = 30;
+    private string _text = "Hello World!";
+    public int Size = 100;
     public string Text
     {
         get
@@ -21,13 +21,14 @@ public class TextRenderer : RenderComponent
             _text = value;
             if (textDrawable != null)
             {
-                textDrawable.UpdateText(value);
+                textDrawable.UpdateText(value, Size);
             }
         }
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        Drawable drawable = new TextDrawable(Text, "Comfortaa-Regular.ttf", Size, entity.GetComponent<Transform>());
+        TextDrawable drawable = new TextDrawable(Text, new string[3] {"Comfortaa-Regular.ttf", "Gugi-Regular.ttf", "NotoSansJP-Regular.otf"}, Size, entity.GetComponent<Transform>());
+        textDrawable = drawable;
         return new Drawable[] { drawable };
     }
 
