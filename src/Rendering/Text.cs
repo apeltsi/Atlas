@@ -30,7 +30,8 @@ namespace SolidCode.Caerus.Rendering
             // #1 Get the texture to the gpu
             // #2 only update vertices on text update
             renderer = new FontRenderer(Window._graphicsDevice, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
+            renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
+            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
         }
 
         public void UpdateText(string text, int size)
@@ -52,7 +53,8 @@ namespace SolidCode.Caerus.Rendering
         public override void Draw(CommandList cl)
         {
             if(dirty) {
-                this.font.GetFont(this.size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White, origin: new Vector2(0.5f, 0.5f));
+                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
+                this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
                 dirty = false;
             }
             renderer.Draw(cl);
@@ -74,6 +76,23 @@ namespace SolidCode.Caerus.Rendering
     struct Uniform {
         Vector4 vector;
     }
+
+    public struct TextTransformStruct
+    {
+        Matrix4x4 Screen;
+        Matrix4x4 Transform;
+        Matrix4x4 Camera;
+        Vector4 Offsets;
+
+        public TextTransformStruct(Matrix4x4 matrix, Matrix4x4 transform, Matrix4x4 camera, float horizontalOffset)
+        {
+            Screen = matrix;
+            Transform = transform;
+            Camera = camera;
+            Offsets = new Vector4(horizontalOffset, 0, 0, 0);
+        }
+    }
+
 
     unsafe class FontTextureManager : ITexture2DManager
     {
@@ -104,6 +123,7 @@ namespace SolidCode.Caerus.Rendering
     {
         bool resourcesCreated = false;
         Mesh<VertexPositionColorTexture> virtualMesh; // This is needed when the mesh is updated during rendering
+        float HorizontalOffset = 0f;
         public FontRenderer(GraphicsDevice _graphicsDevice, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<string>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
@@ -151,7 +171,7 @@ namespace SolidCode.Caerus.Rendering
             
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-            transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
+            transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
 
 
 
@@ -159,7 +179,7 @@ namespace SolidCode.Caerus.Rendering
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
+            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix(), HorizontalOffset));
 
             // Next lest load textures to the gpu
             
@@ -213,6 +233,19 @@ namespace SolidCode.Caerus.Rendering
                 buffers));
 
         }
+
+        public void SetHorizontalOffset(float offset) {
+            HorizontalOffset = offset;
+        }
+
+        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        {
+            if(transformBuffer != null) {
+                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix(), HorizontalOffset));
+            }
+            
+        }
+
 
         public override void Draw(CommandList cl) {
             if(!resourcesCreated && buffersDirty && texture != null) {
