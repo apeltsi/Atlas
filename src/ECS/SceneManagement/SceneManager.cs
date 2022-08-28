@@ -9,8 +9,6 @@ namespace SolidCode.Caerus.ECS.SceneManagement
             foreach (Entity e in scene.entities)
             {
                 Caerus.ecs.AddEntity(e);
-                e.Start();
-                Caerus.ecs.window.AddDrawables(e.RenderStart());
             }
         }
     }

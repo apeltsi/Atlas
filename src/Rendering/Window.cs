@@ -16,7 +16,7 @@ namespace SolidCode.Caerus.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 0;
+        public const int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -84,10 +84,13 @@ namespace SolidCode.Caerus.Rendering
             window.WindowState = state;
         }
 
-        public void AddDrawables(List<Drawable> drawables)
+        public static void AddDrawables(List<Drawable> drawables)
         {
             _drawables.AddRange(drawables);
-            Debug.Log("Added " + drawables.Count + " drawables");
+        }
+        public static void RemoveDrawable(Drawable drawable)
+        {
+            _drawables.Remove(drawable);
         }
 
         public void StartRenderLoop(EntityComponentSystem ecs)
@@ -102,6 +105,8 @@ namespace SolidCode.Caerus.Rendering
                     {
                         window.Visible = true;
                         window.WindowState = WindowState.Normal;
+                        ecs.Start();
+                        Caerus.StartFixedUpdateLoop(ecs);
                     }
                     InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();

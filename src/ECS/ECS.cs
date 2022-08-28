@@ -6,48 +6,64 @@ namespace SolidCode.Caerus.ECS
     {
         List<Entity> rootEntities = new List<Entity>();
         public Window? window;
+        List<Entity> removeList = new List<Entity>();
+        List<Entity> addList = new List<Entity>();
+
+
+        public bool HasStarted { get; protected set; }
+        public EntityComponentSystem()
+        {
+            HasStarted = false;
+        }
 
         public void AddEntity(Entity entity)
         {
-            // FIXME(amos): Adding of entities should only happen when all threads are idle. This is done to avoid a race-condition
-            rootEntities.Add(entity);
+            addList.Add(entity);
         }
 
         public void RemoveEntity(Entity entity)
         {
-            // FIXME(amos): Removing of entities should only happen when all threads are idle. This is done to avoid a race-condition
-            // FIXME(amos): This only removes entity if its at root
-            rootEntities.Remove(entity);
+            removeList.Add(entity);
+            for (int i = 0; i < entity.children.Count; i++)
+            {
+                RemoveEntity(entity.children[i]);
+            }
+        }
+
+        void UpdateECS()
+        {
+            List<Entity> a = new List<Entity>(addList);
+            foreach (Entity e in a)
+            {
+                rootEntities.Add(e);
+                addList.Remove(e);
+                e.Start();
+            }
+            List<Entity> r = new List<Entity>(removeList);
+            removeList.Clear();
+            foreach (Entity e in r)
+            {
+                rootEntities.Remove(e);
+                removeList.Remove(e);
+                for (int i = 0; i < e.components.Count; i++)
+                {
+                    e.components[i].OnDisable();
+                }
+            }
         }
 
         public void Start()
         {
-            foreach (Entity e in rootEntities)
-            {
-                if (e.enabled)
-                    e.Start();
-            }
-            List<Drawable> drawables = new List<Drawable>();
-            try
-            {
-                foreach (Entity e in rootEntities)
-                {
-                    if (e.enabled)
-                        drawables.AddRange(e.RenderStart());
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.Error(LogCategories.ECS, e.ToString());
-            }
+            UpdateECS();
             if (window == null)
             {
                 throw new NullReferenceException("ECS > No window is assigned! Cannot perform StartRender()");
             }
-            window.AddDrawables(drawables);
+            HasStarted = true;
         }
         public void Update()
         {
+            UpdateECS();
             foreach (Entity e in rootEntities)
             {
                 if (e.enabled)
@@ -57,6 +73,7 @@ namespace SolidCode.Caerus.ECS
 
         public void FixedUpdate()
         {
+            UpdateECS();
             foreach (Entity e in rootEntities)
             {
                 if (e.enabled)

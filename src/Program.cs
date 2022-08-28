@@ -25,7 +25,7 @@ namespace SolidCode.Caerus
         public static string AppName = "Caerus";
         public const string Version = "0.1.0a";
 
-        public static int updateFrequency = 50;
+        public static int updateFrequency = 100;
         public static Timer timer;
         public static EntityComponentSystem? ecs;
         public static System.Diagnostics.Stopwatch watch { get; private set; }
@@ -53,10 +53,7 @@ namespace SolidCode.Caerus
             Window w = new Window(windowTitle);
             Debug.Log(LogCategories.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
             ecs.window = w;
-            ecs.Start();
             SceneManager.LoadScene(defaultScene);
-            Debug.Log(LogCategories.Framework, "ECS started after " + watch.ElapsedMilliseconds + "ms");
-            StartFixedUpdateLoop(ecs);
             Debug.Log(LogCategories.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
             Audio.AudioManager.InitializeAudio();
             try
@@ -67,7 +64,8 @@ namespace SolidCode.Caerus
             {
                 Debug.Error(ex.ToString());
             }
-            timer.Stop();
+            if (timer != null)
+                timer.Stop();
             ecs.Dispose();
             watch.Stop();
             Debug.Log(LogCategories.Framework, "Caerus shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");

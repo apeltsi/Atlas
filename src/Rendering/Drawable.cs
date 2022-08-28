@@ -45,8 +45,9 @@ namespace SolidCode.Caerus.Rendering
         public virtual void SetScreenSize(GraphicsDevice _graphicsDevice, Vector2 size)
         {
         }
-        public virtual void UpdateMeshBuffers() {
-            
+        public virtual void UpdateMeshBuffers()
+        {
+
         }
     }
     public struct TransformStruct
@@ -79,7 +80,7 @@ namespace SolidCode.Caerus.Rendering
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex)
         {
             this._shader = shaderPath;
-            if(mesh != null)
+            if (mesh != null)
                 this._mesh = mesh;
             this.transform = t;
             this.uniform = uniform;
@@ -90,7 +91,7 @@ namespace SolidCode.Caerus.Rendering
                 textures = new List<string>();
             }
             this._texturePrototypes = textures;
-            if(mesh != null)
+            if (mesh != null)
                 CreateResources(_graphicsDevice, shaderPath);
         }
         public override void CreateResources(GraphicsDevice _graphicsDevice)
@@ -121,7 +122,7 @@ namespace SolidCode.Caerus.Rendering
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
-            // Next lest load textures to the gpu
+            // Next lets load textures to the gpu
             foreach (Texture texture in _loadedTextures)
             {
                 _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
@@ -192,12 +193,15 @@ namespace SolidCode.Caerus.Rendering
 
         }
 
-        public override void UpdateMeshBuffers() {
-            if(vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>()) {
+        public override void UpdateMeshBuffers()
+        {
+            if (vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>())
+            {
                 vertexBuffer.Dispose();
                 vertexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             }
-            if(indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort)) {
+            if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
+            {
                 indexBuffer.Dispose();
                 indexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             }
@@ -226,10 +230,11 @@ namespace SolidCode.Caerus.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            if(transformBuffer != null) {
+            if (transformBuffer != null)
+            {
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
             }
-            
+
         }
 
         public override void Dispose()

@@ -42,7 +42,7 @@
             parent.children.Add(this);
         }
 
-        public Entity AddComponent<T>() where T : Component, new()
+        public T AddComponent<T>() where T : Component, new()
         {
             while (componentsLocked)
             {
@@ -51,13 +51,14 @@
             // FIXME(amos): Adding components should only happen when all threads are idle. This is done to avoid a race-condition
             Component component = new T();
             component.entity = this;
-
+            if (Caerus.ecs != null && Caerus.ecs.HasStarted)
+                component.OnEnable();
             components.Add(component);
             if (typeof(RenderComponent).IsAssignableFrom(typeof(T)))
             {
                 renderingComponents.Add((RenderComponent)component);
             }
-            return this;
+            return (T)component;
         }
         public Entity RemoveComponent(Component component)
         {
@@ -67,6 +68,7 @@
             }
 
             // FIXME(amos): Removing components should only happen when all threads are idle. This is done to avoid a race-condition
+            component.OnDisable();
             component.OnRemove();
 
             components.Remove(component);
@@ -97,13 +99,17 @@
             foreach (Component component in components)
             {
                 if (component.enabled)
+                {
+                    component.OnEnable();
                     component.Start();
+                }
             }
             foreach (Entity e in children)
             {
                 e.Start();
             }
             componentsLocked = false;
+
 
         }
         public void Update()
@@ -139,26 +145,11 @@
             componentsLocked = false;
 
         }
-        public List<Drawable> RenderStart()
-        {
-            List<Drawable> drawables = new List<Drawable>();
-            foreach (RenderComponent component in renderingComponents)
-            {
-                if (component.enabled)
-                    drawables.AddRange(component.StartRender(Window._graphicsDevice));
-            }
 
-            foreach (Entity e in children)
-            {
-                drawables.AddRange(e.RenderStart());
-            }
-
-            return drawables;
-        }
         /// <summary>
         /// Assigns children to Entity
         /// </summary>
-        public Entity WithChildren(params Entity[] children)
+        public Entity AddChildren(params Entity[] children)
         {
             foreach (Entity e in children)
             {
