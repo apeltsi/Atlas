@@ -129,7 +129,10 @@ namespace SolidCode.Caerus
         {
             logsEnabled = false;
             WriteLogBuffer();
+#if DEBUG
+
             ds.Stop();
+#endif
         }
 
         public static void Log<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
