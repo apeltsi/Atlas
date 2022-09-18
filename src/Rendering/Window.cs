@@ -108,19 +108,24 @@ namespace SolidCode.Caerus.Rendering
                         ecs.Start();
                         Caerus.StartFixedUpdateLoop(ecs);
                     }
-                    InputManager.ClearInputs();
                     InputSnapshot inputSnapshot = window.PumpEvents();
                     if (reloadShaders)
                     {
                         reloadShaders = false;
                         ReloadAllShaders();
                     }
+                    InputManager.ClearInputs();
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
-                        InputManager.KeyPress(inputSnapshot.KeyEvents[i].Key);
-                        if (inputSnapshot.KeyEvents[i].Key == Key.F5 && inputSnapshot.KeyEvents[i].Down == true)
+                        KeyEvent e = inputSnapshot.KeyEvents[i];
+                        InputManager.KeyPress(e.Key);
+                        if (e.Down == true)
                         {
-                            ReloadAllShaders();
+                            InputManager.KeyPressDown(e.Key);
+                            if (e.Key == Key.F5)
+                            {
+                                ReloadAllShaders();
+                            }
                         }
                     }
                     MousePosition = inputSnapshot.MousePosition;
