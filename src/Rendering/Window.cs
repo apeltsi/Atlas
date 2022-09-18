@@ -118,14 +118,18 @@ namespace SolidCode.Caerus.Rendering
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
                         KeyEvent e = inputSnapshot.KeyEvents[i];
-                        InputManager.KeyPress(e.Key);
+
                         if (e.Down == true)
                         {
-                            InputManager.KeyPressDown(e.Key);
+                            InputManager.KeyPress(e.Key);
                             if (e.Key == Key.F5)
                             {
                                 ReloadAllShaders();
                             }
+                        }
+                        else
+                        {
+                            InputManager.RemoveKeyPress(e.Key);
                         }
                     }
                     MousePosition = inputSnapshot.MousePosition;

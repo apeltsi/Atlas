@@ -77,7 +77,8 @@ namespace SolidCode.Caerus.Rendering
 
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex)
+        protected Sampler sampler;
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
             this._shader = shaderPath;
             if (mesh != null)
@@ -90,6 +91,11 @@ namespace SolidCode.Caerus.Rendering
             {
                 textures = new List<string>();
             }
+            if (sampler == null)
+            {
+                sampler = _graphicsDevice.Aniso4xSampler;
+            }
+            this.sampler = sampler;
             this._texturePrototypes = textures;
             if (mesh != null)
                 CreateResources(_graphicsDevice, shaderPath);
@@ -184,7 +190,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 buffers[i] = texView;
                 i++;
-                buffers[i] = _graphicsDevice.Aniso4xSampler;
+                buffers[i] = this.sampler;
                 i++;
             }
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
