@@ -74,7 +74,7 @@ namespace SolidCode.Caerus
 
         public static void StartFixedUpdateLoop(EntityComponentSystem ecs)
         {
-            Debug.Log(LogCategories.Framework, "Starting fixed update loop");
+            Debug.Log(LogCategories.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
             timer = new System.Timers.Timer(1000f / updateFrequency);
             timer.Elapsed += new System.Timers.ElapsedEventHandler(FixedUpdate);
             timer.AutoReset = true;
@@ -84,7 +84,16 @@ namespace SolidCode.Caerus
         public static void FixedUpdate(object sender, ElapsedEventArgs e)
         {
             if (ecs != null)
+            {
+                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+                sw.Start();
                 ecs.FixedUpdate();
+                sw.Stop();
+                if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency)
+                {
+                    Debug.Warning("Caerus is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
+                }
+            }
         }
 
         public static float GetUptime()

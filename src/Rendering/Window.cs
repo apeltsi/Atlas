@@ -26,6 +26,7 @@ namespace SolidCode.Caerus.Rendering
         public static Veldrid.TextureView[] ColorViews = new Veldrid.TextureView[0];
         Veldrid.Framebuffer[] framebuffers = new Veldrid.Framebuffer[0];
         public static Vector2 MousePosition = Vector2.Zero;
+        public static RgbaFloat ClearColor = RgbaFloat.Black;
         PostProcess[] postProcess;
         /// <summary>
         /// Time elapsed between frames, in seconds.
@@ -49,7 +50,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 X = 20,
                 Y = 50,
-                WindowWidth = 600,
+                WindowWidth = 800,
                 WindowHeight = 500,
                 WindowTitle = title,
                 WindowInitialState = WindowState.Hidden,
@@ -83,6 +84,12 @@ namespace SolidCode.Caerus.Rendering
         {
             window.WindowState = state;
         }
+
+        public static void SetWindowTitle(string title)
+        {
+            window.Title = title;
+        }
+
 
         public static void AddDrawables(List<Drawable> drawables)
         {
@@ -212,7 +219,7 @@ namespace SolidCode.Caerus.Rendering
             _commandList.SetFramebuffer(DuplicatorFramebuffer);
 
             // At the beginning of every frame, we clear the screen to black. In a static scene, this is not really necessary, but I will do it anyway for demonstration.
-            _commandList.ClearColorTarget(0, RgbaFloat.Black);
+            _commandList.ClearColorTarget(0, ClearColor);
 
             // First we have to sort our drawables in order to perform the back-to-front render pass
             Drawable[] sortedDrawbles = _drawables.ToArray();

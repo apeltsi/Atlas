@@ -52,7 +52,8 @@ namespace SolidCode.Caerus.Rendering
         }
         public override void Draw(CommandList cl)
         {
-            if(dirty) {
+            if (dirty)
+            {
                 renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
                 this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
                 dirty = false;
@@ -73,7 +74,8 @@ namespace SolidCode.Caerus.Rendering
 
     }
 
-    struct Uniform {
+    struct Uniform
+    {
         Vector4 vector;
     }
 
@@ -96,7 +98,7 @@ namespace SolidCode.Caerus.Rendering
 
     unsafe class FontTextureManager : ITexture2DManager
     {
-        
+
         public object CreateTexture(int width, int height)
         {
             ResourceFactory factory = Window._graphicsDevice.ResourceFactory;
@@ -113,13 +115,13 @@ namespace SolidCode.Caerus.Rendering
         {
             Veldrid.Texture t = (Veldrid.Texture)texture;
             fixed (byte* ptr = data)
-			{
+            {
                 Window._graphicsDevice.UpdateTexture(t, new IntPtr(ptr), (uint)data.Length, (uint)bounds.X, (uint)bounds.Y, 0, (uint)bounds.Width, (uint)bounds.Height, 1, 0, 0);
             }
         }
     }
 
-    class FontRenderer : Drawable<VertexPositionColorTexture, Uniform>, IFontStashRenderer2 
+    class FontRenderer : Drawable<VertexPositionColorTexture, Uniform>, IFontStashRenderer2
     {
         bool resourcesCreated = false;
         Mesh<VertexPositionColorTexture> virtualMesh; // This is needed when the mesh is updated during rendering
@@ -143,7 +145,8 @@ namespace SolidCode.Caerus.Rendering
         TextureView texView;
         private FontTextureManager texManager;
         Veldrid.Texture texture;
-        ITexture2DManager IFontStashRenderer2.TextureManager {
+        ITexture2DManager IFontStashRenderer2.TextureManager
+        {
             get { return texManager; }
 
         }
@@ -152,13 +155,14 @@ namespace SolidCode.Caerus.Rendering
         public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
         {
             int c = this.virtualMesh.Vertices.Length;
-            this.virtualMesh.AddIndicies(new ushort[6] {(ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2),  (ushort)(c + 1),  (ushort)(c + 3)});
-            this.virtualMesh.AddVertices(new VertexPositionColorTexture[4] {topLeft, topRight, bottomLeft, bottomRight});
+            this.virtualMesh.AddIndicies(new ushort[6] { (ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 1), (ushort)(c + 3) });
+            this.virtualMesh.AddVertices(new VertexPositionColorTexture[4] { topLeft, topRight, bottomLeft, bottomRight });
             this.texture = (Veldrid.Texture)texture;
             buffersDirty = true;
         }
 
-        public void ClearAllQuads() {
+        public void ClearAllQuads()
+        {
             this.virtualMesh.ClearIndicies();
             this.virtualMesh.ClearVertices();
             buffersDirty = true;
@@ -168,7 +172,7 @@ namespace SolidCode.Caerus.Rendering
         {
             Shader shader = ShaderManager.GetShader("text");
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
-            
+
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
@@ -182,9 +186,9 @@ namespace SolidCode.Caerus.Rendering
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix(), HorizontalOffset));
 
             // Next lest load textures to the gpu
-            
+
             TextureView texView = factory.CreateTextureView(texture);
-            
+
 
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
@@ -196,10 +200,10 @@ namespace SolidCode.Caerus.Rendering
             ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[3];
             elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, transformShaderStages);
 
-            
+
             elementDescriptions[1] = new ResourceLayoutElementDescription("Texture", ResourceKind.TextureReadOnly, ShaderStages.Fragment);
             elementDescriptions[2] = new ResourceLayoutElementDescription("TextureSampler", ResourceKind.Sampler, ShaderStages.Fragment);
-            
+
             ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
@@ -227,45 +231,53 @@ namespace SolidCode.Caerus.Rendering
             buffers[0] = transformBuffer;
             buffers[1] = texView;
             buffers[2] = _graphicsDevice.Aniso4xSampler;
-            
+
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 uniformResourceLayout,
                 buffers));
 
         }
 
-        public void SetHorizontalOffset(float offset) {
+        public void SetHorizontalOffset(float offset)
+        {
             HorizontalOffset = offset;
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            if(transformBuffer != null) {
+            if (transformBuffer != null)
+            {
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix(), HorizontalOffset));
             }
-            
+
         }
 
 
-        public override void Draw(CommandList cl) {
-            if(!resourcesCreated && buffersDirty && texture != null) {
+        public override void Draw(CommandList cl)
+        {
+            if (!resourcesCreated && buffersDirty && texture != null)
+            {
                 _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
                 CreateResources(Window._graphicsDevice, this.texture);
                 resourcesCreated = true;
             }
 
-            if(!resourcesCreated) {
+            if (!resourcesCreated)
+            {
                 return;
             }
-            if(buffersDirty && virtualMesh.Vertices.Length == 0) {
+            if (buffersDirty && virtualMesh.Vertices.Length == 0)
+            {
                 return;
             }
-            if(buffersDirty) {
+            if (buffersDirty)
+            {
                 buffersDirty = false;
                 _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
                 UpdateMeshBuffers();
             }
-            if(_mesh.Vertices.Length == 0) {
+            if (_mesh.Vertices.Length == 0)
+            {
                 return;
             }
 
