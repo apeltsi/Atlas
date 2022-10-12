@@ -45,7 +45,6 @@ namespace SolidCode.Caerus.Rendering
         /// </summary>
         public Window(string title = "Caerus " + Caerus.Version)
         {
-            // TODO(amos): allow to open windows that arent borderless fullscreen, also allow changing window type at runtime
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
                 X = 20,
@@ -224,6 +223,7 @@ namespace SolidCode.Caerus.Rendering
             // First we have to sort our drawables in order to perform the back-to-front render pass
             Drawable[] sortedDrawbles = _drawables.ToArray();
             // TODO(amos): vvv - this could be improved a lot! by sorting only when z leves change or a drawable is added
+            // although for now cpu performance isn't really a problem
             Array.Sort(sortedDrawbles, Compare);
             foreach (Drawable drawable in sortedDrawbles)
             {
