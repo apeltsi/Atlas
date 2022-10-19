@@ -81,7 +81,7 @@ namespace SolidCode.Caerus
             timer.Start();
         }
 
-        public static void FixedUpdate(object sender, ElapsedEventArgs e)
+        public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
             if (ecs != null)
             {
