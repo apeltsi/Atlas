@@ -19,6 +19,7 @@ namespace SolidCode.Caerus.Rendering
         FontSystem font;
         string[] fontPaths;
         FontRenderer renderer;
+        Matrix4x4 lastMatrix;
         public TextDrawable(string text, string[] fontPaths, int size, Transform transform)
         {
             this.text = text;
@@ -26,9 +27,6 @@ namespace SolidCode.Caerus.Rendering
             this.fontPaths = fontPaths;
             this.size = size;
             CreateResources(Window._graphicsDevice);
-            // TODO
-            // #1 Get the texture to the gpu
-            // #2 only update vertices on text update
             renderer = new FontRenderer(Window._graphicsDevice, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
             renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
             this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
@@ -56,6 +54,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
                 this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
+                SetGlobalMatrix(Window._graphicsDevice, lastMatrix);
                 dirty = false;
             }
             renderer.Draw(cl);
@@ -69,6 +68,7 @@ namespace SolidCode.Caerus.Rendering
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
             renderer.SetGlobalMatrix(_graphicsDevice, matrix);
+            lastMatrix = matrix;
         }
 
 
