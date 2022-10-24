@@ -16,7 +16,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 return shaders[path];
             }
-            Debug.Log(LogCategories.Rendering, "Generating shader");
+            Debug.Log(LogCategories.Rendering, "Generating shader \"" + path + "\"");
             Shader shader = new Shader(Window._graphicsDevice.ResourceFactory, path + ".vert", path + ".frag");
             shaders.Add(path, shader);
             return shader;
