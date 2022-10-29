@@ -215,6 +215,9 @@ namespace SolidCode.Caerus.Rendering
             Window._graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
         }
 
+
+        // TODO: Add a way to update the textures
+
         public override void Draw(CommandList cl)
         {
             cl.SetVertexBuffer(0, vertexBuffer);

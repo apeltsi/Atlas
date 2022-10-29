@@ -29,7 +29,9 @@
             {
                 sca = (Vector2)scale;
             }
-            AddComponent<Transform>();
+            Transform t = AddComponent<Transform>();
+            t.position = pos;
+            t.scale = sca;
         }
 
         public void SetParent(Entity e)

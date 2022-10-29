@@ -20,16 +20,28 @@ namespace SolidCode.Caerus.Rendering
         string[] fontPaths;
         FontRenderer renderer;
         Matrix4x4 lastMatrix;
-        public TextDrawable(string text, string[] fontPaths, int size, Transform transform)
+        public Vector4 color
+        {
+            get
+            {
+                return renderer.Color;
+            }
+            set
+            {
+                renderer.Color = value;
+                renderer.UpdateColor(value);
+            }
+        }
+        public TextDrawable(string text, string[] fontPaths, Vector4 Color, int size, Transform transform)
         {
             this.text = text;
             this.transform = transform;
             this.fontPaths = fontPaths;
             this.size = size;
             CreateResources(Window._graphicsDevice);
-            renderer = new FontRenderer(Window._graphicsDevice, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
+            renderer = new FontRenderer(Window._graphicsDevice, Color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
             renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
+            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
         }
 
         public void UpdateText(string text, int size)
@@ -77,6 +89,11 @@ namespace SolidCode.Caerus.Rendering
     struct Uniform
     {
         Vector4 vector;
+
+        public Uniform(Vector4 vector)
+        {
+            this.vector = vector;
+        }
     }
 
     public struct TextTransformStruct
@@ -126,7 +143,9 @@ namespace SolidCode.Caerus.Rendering
         bool resourcesCreated = false;
         Mesh<VertexPositionColorTexture> virtualMesh; // This is needed when the mesh is updated during rendering
         float HorizontalOffset = 0f;
-        public FontRenderer(GraphicsDevice _graphicsDevice, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<string>(), transformShaderStages)
+        DeviceBuffer colorBuffer;
+        public Vector4 Color = new Vector4(1, 1, 1, 1f);
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<string>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
@@ -139,6 +158,7 @@ namespace SolidCode.Caerus.Rendering
             this.uniform = uniform;
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
+            this.Color = Color;
             texManager = new FontTextureManager();
         }
 
@@ -176,7 +196,7 @@ namespace SolidCode.Caerus.Rendering
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
-
+            colorBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Uniform>(), BufferUsage.UniformBuffer));
 
 
 
@@ -184,7 +204,7 @@ namespace SolidCode.Caerus.Rendering
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix(), HorizontalOffset));
-
+            _graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(this.Color));
             // Next lest load textures to the gpu
 
             TextureView texView = factory.CreateTextureView(texture);
@@ -197,12 +217,13 @@ namespace SolidCode.Caerus.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
-            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[3];
+            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[4];
             elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, transformShaderStages);
 
 
             elementDescriptions[1] = new ResourceLayoutElementDescription("Texture", ResourceKind.TextureReadOnly, ShaderStages.Fragment);
             elementDescriptions[2] = new ResourceLayoutElementDescription("TextureSampler", ResourceKind.Sampler, ShaderStages.Fragment);
+            elementDescriptions[3] = new ResourceLayoutElementDescription("Color", ResourceKind.UniformBuffer, ShaderStages.Fragment);
 
             ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
@@ -227,10 +248,11 @@ namespace SolidCode.Caerus.Rendering
 
             pipelineDescription.Outputs = Window.DuplicatorFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
-            BindableResource[] buffers = new BindableResource[3];
+            BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
             buffers[1] = texView;
             buffers[2] = _graphicsDevice.Aniso4xSampler;
+            buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 uniformResourceLayout,
@@ -241,6 +263,11 @@ namespace SolidCode.Caerus.Rendering
         public void SetHorizontalOffset(float offset)
         {
             HorizontalOffset = offset;
+        }
+
+        public void UpdateColor(Vector4 color)
+        {
+            Window._graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(color));
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
