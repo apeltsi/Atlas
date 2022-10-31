@@ -20,6 +20,7 @@ namespace SolidCode.Caerus.Rendering
         string[] fontPaths;
         FontRenderer renderer;
         Matrix4x4 lastMatrix;
+        bool centered = true;
         public Vector4 color
         {
             get
@@ -32,15 +33,17 @@ namespace SolidCode.Caerus.Rendering
                 renderer.UpdateColor(value);
             }
         }
-        public TextDrawable(string text, string[] fontPaths, Vector4 Color, int size, Transform transform)
+        public TextDrawable(string text, string[] fontPaths, Vector4 Color, bool centered, int size, Transform transform)
         {
             this.text = text;
             this.transform = transform;
             this.fontPaths = fontPaths;
             this.size = size;
+            this.centered = centered;
             CreateResources(Window._graphicsDevice);
             renderer = new FontRenderer(Window._graphicsDevice, Color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
-            renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
+            if (centered)
+                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
             this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
         }
 
@@ -64,7 +67,8 @@ namespace SolidCode.Caerus.Rendering
         {
             if (dirty)
             {
-                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
+                if (centered)
+                    renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
                 this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
                 SetGlobalMatrix(Window._graphicsDevice, lastMatrix);
                 dirty = false;
@@ -267,7 +271,8 @@ namespace SolidCode.Caerus.Rendering
 
         public void UpdateColor(Vector4 color)
         {
-            Window._graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(color));
+            if (colorBuffer != null)
+                Window._graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(color));
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)

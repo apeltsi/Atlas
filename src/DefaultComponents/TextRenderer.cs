@@ -10,6 +10,7 @@ public class TextRenderer : RenderComponent
     private TextDrawable? textDrawable;
     private string _text = "Hello World!";
     public int Size = 100;
+    public bool Centered = true;
     private Vector4 _color;
     public Vector4 Color
     {
@@ -50,7 +51,7 @@ public class TextRenderer : RenderComponent
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        TextDrawable drawable = new TextDrawable(Text, new string[3] { "Comfortaa-Regular.ttf", "Gugi-Regular.ttf", "NotoSansJP-Regular.otf" }, Color, Size, entity.GetComponent<Transform>());
+        TextDrawable drawable = new TextDrawable(Text, new string[3] { "Comfortaa-Regular.ttf", "Gugi-Regular.ttf", "NotoSansJP-Regular.otf" }, Color, Centered, Size, entity.GetComponent<Transform>());
         textDrawable = drawable;
         return new Drawable[] { drawable };
     }
