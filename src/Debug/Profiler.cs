@@ -1,7 +1,7 @@
 #if DEBUG
 using System.Diagnostics;
 
-namespace SolidCode.Caerus
+namespace SolidCode.Atlas
 {
     public static class Profiler
     {

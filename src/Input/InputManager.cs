@@ -1,6 +1,6 @@
 using Veldrid;
 
-namespace SolidCode.Caerus.Input
+namespace SolidCode.Atlas.Input
 {
     public static class InputManager
     {

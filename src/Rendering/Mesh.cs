@@ -1,6 +1,6 @@
 using Veldrid;
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public class Mesh<T> where T : struct
     {
@@ -15,14 +15,16 @@ namespace SolidCode.Caerus.Rendering
             this.VertexLayout = vertexLayout;
         }
 
-        public Mesh(Mesh<T> mesh) {
-            
+        public Mesh(Mesh<T> mesh)
+        {
+
             this.Vertices = (T[])mesh.Vertices.Clone();
             this.Indicies = (ushort[])mesh.Indicies.Clone();
             this.VertexLayout = mesh.VertexLayout;
         }
 
-        public void AddVertices(T[] vertices) {
+        public void AddVertices(T[] vertices)
+        {
             var a = (T[])Vertices.Clone();
             var b = (T[])vertices.Clone();
             var z = new T[a.Length + b.Length];
@@ -31,7 +33,8 @@ namespace SolidCode.Caerus.Rendering
             Vertices = z;
         }
 
-        public void AddIndicies(ushort[] indicies) {
+        public void AddIndicies(ushort[] indicies)
+        {
             var a = (ushort[])Indicies.Clone();
             var b = (ushort[])indicies.Clone();
             var z = new ushort[a.Length + b.Length];
@@ -40,10 +43,12 @@ namespace SolidCode.Caerus.Rendering
             Indicies = z;
         }
 
-        public void ClearIndicies() {
+        public void ClearIndicies()
+        {
             Indicies = new ushort[0];
         }
-        public void ClearVertices() {
+        public void ClearVertices()
+        {
             Vertices = new T[0];
         }
     }

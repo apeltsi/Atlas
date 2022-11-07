@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.Audio
+namespace SolidCode.Atlas.Audio
 {
     public static class AudioManager
     {

@@ -1,5 +1,5 @@
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     using System.Collections.Generic;
     using System.Drawing;
@@ -7,7 +7,7 @@ namespace SolidCode.Caerus.Rendering
     using System.Runtime.InteropServices;
     using FontStashSharp;
     using FontStashSharp.Interfaces;
-    using SolidCode.Caerus.Components;
+    using SolidCode.Atlas.Components;
     using Veldrid;
 
     public class TextDrawable : Drawable

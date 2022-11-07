@@ -3,7 +3,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
-namespace SolidCode.Caerus
+namespace SolidCode.Atlas
 {
     public static class Debug
     {
@@ -24,7 +24,7 @@ namespace SolidCode.Caerus
 
             using (StreamWriter writer = new StreamWriter("logs/All.log"))
             {
-                writer.WriteLine("ENGINE_VERSION: " + Caerus.Version);
+                writer.WriteLine("ENGINE_VERSION: " + Atlas.Version);
                 writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
             }
 
@@ -36,7 +36,7 @@ namespace SolidCode.Caerus
                 using (StreamWriter writer = new StreamWriter("logs/logs.html"))
                 {
                     writer.Write(result);
-                    writer.WriteLine("ENGINE_VERSION: " + Caerus.Version);
+                    writer.WriteLine("ENGINE_VERSION: " + Atlas.Version);
                     writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
                 }
             }

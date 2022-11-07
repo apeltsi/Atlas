@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     using System;
     using System.Collections.Generic;

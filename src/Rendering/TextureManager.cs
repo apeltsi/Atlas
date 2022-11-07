@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     static class TextureManager
     {
@@ -16,7 +16,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 return textures[path];
             }
-            Debug.Log(LogCategories.Rendering, "Loading texture '" + path + "'");
+            Debug.Log(LogCategory.Rendering, "Loading texture '" + path + "'");
             Texture texture = new Texture(path + ".ktx", path, Window._graphicsDevice, Window._graphicsDevice.ResourceFactory);
             textures.Add(path, texture);
             return texture;

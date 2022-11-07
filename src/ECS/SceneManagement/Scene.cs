@@ -1,5 +1,5 @@
 
-namespace SolidCode.Caerus.ECS.SceneManagement
+namespace SolidCode.Atlas.ECS.SceneManagement
 {
 
     public class Scene

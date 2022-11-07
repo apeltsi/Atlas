@@ -1,4 +1,4 @@
-echo "Caerus Assets Conversion tool"
+echo "Atlas Assets Conversion tool"
 echo "Converting all png assets to .ktx";
 cd ./data/assets
 for file in *.png; do

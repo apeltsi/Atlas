@@ -1,12 +1,12 @@
 using System.Numerics;
-using SolidCode.Caerus.ECS;
-using SolidCode.Caerus.Input;
+using SolidCode.Atlas.ECS;
+using SolidCode.Atlas.Input;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
 using static Veldrid.Sdl2.Sdl2Native;
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public class Window
     {
@@ -43,7 +43,7 @@ namespace SolidCode.Caerus.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Caerus " + Caerus.Version)
+        public Window(string title = "Caerus " + Atlas.Version)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
@@ -67,7 +67,7 @@ namespace SolidCode.Caerus.Rendering
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
-            Debug.Log(LogCategories.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
+            Debug.Log(LogCategory.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
             window.Resized += () =>
             {
                 _graphicsDevice.ResizeMainWindow((uint)window.Width, (uint)window.Height);
@@ -76,7 +76,7 @@ namespace SolidCode.Caerus.Rendering
             };
             CreateResources();
 
-            Debug.Log(LogCategories.Rendering, "Resources created!");
+            Debug.Log(LogCategory.Rendering, "Resources created!");
         }
 
         public static void SetWindowState(WindowState state)
@@ -99,7 +99,7 @@ namespace SolidCode.Caerus.Rendering
             _drawables.Remove(drawable);
         }
 
-        public void StartRenderLoop(EntityComponentSystem ecs)
+        public void StartRenderLoop()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
@@ -111,8 +111,8 @@ namespace SolidCode.Caerus.Rendering
                     {
                         window.Visible = true;
                         window.WindowState = WindowState.Normal;
-                        ecs.Start();
-                        Caerus.StartFixedUpdateLoop(ecs);
+                        EntityComponentSystem.Start();
+                        Atlas.StartFixedUpdateLoop();
                     }
                     InputSnapshot inputSnapshot = window.PumpEvents();
                     if (reloadShaders)
@@ -143,7 +143,7 @@ namespace SolidCode.Caerus.Rendering
 #if DEBUG
                     Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
-                    ecs.Update();
+                    EntityComponentSystem.Update();
                     frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
                     frameTimes += frameDeltaTime;
                     if (frames >= 60)
@@ -180,7 +180,7 @@ namespace SolidCode.Caerus.Rendering
 
         public void ReloadAllShaders()
         {
-            Debug.Log(LogCategories.Rendering, "RELOADING ALL SHADERS...");
+            Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
             // First, lets recompile all our shaders
             ShaderManager.ClearAllShaders();
             // Next, lets dispose all drawables
@@ -190,7 +190,7 @@ namespace SolidCode.Caerus.Rendering
                 drawable.CreateResources(_graphicsDevice);
             }
             CreateResources();
-            Debug.Log(LogCategories.Rendering, "All shaders have been reloaded...");
+            Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
         }
 
 
@@ -227,6 +227,10 @@ namespace SolidCode.Caerus.Rendering
             Array.Sort(sortedDrawbles, Compare);
             foreach (Drawable drawable in sortedDrawbles)
             {
+                if (drawable == null)
+                {
+                    continue;
+                }
                 drawable.SetGlobalMatrix(_graphicsDevice, WindowScalingMatrix);
                 drawable.SetScreenSize(_graphicsDevice, new Vector2(window.Width, window.Height));
                 drawable.Draw(_commandList);
@@ -380,7 +384,7 @@ namespace SolidCode.Caerus.Rendering
                 framebuffers[i].Dispose();
             }
 
-            Debug.Log(LogCategories.Rendering, "Disposed all resources");
+            Debug.Log(LogCategory.Rendering, "Disposed all resources");
         }
 
         public static Matrix4x4 GetScalingMatrix(float Width, float Height)

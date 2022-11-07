@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     static class ShaderManager
     {
@@ -16,7 +16,7 @@ namespace SolidCode.Caerus.Rendering
             {
                 return shaders[path];
             }
-            Debug.Log(LogCategories.Rendering, "Generating shader \"" + path + "\"");
+            Debug.Log(LogCategory.Rendering, "Generating shader \"" + path + "\"");
             Shader shader = new Shader(Window._graphicsDevice.ResourceFactory, path + ".vert", path + ".frag");
             shaders.Add(path, shader);
             return shader;
@@ -30,13 +30,13 @@ namespace SolidCode.Caerus.Rendering
         public static void RecompileAllShaders()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategories.Rendering, "Recompiling shaders...");
+            Debug.Log(LogCategory.Rendering, "Recompiling shaders...");
             foreach (KeyValuePair<string, Shader> shader in shaders)
             {
                 shaders[shader.Key] = new Shader(Window._graphicsDevice.ResourceFactory, shader.Key + ".vert", shader.Key + ".frag");
             }
             watch.Stop();
-            Debug.Log(LogCategories.Rendering, "All shaders have been recompiled [" + watch.ElapsedMilliseconds + "ms]");
+            Debug.Log(LogCategory.Rendering, "All shaders have been recompiled [" + watch.ElapsedMilliseconds + "ms]");
         }
 
     }

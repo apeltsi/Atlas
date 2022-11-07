@@ -1,5 +1,5 @@
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     using Veldrid;
 
@@ -13,7 +13,7 @@ namespace SolidCode.Caerus.Rendering
         {
             this.path = path;
             this.name = name;
-            this.texture = KtxFile.LoadTexture(_graphicsDevice, factory, Path.Join(Caerus.AssetsDirectory, path), PixelFormat.R8_G8_B8_A8_UNorm);
+            this.texture = KtxFile.LoadTexture(_graphicsDevice, factory, Path.Join(Atlas.AssetsDirectory, path), PixelFormat.R8_G8_B8_A8_UNorm);
         }
 
     }

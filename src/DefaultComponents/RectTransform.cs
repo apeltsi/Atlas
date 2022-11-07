@@ -1,9 +1,9 @@
 
-namespace SolidCode.Caerus.Components
+namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
-    using SolidCode.Caerus.ECS;
-    using SolidCode.Caerus.Rendering;
+    using SolidCode.Atlas.ECS;
+    using SolidCode.Atlas.Rendering;
 
     public enum PositionMode
     {
@@ -88,7 +88,7 @@ namespace SolidCode.Caerus.Components
 
         public override void Start()
         {
-            Debug.Log(LogCategories.General, "Hello, im '" + entity.name + "' and this is my scale: " + GetAdjustedScale().ToString());
+            Debug.Log(LogCategory.General, "Hello, im '" + entity.name + "' and this is my scale: " + GetAdjustedScale().ToString());
         }
 
         Vector2 GetParentBoundingBox()

@@ -2,7 +2,7 @@ using System.Text;
 using Veldrid;
 using Veldrid.SPIRV;
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public class Shader
     {
@@ -11,8 +11,8 @@ namespace SolidCode.Caerus.Rendering
         public Veldrid.Shader[] shaders { get; protected set; }
         public Shader(ResourceFactory factory, string vertPath, string fragPath)
         {
-            vertPath = Path.Join(Caerus.ShaderDirectory, vertPath);
-            fragPath = Path.Join(Caerus.ShaderDirectory, fragPath);
+            vertPath = Path.Join(Atlas.ShaderDirectory, vertPath);
+            fragPath = Path.Join(Atlas.ShaderDirectory, fragPath);
 
             var vertSource = File.ReadAllText(vertPath);
             var fragSource = File.ReadAllText(fragPath);
@@ -31,7 +31,7 @@ namespace SolidCode.Caerus.Rendering
             }
             catch (Exception ex)
             {
-                Debug.Error(LogCategories.Rendering, ex.ToString());
+                Debug.Error(LogCategory.Rendering, ex.ToString());
             }
         }
 

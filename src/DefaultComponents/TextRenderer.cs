@@ -1,8 +1,8 @@
 using System.Numerics;
-using SolidCode.Caerus;
-using SolidCode.Caerus.Components;
-using SolidCode.Caerus.ECS;
-using SolidCode.Caerus.Rendering;
+using SolidCode.Atlas;
+using SolidCode.Atlas.Components;
+using SolidCode.Atlas.ECS;
+using SolidCode.Atlas.Rendering;
 using Veldrid;
 
 public class TextRenderer : RenderComponent
@@ -54,6 +54,12 @@ public class TextRenderer : RenderComponent
         TextDrawable drawable = new TextDrawable(Text, new string[3] { "Comfortaa-Regular.ttf", "Gugi-Regular.ttf", "NotoSansJP-Regular.otf" }, Color, Centered, Size, entity.GetComponent<Transform>());
         textDrawable = drawable;
         return new Drawable[] { drawable };
+    }
+
+    public override void OnDisable()
+    {
+        if (textDrawable != null)
+            Window.RemoveDrawable(textDrawable);
     }
 
     public override void Update()

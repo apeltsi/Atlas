@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.ECS
+namespace SolidCode.Atlas.ECS
 {
     /// <summary>Limits the allowed instance count of a component to 1. 
     /// The component cannot be added if a Entity if another instance of the component already exists in the ECS.
@@ -13,7 +13,7 @@ namespace SolidCode.Caerus.ECS
     }
     /// <summary>
     /// Limits the allowed instance count of a component to <c>count</c>. 
-    /// The component cannot be added if a Entity if <c>count</c> of the component already exists in the ECS.
+    /// The component cannot be added onto a Entity if <c>count</c> of the component already exists in the ECS.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class LimitInstanceCountAttribute : Attribute

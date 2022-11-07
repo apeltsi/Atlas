@@ -1,5 +1,5 @@
 
-namespace SolidCode.Caerus.ECS.SceneManagement
+namespace SolidCode.Atlas.ECS.SceneManagement
 {
 
     public static class SceneManager
@@ -8,7 +8,7 @@ namespace SolidCode.Caerus.ECS.SceneManagement
         {
             foreach (Entity e in scene.entities)
             {
-                Caerus.ecs.AddEntity(e);
+                EntityComponentSystem.AddEntity(e);
             }
         }
     }

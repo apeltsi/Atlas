@@ -1,9 +1,9 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SolidCode.Caerus.Components;
+using SolidCode.Atlas.Components;
 using Veldrid;
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     /// <summary>
     /// A representation of something that will be drawn onscreen
@@ -24,7 +24,7 @@ namespace SolidCode.Caerus.Rendering
 
         public virtual void Dispose()
         {
-            Debug.Log(LogCategories.Rendering, "Something went wrong! You shouldn't be disposing an abstract class!");
+            Debug.Log(LogCategory.Rendering, "Something went wrong! You shouldn't be disposing an abstract class!");
         }
 
         public virtual void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)

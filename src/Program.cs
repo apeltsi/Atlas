@@ -1,13 +1,13 @@
 ﻿
-namespace SolidCode.Caerus
+namespace SolidCode.Atlas
 {
     using System.Timers;
-    using SolidCode.Caerus.Rendering;
-    using SolidCode.Caerus.ECS;
-    using SolidCode.Caerus.Components;
-    using SolidCode.Caerus.ECS.SceneManagement;
+    using SolidCode.Atlas.Rendering;
+    using SolidCode.Atlas.ECS;
+    using SolidCode.Atlas.Components;
+    using SolidCode.Atlas.ECS.SceneManagement;
 
-    public enum LogCategories
+    public enum LogCategory
     {
         General,
         Framework,
@@ -15,19 +15,18 @@ namespace SolidCode.Caerus
         ECS
     }
 
-    public static class Caerus
+    public static class Atlas
     {
         public static string ActiveDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
         public static string DataDirectory = Path.Join(ActiveDirectory, "data" + Path.DirectorySeparatorChar);
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
-        public static string AppName = "Caerus";
+        public static string AppName = "Atlas";
         public const string Version = "0.1.0a";
 
         public static int updateFrequency = 100;
         public static Timer timer;
-        public static EntityComponentSystem? ecs;
         public static System.Diagnostics.Stopwatch watch { get; private set; }
         public static void InitializeLogging()
         {
@@ -37,28 +36,27 @@ namespace SolidCode.Caerus
         {
             AppName = windowTitle;
             watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategories.Framework, "Caerus " + Version + " starting up...");
+            Debug.Log(LogCategory.Framework, "Atlas " + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {
                 // Were running in from the development path. Lets grab our shaders from there instead!
                 ShaderDirectory = "./data/shaders";
-                Debug.Log(LogCategories.Framework, "It looks like Caerus is running from a development enviroment. Loading shaders from dev enviroment instead.");
+                Debug.Log(LogCategory.Framework, "It looks like Atlas is running from a development enviroment. Loading shaders from dev enviroment instead.");
             }
 #endif
 
-            ecs = new EntityComponentSystem();
 
-            Debug.Log(LogCategories.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
+            Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
             Window w = new Window(windowTitle);
-            Debug.Log(LogCategories.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
-            ecs.window = w;
+            Debug.Log(LogCategory.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
+            EntityComponentSystem.window = w;
             SceneManager.LoadScene(defaultScene);
-            Debug.Log(LogCategories.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
+            Debug.Log(LogCategory.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
             Audio.AudioManager.InitializeAudio();
             try
             {
-                w.StartRenderLoop(ecs);
+                w.StartRenderLoop();
             }
             catch (Exception ex)
             {
@@ -66,15 +64,15 @@ namespace SolidCode.Caerus
             }
             if (timer != null)
                 timer.Stop();
-            ecs.Dispose();
+            EntityComponentSystem.Dispose();
             watch.Stop();
-            Debug.Log(LogCategories.Framework, "Caerus shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
+            Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
             Debug.Stop();
         }
 
-        public static void StartFixedUpdateLoop(EntityComponentSystem ecs)
+        public static void StartFixedUpdateLoop()
         {
-            Debug.Log(LogCategories.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
+            Debug.Log(LogCategory.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
             timer = new System.Timers.Timer(1000f / updateFrequency);
             timer.Elapsed += new System.Timers.ElapsedEventHandler(FixedUpdate);
             timer.AutoReset = true;
@@ -83,17 +81,15 @@ namespace SolidCode.Caerus
 
         public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
-            if (ecs != null)
+            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            sw.Start();
+            EntityComponentSystem.FixedUpdate();
+            sw.Stop();
+            if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency)
             {
-                System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-                sw.Start();
-                ecs.FixedUpdate();
-                sw.Stop();
-                if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency)
-                {
-                    Debug.Warning("Caerus is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
-                }
+                Debug.Warning("Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
             }
+
         }
 
         public static float GetUptime()

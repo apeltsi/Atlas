@@ -1,7 +1,7 @@
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
-    using SolidCode.Caerus.ECS;
+    using SolidCode.Atlas.ECS;
     using Veldrid;
 
     public class RenderComponent : Component

@@ -1,4 +1,4 @@
-﻿namespace SolidCode.Caerus.ECS
+﻿namespace SolidCode.Atlas.ECS
 {
     public abstract class Component
     {

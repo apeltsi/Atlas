@@ -1,7 +1,7 @@
-namespace SolidCode.Caerus.Components
+namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
-    using SolidCode.Caerus.ECS;
+    using SolidCode.Atlas.ECS;
     [SingleInstance]
     public class Camera : Component
     {

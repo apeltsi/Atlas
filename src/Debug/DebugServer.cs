@@ -1,5 +1,5 @@
 #if DEBUG
-namespace SolidCode.Caerus
+namespace SolidCode.Atlas
 {
 
     using System.Net;
@@ -9,7 +9,7 @@ namespace SolidCode.Caerus
     using WebSocketSharp.Server;
     using System.Text.Json;
     using System.Timers;
-    using SolidCode.Caerus.Rendering;
+    using SolidCode.Atlas.Rendering;
 
     class Log
     {
@@ -108,7 +108,7 @@ namespace SolidCode.Caerus
                 return;
             }
 
-            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Caerus.GetUptime() * 1000));
+            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000));
 
             Send(jsonString);
             float[] times = Profiler.GetAverageTimes();

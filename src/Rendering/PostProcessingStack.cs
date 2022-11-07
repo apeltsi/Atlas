@@ -1,4 +1,4 @@
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public class PostProcessingStack
     {
@@ -18,6 +18,6 @@ namespace SolidCode.Caerus.Rendering
             this.effects = effects;
         }
 
-        
+
     }
 }

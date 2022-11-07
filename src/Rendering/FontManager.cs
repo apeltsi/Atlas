@@ -1,6 +1,6 @@
 using FontStashSharp;
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public static class FontManager
     {
@@ -13,7 +13,7 @@ namespace SolidCode.Caerus.Rendering
             }
             else
             {
-                loadedFonts.Add(font, File.ReadAllBytes(Path.Join(Caerus.AssetsDirectory, font)));
+                loadedFonts.Add(font, File.ReadAllBytes(Path.Join(Atlas.AssetsDirectory, font)));
                 result.AddFont(loadedFonts[font]);
 
             }

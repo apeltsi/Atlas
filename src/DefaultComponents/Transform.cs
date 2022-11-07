@@ -1,7 +1,7 @@
-namespace SolidCode.Caerus.Components
+namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
-    using SolidCode.Caerus.ECS;
+    using SolidCode.Atlas.ECS;
     public class Transform : Component
     {
         public Vector2 position;

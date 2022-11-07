@@ -1,5 +1,5 @@
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     using System.Numerics;
     public static class Camera

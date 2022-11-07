@@ -1,9 +1,9 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SolidCode.Caerus.Components;
+using SolidCode.Atlas.Components;
 using Veldrid;
 
-namespace SolidCode.Caerus.Rendering
+namespace SolidCode.Atlas.Rendering
 {
     public class PostProcess : Drawable
     {

@@ -1,8 +1,8 @@
 using System.Numerics;
-using SolidCode.Caerus;
-using SolidCode.Caerus.Components;
-using SolidCode.Caerus.ECS;
-using SolidCode.Caerus.Rendering;
+using SolidCode.Atlas;
+using SolidCode.Atlas.Components;
+using SolidCode.Atlas.ECS;
+using SolidCode.Atlas.Rendering;
 
 class FrameCounter : Component
 {
