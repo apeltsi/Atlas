@@ -2,7 +2,7 @@
 {
     public abstract class Component
     {
-        private bool _enabled = true;
+        private bool _enabled = false;
         public bool enabled
         {
             get
@@ -11,10 +11,13 @@
             }
             set
             {
+                if (_enabled == value)
+                    return;
                 _enabled = value;
                 switch (value)
                 {
                     case true:
+
                         this.OnEnable();
                         break;
                     case false:
@@ -44,13 +47,12 @@
         {
 
         }
-        public virtual void OnEnable()
+        protected virtual void OnEnable()
         {
 
         }
-        public virtual void OnDisable()
+        protected virtual void OnDisable()
         {
-
         }
     }
 }

@@ -56,12 +56,6 @@ public class TextRenderer : RenderComponent
         return new Drawable[] { drawable };
     }
 
-    public override void OnDisable()
-    {
-        if (textDrawable != null)
-            Window.RemoveDrawable(textDrawable);
-    }
-
     public override void Update()
     {
     }

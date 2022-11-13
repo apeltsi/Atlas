@@ -12,16 +12,17 @@ namespace SolidCode.Atlas.Rendering
             return new Drawable[0];
         }
 
-        public override void OnDisable()
+        protected override void OnDisable()
         {
             for (int i = 0; i < this.drawables.Length; i++)
             {
                 Window.RemoveDrawable(this.drawables[i]);
+                this.drawables[i].Dispose();
             }
             this.drawables = new Drawable[0];
         }
 
-        public override void OnEnable()
+        protected override void OnEnable()
         {
             this.drawables = StartRender(Window._graphicsDevice);
             Window.AddDrawables(new List<Drawable>(this.drawables));

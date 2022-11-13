@@ -11,8 +11,8 @@ namespace SolidCode.Atlas.ECS
         public static readonly Entity RootEntity = new Entity("ROOT", false);
         ///<summary>
         /// The root entity of all destroyed entities.<para />
-        /// Note that under normal usage this entity should have NO CHILDREN as entities are only assigned as the child of this entity briefly before getting destroyed.<para />
-        /// If this entity contains children, it might be a sign that there is a memory leak somewhere. 
+        /// Note that under normal usage this entity should never have any children. As it is only used as a parent reference for destroyed entities.<para />
+        /// If an entity is referencing DESTROYED_ROOT as its parent, it should be collected by the garbage collector. If this doesn't happen, it might be a sign of a memory leak.
         ///</summary>
         public static readonly Entity DestroyedRoot = new Entity("DESTROYED_ROOT", false);
 
@@ -23,10 +23,6 @@ namespace SolidCode.Atlas.ECS
 
         public static bool HasStarted { get; set; }
 
-        public static void AddEntity(Entity entity)
-        {
-            addQueue.Enqueue(entity);
-        }
 
         public static void RemoveEntity(Entity entity)
         {
@@ -35,16 +31,6 @@ namespace SolidCode.Atlas.ECS
 
         static void UpdateECS()
         {
-            while (addQueue.Count > 0)
-            {
-                Entity? e;
-                addQueue.TryDequeue(out e);
-                if (e != null)
-                {
-                    RootEntity.AddChildren(e);
-                    e.Start();
-                }
-            }
             while (removeQueue.Count > 0)
             {
                 Entity? e;
@@ -57,28 +43,33 @@ namespace SolidCode.Atlas.ECS
                         entitiesToRemove.Add(e.children[i]);
                     }
                     entitiesToRemove.Add(e);
+                    e.parent.RemoveChildren(e);
+                    e.children.Clear();
                     foreach (Entity entity in entitiesToRemove)
                     {
-                        entity.parent.RemoveChildren(entity);
+                        entity.enabled = false;
+                        entity.parent = DestroyedRoot;
                         for (int i = 0; i < entity.components.Count; i++)
                         {
-                            entity.components[i].OnDisable();
+                            Component c = entity.components[i];
+                            c.enabled = false;
+                            c.OnRemove();
+                            LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
+                            if (attr != null)
+                            {
+                                Func<Type, int> add = type => 0;
+                                Func<Type, int, int> update = (type, amount) => Interlocked.Add(ref amount, -1);
+                                EntityComponentSystem.InstanceCount.AddOrUpdate(c.GetType(), add, update);
+                                // We have to remove the component from the instance count limit
+                            }
                         }
+                        entity.components.Clear();
 
                     }
                 }
             }
         }
 
-        public static void Start()
-        {
-            UpdateECS();
-            if (window == null)
-            {
-                throw new NullReferenceException("ECS > No window is assigned! Cannot perform StartRender()");
-            }
-            HasStarted = true;
-        }
         public static void Update()
         {
 
@@ -88,6 +79,10 @@ namespace SolidCode.Atlas.ECS
 
         public static void FixedUpdate()
         {
+            if (!HasStarted)
+            {
+                HasStarted = true;
+            }
             UpdateECS();
             RootEntity.FixedUpdate();
         }
@@ -107,8 +102,9 @@ namespace SolidCode.Atlas.ECS
 
         static void PrintEntity(Entity e, int layer)
         {
-            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.name + " - (" + e.children.Count + " children)");
-            for (int i = 0; i < e.children.Count; i++)
+            int children = e.children.Count;
+            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.name + " - (" + children + " children)");
+            for (int i = 0; i < children; i++)
             {
                 PrintEntity(e.children[i], layer + 1);
             }

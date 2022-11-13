@@ -43,7 +43,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Caerus " + Atlas.Version)
+        public Window(string title = "Atlas " + Atlas.Version)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
@@ -111,7 +111,6 @@ namespace SolidCode.Atlas.Rendering
                     {
                         window.Visible = true;
                         window.WindowState = WindowState.Normal;
-                        EntityComponentSystem.Start();
                         Atlas.StartFixedUpdateLoop();
                     }
                     InputSnapshot inputSnapshot = window.PumpEvents();

@@ -20,6 +20,7 @@
 
         private ConcurrentQueue<Component> componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> componentsToRemove = new ConcurrentQueue<Component>();
+        private bool isNew = true;
 
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
@@ -105,13 +106,26 @@
         }
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
-            if (!EntityComponentSystem.HasStarted)
-            {
-                UpdateComponentsAndChildren();
-            }
+            Component[] queued_components = componentsToAdd.ToArray();
             Component[] cur_components = components.ToArray();
             foreach (Component c in cur_components)
             {
+                if (c == null)
+                    continue;
+                if (typeof(T) == c.GetType())
+                {
+                    return (T)c;
+                }
+                else if (allowInheritedClasses && (c as T) != null)
+                {
+                    return (T)c;
+                }
+            }
+            // It is possible, that the component the user is trying to access is still in the queue. lets check if thats the case
+            foreach (Component c in queued_components)
+            {
+                if (c == null)
+                    continue;
                 if (typeof(T) == c.GetType())
                 {
                     return (T)c;
@@ -124,29 +138,32 @@
             return null;
         }
 
-        public void Start()
+        // WARNING! Does not call Start() for children, as it is up to themselveves to decide when their first Fixed update is
+        private void Start()
         {
             UpdateComponentsAndChildren();
             Component[] cur_components = components.ToArray();
 
             foreach (Component component in cur_components)
             {
-                if (component.enabled)
+                component.enabled = true; // This is done so that OnEnable() is called
+                try
                 {
-                    component.OnEnable();
                     component.Start();
                 }
-            }
-            Entity[] cur_children = children.ToArray();
-
-            foreach (Entity e in cur_children)
-            {
-                if (e != null)
-                    e.Start();
+                catch (Exception e)
+                {
+                    Debug.Error(LogCategory.General, e.ToString());
+                }
             }
         }
         public void Update()
         {
+            if (isNew)
+            {
+                isNew = false;
+                Start();
+            }
             UpdateComponentsAndChildren();
             Component[] cur_components = components.ToArray();
             foreach (Component component in cur_components)
@@ -158,17 +175,32 @@
             foreach (Entity e in cur_children)
             {
                 if (e != null)
-                    e.Update();
+                {
+                    try
+                    {
+                        e.Update();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Error(LogCategory.General, ex.ToString());
+                    }
+                }
+
             }
         }
 
         public void FixedUpdate()
         {
+            if (isNew)
+            {
+                isNew = false;
+                Start();
+            }
             UpdateComponentsAndChildren();
             Component[] cur_components = components.ToArray();
             foreach (Component component in cur_components)
             {
-                if (component.enabled)
+                if (component.enabled && component != null)
                     component.FixedUpdate();
             }
             Entity[] cur_children = children.ToArray();
@@ -176,7 +208,16 @@
             foreach (Entity e in cur_children)
             {
                 if (e != null)
-                    e.FixedUpdate();
+                {
+                    try
+                    {
+                        e.FixedUpdate();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Error(LogCategory.General, ex.ToString());
+                    }
+                }
             }
         }
 
@@ -274,13 +315,17 @@
 
             while (componentsToAdd.Count > 0)
             {
+
                 Component? component;
                 componentsToAdd.TryDequeue(out component);
                 if (component != null)
                 {
                     component.entity = this;
-                    if (EntityComponentSystem.HasStarted)
-                        component.OnEnable();
+                    if (EntityComponentSystem.HasStarted && !isNew)
+                    {
+                        component.enabled = true; // This is done so that OnEnable() is called
+                        component.Start();
+                    }
                     components.Add(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
                     {
@@ -304,7 +349,7 @@
                         EntityComponentSystem.InstanceCount.AddOrUpdate(component.GetType(), add, update);
                         // We have to remove the component from the instance count limit
                     }
-                    component.OnDisable();
+                    component.enabled = false;
                     component.OnRemove();
 
                     components.Remove(component);
@@ -320,8 +365,10 @@
 
         public void Destroy()
         {
-            foreach (Component c in components)
+            EntityComponentSystem.RemoveEntity(this);
+            /*foreach (Component c in components)
             {
+                c.OnDisable();
                 c.OnRemove();
                 LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
                 if (attr != null)
@@ -332,7 +379,7 @@
                     // We have to remove the component from the instance count limit
                 }
             }
-            components.Clear();
+            components.Clear();*/
         }
 
     }

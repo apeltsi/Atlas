@@ -207,7 +207,7 @@ namespace SolidCode.Atlas.Rendering
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix(), HorizontalOffset));
+            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, transform.GetTransformationMatrix(), Camera.GetTransformMatrix(), HorizontalOffset));
             _graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(this.Color));
             // Next lest load textures to the gpu
 
@@ -277,9 +277,14 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            if (transformBuffer != null)
+            if (transformBuffer != null && _graphicsDevice != null)
             {
-                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix(), HorizontalOffset));
+                _graphicsDevice.UpdateBuffer(transformBuffer,
+                0,
+                new TextTransformStruct(matrix,
+                                        transform.GetTransformationMatrix(),
+                                        Camera.GetTransformMatrix(),
+                                        HorizontalOffset));
             }
 
         }

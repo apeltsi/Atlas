@@ -6,10 +6,7 @@ namespace SolidCode.Atlas.ECS.SceneManagement
     {
         public static void LoadScene(Scene scene)
         {
-            foreach (Entity e in scene.entities)
-            {
-                EntityComponentSystem.AddEntity(e);
-            }
+            // This function isn't really needed
         }
     }
 }
