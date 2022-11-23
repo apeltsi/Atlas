@@ -80,8 +80,14 @@ namespace SolidCode.Atlas
         }
         private static int lastWarning = 0; // The tick that the last performance warning was printed at
         private static int curTick = 0;
+        private static bool ongoingFixedUpdate = false;
         public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
+            if (ongoingFixedUpdate)
+            {
+                return;
+            }
+            ongoingFixedUpdate = true;
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
             EntityComponentSystem.FixedUpdate();
@@ -92,6 +98,7 @@ namespace SolidCode.Atlas
                 Debug.Warning("Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
             }
             curTick++;
+            ongoingFixedUpdate = false;
         }
 
         public static float GetUptime()
