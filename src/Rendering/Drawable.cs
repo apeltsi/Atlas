@@ -241,9 +241,9 @@ namespace SolidCode.Atlas.Rendering
         {
             if (transformBuffer != null)
             {
+                // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
             }
-
         }
 
         public override void Dispose()

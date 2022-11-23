@@ -6,6 +6,7 @@ using Veldrid.Sdl2;
 using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
 using static Veldrid.Sdl2.Sdl2Native;
+using System.Collections.Concurrent;
 namespace SolidCode.Atlas.Rendering
 {
     public class Window
@@ -16,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 72;
+        public const int TargetFramerate = 60;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -40,6 +41,9 @@ namespace SolidCode.Atlas.Rendering
         private int frames = 0;
         private float frameTimes = 0f;
         public static bool reloadShaders = false;
+        static ConcurrentBag<Drawable> drawablesToAdd = new ConcurrentBag<Drawable>();
+        static ConcurrentBag<Drawable> drawablesToRemove = new ConcurrentBag<Drawable>();
+
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
@@ -92,11 +96,14 @@ namespace SolidCode.Atlas.Rendering
 
         public static void AddDrawables(List<Drawable> drawables)
         {
-            _drawables.AddRange(drawables);
+            foreach (Drawable d in drawables)
+            {
+                drawablesToAdd.Add(d);
+            }
         }
         public static void RemoveDrawable(Drawable drawable)
         {
-            _drawables.Remove(drawable);
+            drawablesToRemove.Add(drawable);
         }
 
         public void StartRenderLoop()
@@ -203,6 +210,15 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
             Profiler.StartTimer(Profiler.FrameTimeType.PreRender);
 #endif
+            // We should begin by removing any stray drawables
+            foreach (Drawable d in drawablesToRemove)
+            {
+                _drawables.Remove(d);
+            }
+            drawablesToRemove.Clear();
+
+            _drawables.AddRange(drawablesToAdd.ToArray());
+            drawablesToAdd.Clear();
 
             // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
@@ -222,7 +238,7 @@ namespace SolidCode.Atlas.Rendering
             // First we have to sort our drawables in order to perform the back-to-front render pass
             Drawable[] sortedDrawbles = _drawables.ToArray();
             // TODO(amos): vvv - this could be improved a lot! by sorting only when z leves change or a drawable is added
-            // although for now cpu performance isn't really a problem
+            // although for now cpu performance isn't really a problem, and sorting every frame shouldn't have an impact on performance
             Array.Sort(sortedDrawbles, Compare);
             foreach (Drawable drawable in sortedDrawbles)
             {
