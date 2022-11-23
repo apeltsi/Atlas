@@ -83,6 +83,10 @@ namespace SolidCode.Atlas.Rendering
             this._shader = shaderPath;
             if (mesh != null)
                 this._mesh = mesh;
+            if (t == null)
+            {
+                Debug.Error("No transform assigned to Drawable. Drawable can not be properly sorted!");
+            }
             this.transform = t;
             this.uniform = uniform;
             this.uniformShaderStages = uniformShaderStages;

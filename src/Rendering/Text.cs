@@ -12,7 +12,6 @@ namespace SolidCode.Atlas.Rendering
 
     public class TextDrawable : Drawable
     {
-        public Transform transform;
         bool dirty = false;
         string text;
         int size;
@@ -49,6 +48,8 @@ namespace SolidCode.Atlas.Rendering
 
         public void UpdateText(string text, int size)
         {
+            if (text == this.text && size == this.size)
+                return; // Lets not waste our precious time updating text that is already up to date
             renderer.ClearAllQuads();
             this.size = size;
             this.text = text;
@@ -207,7 +208,7 @@ namespace SolidCode.Atlas.Rendering
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(Matrix4x4.Identity, transform.GetTransformationMatrix(), Camera.GetTransformMatrix(), HorizontalOffset));
+            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4(), HorizontalOffset)); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
             _graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(this.Color));
             // Next lest load textures to the gpu
 

@@ -23,6 +23,14 @@ namespace SolidCode.Atlas.Mathematics
         {
             return Vector2.Lerp(a, b, t);
         }
+        public static Vector3 Lerp(Vector3 a, Vector3 b, float t)
+        {
+            return Vector3.Lerp(a, b, t);
+        }
+        public static Vector4 Lerp(Vector4 a, Vector4 b, float t)
+        {
+            return Vector4.Lerp(a, b, t);
+        }
 
         public static int RoundToInt(float value)
         {

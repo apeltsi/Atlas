@@ -17,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 60;
+        public const int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -240,9 +240,10 @@ namespace SolidCode.Atlas.Rendering
             // TODO(amos): vvv - this could be improved a lot! by sorting only when z leves change or a drawable is added
             // although for now cpu performance isn't really a problem, and sorting every frame shouldn't have an impact on performance
             Array.Sort(sortedDrawbles, Compare);
+
             foreach (Drawable drawable in sortedDrawbles)
             {
-                if (drawable == null)
+                if (drawable == null || drawable.transform == null)
                 {
                     continue;
                 }
@@ -250,7 +251,6 @@ namespace SolidCode.Atlas.Rendering
                 drawable.SetScreenSize(_graphicsDevice, new Vector2(window.Width, window.Height));
                 drawable.Draw(_commandList);
             }
-
             _commandList.ResolveTexture(MainColorTexture, MainSceneResolvedColorTexture);
 
             _commandList.SetFramebuffer(_graphicsDevice.MainSwapchain.Framebuffer);

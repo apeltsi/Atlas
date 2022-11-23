@@ -1,3 +1,4 @@
+using System.Numerics;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.Rendering;
@@ -34,55 +35,119 @@ namespace SolidCode.Atlas.Animation
             Entity e = new Entity("ATLAS | Animation Manager");
             e.AddComponent<AnimationManager>();
         }
-        public static void DoTween<T>(ValueRef<T> value, T end, float time)
+        public static TweenReference DoTween<T>(ValueRef<T> value, T end, float time, Action? onDone = null)
         {
+            if (onDone == null)
+            {
+                onDone = () => { };
+            }
             AnimationManagerSetup();
-            tweens.Add(new Tween<T>(value, end, time));
+            ITween t = new Tween<T>(value, end, time, onDone);
+            tweens.Add(t);
+            return new TweenReference(t);
         }
         public interface ITween
         {
             public bool Tick(float diff);
+            public float age { get; }
+
         }
-        public class Tween<T> : ITween
+
+        public class TweenReference
+        {
+            private ITween tween;
+            public float time
+            {
+                get
+                {
+                    return tween.age;
+                }
+            }
+            public bool isPlaying
+            {
+                get
+                {
+                    return Animation.tweens.Contains(tween);
+                }
+            }
+            public TweenReference(ITween tween)
+            {
+                this.tween = tween;
+            }
+
+            public void Stop()
+            {
+                Animation.tweens.Remove(tween);
+            }
+        }
+
+        class Tween<T> : ITween
         {
             ValueRef<T> value;
             T end;
             T start;
-            float time;
-            float age;
+            float duration;
+            public float age { get; protected set; }
+            Action onDone;
 
-            public Tween(ValueRef<T> value, T end, float time)
+            public Tween(ValueRef<T> value, T end, float duration, Action onDone)
             {
                 this.start = value.Value;
                 this.value = value;
-                this.time = time;
+                this.duration = duration;
                 this.end = end;
+                this.onDone = onDone;
             }
 
             public bool Tick(float diff)
             {
-                age += diff;
-                float t = Math.Clamp(age / time, 0, 1);
-                if (typeof(T) == typeof(float))
+                try
                 {
-                    // Im really sorry for what im about to do...
-                    this.value.Value = (T)(object)AMath.Lerp((float)(object)start, (float)(object)end, t);
+                    age += diff;
+                    float t = Math.Clamp(age / duration, 0, 1);
+                    if (typeof(T) == typeof(float))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((float)(object)start, (float)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(int))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((int)(object)start, (int)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(double))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((double)(object)start, (double)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(Vector2))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((Vector2)(object)start, (Vector2)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(Vector3))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((Vector3)(object)start, (Vector3)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(Vector4))
+                    {
+                        // Im really sorry for what im about to do...
+                        this.value.Value = (T)(object)AMath.Lerp((Vector4)(object)start, (Vector4)(object)end, t);
+                    }
+                    if (age > duration)
+                    {
+                        this.value.Value = end;
+                        onDone.Invoke();
+                        return false;
+                    }
+                    return true;
                 }
-                else if (typeof(T) == typeof(int))
+                catch (Exception e)
                 {
-                    // Im really sorry for what im about to do...
-                    this.value.Value = (T)(object)AMath.Lerp((int)(object)start, (int)(object)end, t);
-                }
-                else if (typeof(T) == typeof(double))
-                {
-                    // Im really sorry for what im about to do...
-                    this.value.Value = (T)(object)AMath.Lerp((double)(object)start, (double)(object)end, t);
-                }
-                if (age > time)
-                {
+                    // If this fails, then we should probably just get rid of the animation
                     return false;
                 }
-                return true;
             }
         }
         [SingleInstance]
@@ -97,17 +162,13 @@ namespace SolidCode.Atlas.Animation
 
             public override void Update()
             {
-                List<ITween> tweensToRemove = new List<ITween>();
-                foreach (ITween tween in Animation.tweens)
+                List<ITween> curTweens = new List<ITween>(Animation.tweens);
+                foreach (ITween tween in curTweens)
                 {
                     if (!tween.Tick(Window.frameDeltaTime))
                     {
-                        tweensToRemove.Add(tween);
+                        tweens.Remove(tween);
                     }
-                }
-                foreach (ITween tween in tweensToRemove)
-                {
-                    tweens.Remove(tween);
                 }
             }
         }
