@@ -23,6 +23,25 @@ namespace SolidCode.Atlas.Animation
             set { _set(value); }
         }
     }
+    public static class TimingFunction {
+        // https://easings.net/
+        public static readonly Func<float, float> Linear = (x) => {return x;};
+        public static readonly Func<float, float> EaseInOutSine = (x) => {return (float)-(Math.Cos(Math.PI * x) - 1f) / 2f;};
+        public static readonly Func<float, float> EaseInOutCubic = (x) => {
+            if(x < 0.5) {
+                return 4 * x * x * x;
+            } else {
+                return (float)(1f - Math.Pow(-2 * x + 2, 3) / 2);
+            }
+        };
+        public static readonly Func<float, float> EaseInOutQuint = (x) => {
+            if(x < 0.5) {
+                return 16 * x * x * x * x * x;
+            } else {
+                return (float)(1f - Math.Pow(-2 * x + 2, 5) / 2);
+            }
+        };
+    }
     public static class Animation
     {
         static List<ITween> tweens = new List<ITween>();
@@ -35,14 +54,17 @@ namespace SolidCode.Atlas.Animation
             Entity e = new Entity("ATLAS | Animation Manager");
             e.AddComponent<AnimationManager>();
         }
-        public static TweenReference DoTween<T>(ValueRef<T> value, T end, float time, Action? onDone = null)
+        public static TweenReference DoTween<T>(ValueRef<T> value, T end, float time, Action? onDone = null, Func<float, float>? timingFunction = null)
         {
             if (onDone == null)
             {
                 onDone = () => { };
             }
+            if(timingFunction == null) {
+                timingFunction = TimingFunction.Linear;
+            }
             AnimationManagerSetup();
-            ITween t = new Tween<T>(value, end, time, onDone);
+            ITween t = new Tween<T>(value, end, time, onDone, timingFunction);
             tweens.Add(t);
             return new TweenReference(t);
         }
@@ -89,14 +111,16 @@ namespace SolidCode.Atlas.Animation
             float duration;
             public float age { get; protected set; }
             Action onDone;
+            Func<float, float> timingFunction;
 
-            public Tween(ValueRef<T> value, T end, float duration, Action onDone)
+            public Tween(ValueRef<T> value, T end, float duration, Action onDone, Func<float, float> timingFunction)
             {
                 this.start = value.Value;
                 this.value = value;
                 this.duration = duration;
                 this.end = end;
                 this.onDone = onDone;
+                this.timingFunction = timingFunction;
             }
 
             public bool Tick(float diff)
@@ -104,7 +128,7 @@ namespace SolidCode.Atlas.Animation
                 try
                 {
                     age += diff;
-                    float t = Math.Clamp(age / duration, 0, 1);
+                    float t = timingFunction(Math.Clamp(age / duration, 0, 1));
                     if (typeof(T) == typeof(float))
                     {
                         // Im really sorry for what im about to do...
