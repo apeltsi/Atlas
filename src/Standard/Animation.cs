@@ -23,24 +23,64 @@ namespace SolidCode.Atlas.Animation
             set { _set(value); }
         }
     }
-    public static class TimingFunction {
+    public static class TimingFunction
+    {
         // https://easings.net/
-        public static readonly Func<float, float> Linear = (x) => {return x;};
-        public static readonly Func<float, float> EaseInOutSine = (x) => {return (float)-(Math.Cos(Math.PI * x) - 1f) / 2f;};
-        public static readonly Func<float, float> EaseInOutCubic = (x) => {
-            if(x < 0.5) {
+        public static readonly Func<float, float> Linear = (x) => { return x; };
+        public static readonly Func<float, float> EaseInOutSine = (x) => { return (float)-(Math.Cos(Math.PI * x) - 1f) / 2f; };
+        public static readonly Func<float, float> EaseInOutCubic = (x) =>
+        {
+            if (x < 0.5)
+            {
                 return 4 * x * x * x;
-            } else {
+            }
+            else
+            {
                 return (float)(1f - Math.Pow(-2 * x + 2, 3) / 2);
             }
         };
-        public static readonly Func<float, float> EaseInOutQuint = (x) => {
-            if(x < 0.5) {
+        public static readonly Func<float, float> EaseInOutQuint = (x) =>
+        {
+            if (x < 0.5)
+            {
                 return 16 * x * x * x * x * x;
-            } else {
+            }
+            else
+            {
                 return (float)(1f - Math.Pow(-2 * x + 2, 5) / 2);
             }
         };
+
+        public static readonly Func<float, float> EaseInSine = (x) =>
+        {
+            return 1f - (float)Math.Cos((x * Math.PI) / 2);
+        };
+
+        public static readonly Func<float, float> EaseInCubic = (x) =>
+        {
+            return x * x * x;
+        };
+
+        public static readonly Func<float, float> EaseInQuint = (x) =>
+        {
+            return x * x * x * x * x;
+        };
+
+        public static readonly Func<float, float> EaseOutSine = (x) =>
+        {
+            return 1f - (float)Math.Sin((x * Math.PI) / 2);
+        };
+
+        public static readonly Func<float, float> EaseOutCubic = (x) =>
+        {
+            return 1f - (float)Math.Pow(1 - x, 4);
+        };
+
+        public static readonly Func<float, float> EaseOutQuint = (x) =>
+        {
+            return 1f - (float)Math.Pow(1 - x, 5);
+        };
+
     }
     public static class Animation
     {
@@ -60,7 +100,8 @@ namespace SolidCode.Atlas.Animation
             {
                 onDone = () => { };
             }
-            if(timingFunction == null) {
+            if (timingFunction == null)
+            {
                 timingFunction = TimingFunction.Linear;
             }
             AnimationManagerSetup();
@@ -169,8 +210,13 @@ namespace SolidCode.Atlas.Animation
                 }
                 catch (Exception e)
                 {
-                    // If this fails, then we should probably just get rid of the animation
-                    return false;
+                    if (age > duration)
+                    {
+                        this.value.Value = end;
+                        onDone.Invoke();
+                        return false;
+                    }
+                    return true;
                 }
             }
         }
