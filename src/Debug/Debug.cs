@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -8,8 +9,7 @@ namespace SolidCode.Atlas
     public static class Debug
     {
         public static List<string> Categories;
-        private static bool logLocked = false;
-        private static Queue<string> logItems = new Queue<string>();
+        private static ConcurrentQueue<string> logItems = new ConcurrentQueue<string>();
         private static bool logsEnabled = false;
 #if DEBUG
         private static DebugServer? ds;
@@ -78,19 +78,13 @@ namespace SolidCode.Atlas
                 category = Categories[0];
             }
             string logtext = GetTimestamp() + " " + prefix + " " + category + " > " + log;
-            while (logLocked)
-            {
-                Thread.Sleep(20);
-            }
             logItems.Enqueue(logtext);
         }
 
         static void WriteLogBuffer()
         {
-            logLocked = true;
             Queue<string> queue = new Queue<string>(logItems);
             logItems.Clear();
-            logLocked = false;
             foreach (string logtext in queue)
             {
                 Console.WriteLine(logtext);

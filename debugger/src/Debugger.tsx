@@ -5,22 +5,23 @@ import error from "./error.png";
 import LiveHeader, { LiveData } from "./LiveHeader";
 import { debuggerState, liveDataState, logState, subSystemsState } from "./App";
 import Profiler from "./Profiler";
+import Hierarchy from "./Hierarchy";
 
 export interface DebuggerData {
-    runDate: string,
-    engineVersion: string,
-    live: boolean
+    runDate: string;
+    engineVersion: string;
+    live: boolean;
 }
 export enum LogType {
     Info,
     Warning,
-    Error
+    Error,
 }
 export interface Log {
-    type: LogType,
-    date: string,
-    subSystem: string,
-    content: string
+    type: LogType;
+    date: string;
+    subSystem: string;
+    content: string;
 }
 export default function Debugger() {
     let [filter, setFilters] = createSignal<string[]>([]);
@@ -29,6 +30,7 @@ export default function Debugger() {
             <Show when={debuggerState.live}>
                 <LiveHeader></LiveHeader>
                 <Profiler></Profiler>
+                <Hierarchy hierarchy={liveDataState.hierarchy}></Hierarchy>
             </Show>
             <Show when={!debuggerState.live}>
                 <h2>Info</h2>
@@ -38,40 +40,62 @@ export default function Debugger() {
 
             <h2>Logs</h2>
             <div id="filters">
-                <div onclick={() => {
-                    if (filter().length === subSystemsState.length) {
-                        setFilters([]);
-                    } else {
-                        setFilters([...subSystemsState]);
+                <div
+                    onclick={() => {
+                        if (filter().length === subSystemsState.length) {
+                            setFilters([]);
+                        } else {
+                            setFilters([...subSystemsState]);
+                        }
+                    }}
+                    class={
+                        filter().length === subSystemsState.length ||
+                        filter().length === 0
+                            ? "selected"
+                            : ""
                     }
-                }} class={filter().length === subSystemsState.length || filter().length === 0 ? "selected" : ""}>
+                >
                     All
                 </div>
-                <For each={subSystemsState}>{(item: string) => (<div onclick={() => {
-                    let filters = filter();
-                    if (filters.includes(item)) {
-                        filters.splice(filters.indexOf(item), 1);
-                        setFilters([...filters]);
-                    } else {
-                        setFilters([...filters, item]);
-                    }
-                }} class={filter().includes(item) ? "selected" : ""}>{item}</div>)}</For></div>
-            <div id="logList">
-                <For each={logState}>{
-                    (item: Log) => (
-                        <Show when={(filter().length === 0 || filter().includes(item.subSystem))}>
+                <For each={subSystemsState}>
+                    {(item: string) => (
+                        <div
+                            onclick={() => {
+                                let filters = filter();
+                                if (filters.includes(item)) {
+                                    filters.splice(filters.indexOf(item), 1);
+                                    setFilters([...filters]);
+                                } else {
+                                    setFilters([...filters, item]);
+                                }
+                            }}
+                            class={filter().includes(item) ? "selected" : ""}
+                        >
+                            {item}
+                        </div>
+                    )}
+                </For>
+            </div>
+            <div id="logList" class={debuggerState.live ? "islive" : ""}>
+                <For each={logState}>
+                    {(item: Log) => (
+                        <Show
+                            when={
+                                filter().length === 0 ||
+                                filter().includes(item.subSystem)
+                            }
+                        >
                             <div class={"log" + " " + getTypeName(item.type)}>
                                 <img src={getImage(item.type)} />
                                 <span>{item.date}</span>
                                 <span class="subsystem">{item.subSystem}</span>
                                 <span>{item.content}</span>
-
                             </div>
                         </Show>
-                    )
-                }</For>
+                    )}
+                </For>
             </div>
-        </div >
+        </div>
     );
 }
 function getTypeName(type: LogType): string {
@@ -84,7 +108,6 @@ function getTypeName(type: LogType): string {
             return "error";
         default:
             return "info";
-
     }
 }
 function getImage(type: LogType): string {
@@ -97,6 +120,5 @@ function getImage(type: LogType): string {
             return error;
         default:
             return info;
-
     }
 }

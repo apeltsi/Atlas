@@ -1,0 +1,81 @@
+.hierarchy {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 400px;
+    padding: 10px;
+    background-color: rgb(49, 49, 56);
+    display: flex;
+    flex-direction: column;
+}
+.hierarchyList {
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+}
+.hierarchyList .hierarchyElement {
+    width: 100%;
+    height: fit-content;
+    background-color: rgb(34, 34, 34);
+    color: white;
+    cursor: pointer;
+    border: 2px solid rgb(116, 116, 116);
+    border-bottom: none;
+}
+.hierarchyList div:hover {
+    background-color: rgb(65, 65, 65);
+}
+.elementChildrenList {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding-left: 20px;
+    overflow-x: hidden;
+}
+
+.inspector {
+    width: 100%;
+}
+.inspector h4 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.field {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    height: 30px;
+    padding: 2px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: rgb(25, 25, 31);
+    border-radius: 7px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.fieldType {
+    display: block;
+    width: fit-content;
+    opacity: 0.5;
+}
+.component {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 10px;
+    padding-top: 1px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    background-color: rgb(36, 34, 48);
+}

@@ -381,6 +381,9 @@
             }
             components.Clear();*/
         }
-
+        public override string ToString()
+        {
+            return this.name;
+        }
     }
 }
