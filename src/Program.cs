@@ -28,11 +28,12 @@ namespace SolidCode.Atlas
         public static int updateFrequency = 100;
         public static Timer timer;
         public static System.Diagnostics.Stopwatch watch { get; private set; }
+        static Window? w;
         public static void InitializeLogging()
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
-        public static void Start(Scene defaultScene, string windowTitle)
+        public static void StartRenderFeatures(string windowTitle)
         {
             AppName = windowTitle;
             watch = System.Diagnostics.Stopwatch.StartNew();
@@ -48,9 +49,19 @@ namespace SolidCode.Atlas
 
 
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
-            Window w = new Window(windowTitle);
+            w = new Window(windowTitle);
             Debug.Log(LogCategory.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
             EntityComponentSystem.window = w;
+            if (timer != null)
+                timer.Stop();
+        }
+
+        public static void Start(Scene defaultScene)
+        {
+            if (w == null)
+            {
+                throw new NullReferenceException("Window hasn't been created yet!");
+            }
             SceneManager.LoadScene(defaultScene);
             Debug.Log(LogCategory.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
             Audio.AudioManager.InitializeAudio();
@@ -62,8 +73,6 @@ namespace SolidCode.Atlas
             {
                 Debug.Error(ex.ToString());
             }
-            if (timer != null)
-                timer.Stop();
             EntityComponentSystem.Dispose();
             watch.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
@@ -95,7 +104,7 @@ namespace SolidCode.Atlas
             if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency && curTick - lastWarning > (updateFrequency * 10))
             {
                 lastWarning = curTick;
-                Debug.Warning("Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
+                Debug.Warning(LogCategory.ECS, "Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
             }
             curTick++;
             ongoingFixedUpdate = false;

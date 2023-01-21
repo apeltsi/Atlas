@@ -1,7 +1,6 @@
-using Veldrid;
-
 namespace SolidCode.Atlas.Rendering
 {
+    using Veldrid;
     public class Mesh<T> where T : struct
     {
         public T[] Vertices;

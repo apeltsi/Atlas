@@ -235,8 +235,16 @@ namespace SolidCode.Atlas.Animation
                 List<ITween> curTweens = new List<ITween>(Animation.tweens);
                 foreach (ITween tween in curTweens)
                 {
-                    if (!tween.Tick(Window.frameDeltaTime))
+                    try
                     {
+                        if (!tween.Tick(Window.frameDeltaTime))
+                        {
+                            tweens.Remove(tween);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.Error(LogCategory.Framework, "Failed to tween: " + e.Message);
                         tweens.Remove(tween);
                     }
                 }

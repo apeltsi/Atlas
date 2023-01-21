@@ -4,7 +4,6 @@ namespace SolidCode.Atlas.Rendering
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
-    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
     using System.Text;
     using Veldrid;
@@ -139,14 +138,14 @@ namespace SolidCode.Atlas.Rendering
 
         private static unsafe T ReadStruct<T>(BinaryReader br)
         {
-            int size = Unsafe.SizeOf<T>();
+            int size = Marshal.SizeOf<T>();
             byte* bytes = stackalloc byte[size];
             for (int i = 0; i < size; i++)
             {
                 bytes[i] = br.ReadByte();
             }
-
-            return Unsafe.Read<T>(bytes);
+            T structure = (T)Marshal.PtrToStructure((IntPtr)bytes, typeof(T));
+            return structure;
         }
 
         private static unsafe void ReadBytes(BinaryReader br, byte* destination, int count)
@@ -180,6 +179,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 return LoadTexture(gd, factory, fs, format);
             }
+
         }
 
         public static unsafe Veldrid.Texture LoadTexture(

@@ -1,6 +1,3 @@
-using System.Numerics;
-using SolidCode.Atlas;
-using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 

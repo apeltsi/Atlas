@@ -14,16 +14,6 @@
     <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
   </ItemGroup>
   <ItemGroup> 
-      <Content Include="data\*\*.*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Include="data\*\*\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Include="data\*\*\*\*">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-
       <EmbeddedResource Include="debugger\dist\LogViewer.html" />
    </ItemGroup>
 </Project>

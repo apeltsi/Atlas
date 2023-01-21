@@ -56,7 +56,7 @@ namespace SolidCode.Atlas.Rendering
                 WindowWidth = 800,
                 WindowHeight = 500,
                 WindowTitle = title,
-                WindowInitialState = WindowState.Hidden,
+                WindowInitialState = WindowState.Hidden
             };
 
             window = VeldridStartup.CreateWindow(ref windowCI);
@@ -67,7 +67,7 @@ namespace SolidCode.Atlas.Rendering
                 SyncToVerticalBlank = TargetFramerate != 0,
                 ResourceBindingModel = ResourceBindingModel.Improved,
                 SwapchainSrgbFormat = false,
-                SwapchainDepthFormat = null
+                SwapchainDepthFormat = null,
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);

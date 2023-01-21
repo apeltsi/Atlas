@@ -246,6 +246,9 @@ namespace SolidCode.Atlas.Rendering
             if (transformBuffer != null)
             {
                 // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
+                // Could the transformbuffer be updated during updatebuffer?
+                // Temporary fix, might work?
+                _graphicsDevice.WaitForIdle();
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
             }
         }

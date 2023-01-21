@@ -34,8 +34,8 @@ export default function Debugger() {
             </Show>
             <Show when={!debuggerState.live}>
                 <h2>Info</h2>
-                <h3>Caerus version {debuggerState.engineVersion}</h3>
-                <h3>Caerus started at: {debuggerState.runDate}</h3>
+                <h3>Atlas version {debuggerState.engineVersion}</h3>
+                <h3>Atlas started at: {debuggerState.runDate}</h3>
             </Show>
 
             <h2>Logs</h2>
