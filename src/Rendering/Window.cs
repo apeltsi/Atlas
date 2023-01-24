@@ -32,7 +32,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Time elapsed between frames, in seconds.
         /// </summary>
-        public static float frameDeltaTime = 0f;
+        public static double frameDeltaTime = 0f;
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
@@ -150,8 +150,8 @@ namespace SolidCode.Atlas.Rendering
                     Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
                     EntityComponentSystem.Update();
-                    frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
-                    frameTimes += frameDeltaTime;
+                    frameDeltaTime = watch.Elapsed.TotalSeconds;
+                    frameTimes += (float)frameDeltaTime;
                     if (frames >= 60)
                     {
                         frames = 0;
@@ -160,7 +160,7 @@ namespace SolidCode.Atlas.Rendering
                     }
                     frames++;
 
-                    float frameRenderTime = Math.Clamp(frameDeltaTime * 1000f, 0f, 1000f / TargetFramerate);
+                    double frameRenderTime = Math.Clamp(frameDeltaTime * 1000.0, 0f, 1000.0 / TargetFramerate);
                     watch = System.Diagnostics.Stopwatch.StartNew();
 #if DEBUG
                     Profiler.EndTimer();

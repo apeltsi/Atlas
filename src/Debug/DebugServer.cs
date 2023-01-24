@@ -29,15 +29,17 @@ namespace SolidCode.Atlas
     {
         public string type { get; set; }
         public int framerate { get; set; }
+        public int updateRate { get; set; }
         public float runtime { get; set; }
         public ECSElement hierarchy { get; set; }
 
-        public LiveData(int framerate, float runtime, ECSElement hierarchy)
+        public LiveData(int framerate, float runtime, ECSElement hierarchy, int updateRate)
         {
             this.type = "livedata";
             this.framerate = framerate;
             this.runtime = runtime;
             this.hierarchy = hierarchy;
+            this.updateRate = updateRate;
         }
     }
     class ProfilerData
@@ -115,7 +117,7 @@ namespace SolidCode.Atlas
                 return;
             }
 
-            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000, GetECSHierarchy()));
+            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000, GetECSHierarchy(), Atlas.FixedUpdatesPerSecond));
             try
             {
 

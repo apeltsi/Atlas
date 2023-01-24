@@ -15,6 +15,7 @@ export const [subSystemsState, setSubSystemState] = createStore<string[]>([]);
 export const [liveDataState, setLiveDataState] = createStore<LiveData>({
     fps: 0,
     runtime: 0,
+    updateRate: 0,
     connected: false,
     hierarchy: { name: "ROOT", components: [], children: [] },
 } as LiveData);
@@ -108,6 +109,7 @@ function StartListening() {
                     fps: data.framerate,
                     runtime: data.runtime,
                     hierarchy: data.hierarchy,
+                    updateRate: data.updateRate,
                 });
             } else if (data.type === "profiler" && data.times !== undefined) {
                 addData(data.times);

@@ -6,6 +6,7 @@ export interface LiveData {
     runtime: number;
     connected: boolean;
     hierarchy: any;
+    updateRate: number;
 }
 
 let interval: number;
@@ -50,6 +51,10 @@ export default function LiveHeader() {
                 {liveDataState.fps > 999
                     ? 999
                     : liveDataState.fps.toString().padStart(3, "0")}
+            </div>
+            <div>
+                Updates:
+                {" " + liveDataState.updateRate.toString().padStart(4, "0")}
             </div>
             <div>Runtime: {runtime}</div>
             <div

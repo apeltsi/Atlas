@@ -81,6 +81,12 @@ namespace SolidCode.Atlas
 
         public static void StartFixedUpdateLoop()
         {
+            Thread t = new Thread(StartFixedUpdateLoopTimer);
+            t.Name = "Primary ECS FixedUpdate Thread";
+            t.Start();
+        }
+        private static void StartFixedUpdateLoopTimer()
+        {
             Debug.Log(LogCategory.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
             timer = new System.Timers.Timer(1000f / updateFrequency);
             timer.Elapsed += new System.Timers.ElapsedEventHandler(FixedUpdate);
@@ -90,15 +96,41 @@ namespace SolidCode.Atlas
         private static int lastWarning = 0; // The tick that the last performance warning was printed at
         private static int curTick = 0;
         private static bool ongoingFixedUpdate = false;
+        private static int fixedUpdatesThisSecond = 0;
+        public static int FixedUpdatesPerSecond { get; private set; }
+        private static System.Diagnostics.Stopwatch fixedUpdateCounterStopwatch = new System.Diagnostics.Stopwatch();
+        private static int queuedUpdates = 0;
         public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
             if (ongoingFixedUpdate)
             {
-                return;
+                Interlocked.Increment(ref queuedUpdates);
+                if (queuedUpdates > 1)
+                {
+                    return;
+                }
+                while (ongoingFixedUpdate)
+                {
+                    Thread.Sleep(1);
+                }
+                Interlocked.Decrement(ref queuedUpdates);
             }
+            if (ongoingFixedUpdate)
+                return;
             ongoingFixedUpdate = true;
+            if (!fixedUpdateCounterStopwatch.IsRunning)
+            {
+                fixedUpdateCounterStopwatch.Start();
+            }
+            if (fixedUpdateCounterStopwatch.ElapsedMilliseconds >= 1000)
+            {
+                FixedUpdatesPerSecond = fixedUpdatesThisSecond;
+                fixedUpdatesThisSecond = 0;
+                fixedUpdateCounterStopwatch.Restart();
+            }
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
+            fixedUpdatesThisSecond++;
             EntityComponentSystem.FixedUpdate();
             sw.Stop();
             if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency && curTick - lastWarning > (updateFrequency * 10))

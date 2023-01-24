@@ -237,7 +237,7 @@ namespace SolidCode.Atlas.Animation
                 {
                     try
                     {
-                        if (!tween.Tick(Window.frameDeltaTime))
+                        if (!tween.Tick((float)Window.frameDeltaTime))
                         {
                             tweens.Remove(tween);
                         }

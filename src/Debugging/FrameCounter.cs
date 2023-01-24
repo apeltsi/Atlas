@@ -5,7 +5,7 @@ class FrameCounter : Component
 {
     TextRenderer tr;
     int frames = 0;
-    float time = 0f;
+    double time = 0f;
     public override void Start()
     {
         TextRenderer? textRenderer = entity.GetComponent<TextRenderer>();
