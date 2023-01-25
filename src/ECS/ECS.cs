@@ -49,7 +49,7 @@ namespace SolidCode.Atlas.ECS
                     foreach (Entity entity in entitiesToRemove)
                     {
                         entity.enabled = false;
-                        entity.parent = DestroyedRoot;
+                        entity.ForceParent(DestroyedRoot);
                         for (int i = 0; i < entity.components.Count; i++)
                         {
                             Component c = entity.components[i];
