@@ -17,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 72;
+        public static int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
