@@ -23,7 +23,7 @@ namespace SolidCode.Atlas.Components
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
-                        return t.globalPosition + position;
+                        return t.globalPosition + position * t.globalScale;
                     }
                 }
                 return position;
