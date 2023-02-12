@@ -98,7 +98,13 @@ namespace SolidCode.Atlas
         private static bool ongoingFixedUpdate = false;
         private static int fixedUpdatesThisSecond = 0;
         public static int FixedUpdatesPerSecond { get; private set; }
+        /// <summary>
+        /// Time elapsed between fixedupdates, in seconds.
+        /// </summary>
+
+        public static double FixedUpdateDeltaTime = 0f;
         private static System.Diagnostics.Stopwatch fixedUpdateCounterStopwatch = new System.Diagnostics.Stopwatch();
+        private static System.Diagnostics.Stopwatch fixedUpdateDeltaStopwatch = new System.Diagnostics.Stopwatch();
         private static int queuedUpdates = 0;
         public static void FixedUpdate(object? sender, ElapsedEventArgs e)
         {
@@ -118,6 +124,8 @@ namespace SolidCode.Atlas
             if (ongoingFixedUpdate)
                 return;
             ongoingFixedUpdate = true;
+            fixedUpdateDeltaStopwatch.Stop();
+            FixedUpdateDeltaTime = fixedUpdateDeltaStopwatch.ElapsedMilliseconds / 1000.0;
             if (!fixedUpdateCounterStopwatch.IsRunning)
             {
                 fixedUpdateCounterStopwatch.Start();
@@ -139,6 +147,7 @@ namespace SolidCode.Atlas
                 Debug.Warning(LogCategory.ECS, "Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
             }
             curTick++;
+            fixedUpdateDeltaStopwatch.Restart();
             ongoingFixedUpdate = false;
         }
 

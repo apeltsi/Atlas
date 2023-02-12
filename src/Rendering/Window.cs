@@ -32,7 +32,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Time elapsed between frames, in seconds.
         /// </summary>
-        public static double frameDeltaTime = 0f;
+        public static double frameDeltaTime = 0.0;
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
