@@ -76,6 +76,19 @@
             parent = e;
         }
 
+        public Entity? GetChildByName(string name)
+        {
+            for (int i = 0; i < this.children.Count; i++)
+            {
+                Entity e = this.children[i];
+                if (e.name == name)
+                {
+                    return e;
+                }
+            }
+            return null;
+        }
+
         public T AddComponent<T>() where T : Component, new()
         {
             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(typeof(T), typeof(LimitInstanceCountAttribute));
