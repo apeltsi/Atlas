@@ -37,7 +37,7 @@ namespace SolidCode.Atlas
         {
             AppName = windowTitle;
             watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategory.Framework, "Atlas " + Version + " starting up...");
+            Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {
