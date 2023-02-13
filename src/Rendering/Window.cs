@@ -47,7 +47,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Atlas " + Atlas.Version)
+        public Window(string title = "Atlas/" + Atlas.Version)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
@@ -55,7 +55,7 @@ namespace SolidCode.Atlas.Rendering
                 Y = 50,
                 WindowWidth = 800,
                 WindowHeight = 500,
-                WindowTitle = title,
+                WindowTitle = title + " | Atlas/" + Atlas.Version,
                 WindowInitialState = WindowState.Hidden
             };
 
@@ -90,7 +90,7 @@ namespace SolidCode.Atlas.Rendering
 
         public static void SetWindowTitle(string title)
         {
-            window.Title = title;
+            window.Title = title + " | Atlas/" + Atlas.Version;
         }
 
 
