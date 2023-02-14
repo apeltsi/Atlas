@@ -153,6 +153,9 @@ namespace SolidCode.Atlas
 
         public static float GetUptime()
         {
+            if(watch == null) {
+                return 0f;
+            }
             return (watch.ElapsedMilliseconds) / 1000f;
         }
     }
