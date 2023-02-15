@@ -10,6 +10,8 @@ namespace SolidCode.Atlas
     using System.Text.Json;
     using System.Timers;
     using SolidCode.Atlas.Rendering;
+    using System.Collections.Concurrent;
+    using static SolidCode.Atlas.ECS.EntityComponentSystem;
 
     class Log
     {
@@ -27,13 +29,17 @@ namespace SolidCode.Atlas
     {
         public string type { get; set; }
         public int framerate { get; set; }
+        public int updateRate { get; set; }
         public float runtime { get; set; }
+        public ECSElement hierarchy { get; set; }
 
-        public LiveData(int framerate, float runtime)
+        public LiveData(int framerate, float runtime, ECSElement hierarchy, int updateRate)
         {
             this.type = "livedata";
             this.framerate = framerate;
             this.runtime = runtime;
+            this.hierarchy = hierarchy;
+            this.updateRate = updateRate;
         }
     }
     class ProfilerData
@@ -48,13 +54,13 @@ namespace SolidCode.Atlas
         }
     }
 
-    class Behaviour : WebSocketBehavior
+    class DebuggerSocketBehaviour : WebSocketBehavior
     {
         System.Timers.Timer timer;
         System.Timers.Timer liveDataTimer;
-
-        bool closed = false;
-        bool sendingLogs = false;
+        System.Timers.Timer profilerDataTimer;
+        public ConcurrentQueue<string> queuedLogs = new ConcurrentQueue<string>();
+        int id;
         protected override void OnMessage(MessageEventArgs e)
         {
             if (e.Data == "showwindow")
@@ -73,107 +79,118 @@ namespace SolidCode.Atlas
         }
         protected override void OnOpen()
         {
-            Debug.Log("Socket opened");
-            DebugServer.instance.AddListener();
+            id = DebugServer.instance.AddListener(this);
 
             timer = new System.Timers.Timer(50);
             timer.Elapsed += new System.Timers.ElapsedEventHandler(SendLogs);
             timer.AutoReset = true;
             timer.Start();
 
-            liveDataTimer = new System.Timers.Timer(1000);
+            liveDataTimer = new System.Timers.Timer(200);
             liveDataTimer.Elapsed += new System.Timers.ElapsedEventHandler(SendLiveData);
             liveDataTimer.AutoReset = true;
             liveDataTimer.Start();
+
+            profilerDataTimer = new System.Timers.Timer(1000);
+            profilerDataTimer.Elapsed += SendProfilerData;
+            profilerDataTimer.AutoReset = true;
+            profilerDataTimer.Start();
 
         }
 
 
         protected override void OnClose(CloseEventArgs e)
         {
-            closed = true;
-            Debug.Log("Closing websocket");
-            DebugServer.instance.RemoveListener();
+            DebugServer.instance.RemoveListener(id);
             timer.Stop();
             timer.Close();
             liveDataTimer.Stop();
             liveDataTimer.Close();
-            Debug.Log("Socket closed");
+            profilerDataTimer.Stop();
+            profilerDataTimer.Close();
         }
 
         public void SendLiveData(object sender, ElapsedEventArgs e)
         {
-            if (closed)
+            if (this.State != WebSocketState.Open)
             {
                 return;
             }
 
-            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000));
+            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000, GetECSHierarchy(), Atlas.FixedUpdatesPerSecond));
+            try
+            {
 
-            Send(jsonString);
-            float[] times = Profiler.GetAverageTimes();
+                Send(jsonString);
+            }
+            catch (Exception ex)
+            {
+                Debug.Error("Error in DebuggerSocketBehaviour: " + ex.ToString());
+            }
+        }
 
-            jsonString = JsonSerializer.Serialize(new ProfilerData(times));
 
-            Send(jsonString);
+        public void SendProfilerData(object sender, ElapsedEventArgs e)
+        {
+            if (this.State != WebSocketState.Open)
+            {
+                return;
+            }
+            try
+            {
+                float[] times = Profiler.GetAverageTimes();
+
+                string jsonString = JsonSerializer.Serialize(new ProfilerData(times));
+
+                Send(jsonString);
+            }
+            catch (Exception ex)
+            {
+                Debug.Error("Error in DebuggerSocketBehaviour: " + ex.ToString());
+            }
         }
 
         public void SendLogs(object sender, ElapsedEventArgs e)
         {
-            if (sendingLogs)
+            if (this.State != WebSocketState.Open) return;
+            while (queuedLogs.Count > 0)
             {
-                return;
-            }
-            sendingLogs = true;
-            List<QueuedLog> queue = new List<QueuedLog>(DebugServer.instance.queuedLogs);
-            foreach (QueuedLog log in queue)
-            {
-                if (closed)
+                string? log = null;
+                queuedLogs.TryDequeue(out log);
+                if (log != null)
                 {
-                    return;
-                }
-                string jsonString = JsonSerializer.Serialize(new Log(log.log));
-
-                try
-                {
-                    Send(jsonString);
-
-                    DebugServer.instance.queuedLogs[DebugServer.instance.queuedLogs.IndexOf(log)].listeners += 1;
-                }
-                catch (Exception ex)
-                {
-                    // Log probably got removed already
+                    string jsonString = JsonSerializer.Serialize(new Log(log));
+                    try
+                    {
+                        if (this.State != WebSocketState.Open) return;
+                        Send(jsonString);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log probably got removed already
+                    }
                 }
             }
-            DebugServer.instance.RemoveDuplicates();
-            sendingLogs = false;
         }
 
-    }
-    class QueuedLog
-    {
-        public string log;
-        public int listeners;
     }
     class DebugServer
     {
         public int Port = 8787;
-
         private HttpListener _listener;
         private byte[] bytesToSend = new byte[0];
-        public delegate void LogListener(string log);
         public static DebugServer instance;
-        public List<QueuedLog> queuedLogs = new List<QueuedLog>();
-        int listeners = 0;
-        bool locked = false;
         WebSocketServer wssv;
+        int listenerID = 0;
+        ConcurrentDictionary<int, DebuggerSocketBehaviour> listeners = new ConcurrentDictionary<int, DebuggerSocketBehaviour>();
         private void StartWebsocket()
         {
             wssv = new WebSocketServer(8989);
-
-            wssv.AddWebSocketService<Behaviour>("/ws");
+            // This is probably not smart, but the server sometimes outputs errors that don't really affect our app in any way, so lets just ignore them for now :/
+            wssv.Log.Output = (_, __) => { };
+            wssv.AddWebSocketService<DebuggerSocketBehaviour>("/ws");
             wssv.Start();
-            Debug.Log("Live Debug is now active on port " + Port.ToString());
+            Debug.Log("Telescope is now active on port " + Port.ToString());
         }
         public DebugServer()
         {
@@ -198,44 +215,24 @@ namespace SolidCode.Atlas
 
         public void Log(string log)
         {
-            while (locked)
+            DebuggerSocketBehaviour[] curlisteners = listeners.Values.ToArray();
+            foreach (DebuggerSocketBehaviour item in curlisteners)
             {
-                Thread.Sleep(20);
+                item.queuedLogs.Enqueue(log);
             }
-            queuedLogs.Add(new QueuedLog { log = log, listeners = 0 });
         }
 
-        public void RemoveDuplicates()
-        {
-            List<QueuedLog> removeList = new List<QueuedLog>();
-            locked = true;
-            List<QueuedLog> logs = new List<QueuedLog>(queuedLogs);
-            foreach (QueuedLog item in logs)
-            {
-                if (item.listeners >= listeners)
-                {
-                    removeList.Add(item);
-                }
-            }
-            foreach (QueuedLog item in removeList)
-            {
-                queuedLogs.Remove(item);
-            }
-            locked = false;
 
+        public int AddListener(DebuggerSocketBehaviour listener)
+        {
+            int id = Interlocked.Increment(ref listenerID);
+            listeners.AddOrUpdate(id, (index) => listener, (index, debugger) => { Debug.Error("Websocket listener already exists, updating listener instead."); return listener; });
+            return id;
         }
+        public void RemoveListener(int listener)
+        {
 
-        public void AddListener()
-        {
-            listeners++;
-        }
-        public void RemoveListener()
-        {
-            listeners--;
-            if (listeners < 0)
-            {
-                listeners = 0;
-            }
+            listeners.TryRemove(listener, out _);
         }
 
         public void Stop()
@@ -253,8 +250,6 @@ namespace SolidCode.Atlas
         {
             try
             {
-
-
                 if (_listener.IsListening)
                 {
                     var context = _listener.EndGetContext(result);

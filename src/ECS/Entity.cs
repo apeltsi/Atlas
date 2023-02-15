@@ -11,7 +11,7 @@
         public string name = "Entity";
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
-        public Entity parent;
+        public Entity parent { get; protected set; }
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();
         private ConcurrentQueue<Entity> childrenToAdd = new ConcurrentQueue<Entity>();
@@ -68,12 +68,25 @@
 
         public void SetParent(Entity e)
         {
-            if (parent != null)
-            {
-                parent.children.Remove(this);
-            }
+            e.AddChildren(this);
+        }
+
+        public void ForceParent(Entity e)
+        {
             parent = e;
-            parent.children.Add(this);
+        }
+
+        public Entity? GetChildByName(string name)
+        {
+            for (int i = 0; i < this.children.Count; i++)
+            {
+                Entity e = this.children[i];
+                if (e.name == name)
+                {
+                    return e;
+                }
+            }
+            return null;
         }
 
         public T AddComponent<T>() where T : Component, new()
@@ -381,6 +394,9 @@
             }
             components.Clear();*/
         }
-
+        public override string ToString()
+        {
+            return this.name;
+        }
     }
 }

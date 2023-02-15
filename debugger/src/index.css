@@ -131,6 +131,10 @@ code {
     max-height: 100%;
 }
 
+#logList.islive {
+    width: calc(100% - 400px);
+}
+
 .liveheader {
     display: flex;
 }
@@ -269,4 +273,8 @@ code {
 
 .loadingContainer img {
     width: 500px;
+}
+#loadingBars {
+    display: flex;
+    flex-direction: row;
 }

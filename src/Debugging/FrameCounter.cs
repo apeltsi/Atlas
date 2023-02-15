@@ -1,6 +1,4 @@
-using System.Numerics;
 using SolidCode.Atlas;
-using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 
@@ -8,7 +6,7 @@ class FrameCounter : Component
 {
     TextRenderer tr;
     int frames = 0;
-    float time = 0f;
+    double time = 0f;
     public override void Start()
     {
         TextRenderer? textRenderer = entity.GetComponent<TextRenderer>();
@@ -18,7 +16,7 @@ class FrameCounter : Component
 
     public override void Update()
     {
-        time += Window.frameDeltaTime;
+        time += Time.deltaTime;
         if (frames >= 10)
         {
             frames = 0;

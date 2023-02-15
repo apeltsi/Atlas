@@ -34,10 +34,23 @@ namespace SolidCode.Atlas.ECS
     [AttributeUsage(AttributeTargets.Class)]
     public class FixedUpdateThreadAttribute : Attribute
     {
+        // TODO: This function
         public string name { get; protected set; }
         public FixedUpdateThreadAttribute(string name)
         {
             this.name = name;
+        }
+    }
+    /// <summary>
+    /// Hides a field from the inspector
+    /// </summary>
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class HideInInspector : Attribute
+    {
+        public HideInInspector()
+        {
+
         }
     }
 

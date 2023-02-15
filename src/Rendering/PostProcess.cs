@@ -1,10 +1,10 @@
-using System.Numerics;
-using System.Runtime.InteropServices;
-using SolidCode.Atlas.Components;
-using Veldrid;
-
 namespace SolidCode.Atlas.Rendering
 {
+    using System.Numerics;
+    using System.Runtime.InteropServices;
+    using SolidCode.Atlas.Components;
+    using Veldrid;
+
     public class PostProcess : Drawable
     {
         public Transform transform;

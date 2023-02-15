@@ -17,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         public static Sdl2Window window { get; protected set; }
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public const int TargetFramerate = 72;
+        public static int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -29,10 +29,6 @@ namespace SolidCode.Atlas.Rendering
         public static Vector2 MousePosition = Vector2.Zero;
         public static RgbaFloat ClearColor = RgbaFloat.Black;
         PostProcess[] postProcess;
-        /// <summary>
-        /// Time elapsed between frames, in seconds.
-        /// </summary>
-        public static float frameDeltaTime = 0f;
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
@@ -47,7 +43,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Atlas " + Atlas.Version)
+        public Window(string title = "Atlas/" + Atlas.Version)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
@@ -55,8 +51,8 @@ namespace SolidCode.Atlas.Rendering
                 Y = 50,
                 WindowWidth = 800,
                 WindowHeight = 500,
-                WindowTitle = title,
-                WindowInitialState = WindowState.Hidden,
+                WindowTitle = title + " | Atlas/" + Atlas.Version,
+                WindowInitialState = WindowState.Hidden
             };
 
             window = VeldridStartup.CreateWindow(ref windowCI);
@@ -67,7 +63,7 @@ namespace SolidCode.Atlas.Rendering
                 SyncToVerticalBlank = TargetFramerate != 0,
                 ResourceBindingModel = ResourceBindingModel.Improved,
                 SwapchainSrgbFormat = false,
-                SwapchainDepthFormat = null
+                SwapchainDepthFormat = null,
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
@@ -90,7 +86,7 @@ namespace SolidCode.Atlas.Rendering
 
         public static void SetWindowTitle(string title)
         {
-            window.Title = title;
+            window.Title = title + " | Atlas/" + Atlas.Version;
         }
 
 
@@ -150,8 +146,11 @@ namespace SolidCode.Atlas.Rendering
                     Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
                     EntityComponentSystem.Update();
-                    frameDeltaTime = watch.ElapsedMilliseconds / 1000f;
-                    frameTimes += frameDeltaTime;
+                    // Update time
+                    Time.deltaTime = watch.Elapsed.TotalSeconds;
+                    Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
+
+                    frameTimes += (float)Time.deltaTime;
                     if (frames >= 60)
                     {
                         frames = 0;
@@ -160,7 +159,7 @@ namespace SolidCode.Atlas.Rendering
                     }
                     frames++;
 
-                    float frameRenderTime = Math.Clamp(frameDeltaTime * 1000f, 0f, 1000f / TargetFramerate);
+                    double frameRenderTime = Math.Clamp(Time.deltaTime * 1000.0, 0f, 1000.0 / TargetFramerate);
                     watch = System.Diagnostics.Stopwatch.StartNew();
 #if DEBUG
                     Profiler.EndTimer();

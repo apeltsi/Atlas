@@ -28,7 +28,7 @@
         }
 
 
-
+        [HideInInspector]
         public Entity? entity;
 
         public virtual void Start()

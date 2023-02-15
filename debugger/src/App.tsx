@@ -15,7 +15,9 @@ export const [subSystemsState, setSubSystemState] = createStore<string[]>([]);
 export const [liveDataState, setLiveDataState] = createStore<LiveData>({
     fps: 0,
     runtime: 0,
+    updateRate: 0,
     connected: false,
+    hierarchy: { name: "ROOT", components: [], children: [] },
 } as LiveData);
 let sendMessage: (data: string) => void = (data: string) => {};
 export function SendMessageToServer(message: string) {
@@ -90,7 +92,6 @@ function StartListening() {
     };
     socket.addEventListener("message", function (event) {
         let data = JSON.parse(event.data);
-        console.log(data);
         if (data !== undefined && data.type !== undefined) {
             if (data.type === "log" && data.content !== undefined) {
                 if (logState !== null) {
@@ -107,6 +108,8 @@ function StartListening() {
                 setLiveDataState({
                     fps: data.framerate,
                     runtime: data.runtime,
+                    hierarchy: data.hierarchy,
+                    updateRate: data.updateRate,
                 });
             } else if (data.type === "profiler" && data.times !== undefined) {
                 addData(data.times);

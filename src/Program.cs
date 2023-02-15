@@ -23,20 +23,22 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "0.1.0a";
+        public const string Version = "grape-juice@1.1";
 
         public static int updateFrequency = 100;
         public static Timer timer;
-        public static System.Diagnostics.Stopwatch watch { get; private set; }
+        internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
+        static Window? w;
+        static bool doFixedUpdate = true;
         public static void InitializeLogging()
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
-        public static void Start(Scene defaultScene, string windowTitle)
+        public static void StartRenderFeatures(string windowTitle)
         {
             AppName = windowTitle;
-            watch = System.Diagnostics.Stopwatch.StartNew();
-            Debug.Log(LogCategory.Framework, "Atlas " + Version + " starting up...");
+            primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {
@@ -47,12 +49,22 @@ namespace SolidCode.Atlas
 #endif
 
 
-            Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + watch.ElapsedMilliseconds + "ms");
-            Window w = new Window(windowTitle);
-            Debug.Log(LogCategory.Framework, "Window created after " + watch.ElapsedMilliseconds + "ms");
+            Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + primaryStopwatch.ElapsedMilliseconds + "ms");
+            w = new Window(windowTitle);
+            Debug.Log(LogCategory.Framework, "Window created after " + primaryStopwatch.ElapsedMilliseconds + "ms");
             EntityComponentSystem.window = w;
+            if (timer != null)
+                timer.Stop();
+        }
+
+        public static void Start(Scene defaultScene)
+        {
+            if (w == null)
+            {
+                throw new NullReferenceException("Window hasn't been created yet!");
+            }
             SceneManager.LoadScene(defaultScene);
-            Debug.Log(LogCategory.Rendering, "Rendering first frame after " + watch.ElapsedMilliseconds + "ms");
+            Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch.ElapsedMilliseconds + "ms");
             Audio.AudioManager.InitializeAudio();
             try
             {
@@ -62,48 +74,81 @@ namespace SolidCode.Atlas
             {
                 Debug.Error(ex.ToString());
             }
-            if (timer != null)
-                timer.Stop();
+            doFixedUpdate = false;
             EntityComponentSystem.Dispose();
-            watch.Stop();
-            Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(watch.ElapsedMilliseconds / 100f) / 10) + "s...");
+            primaryStopwatch.Stop();
+            Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(primaryStopwatch.ElapsedMilliseconds / 100f) / 10) + "s...");
             Debug.Stop();
         }
 
         public static void StartFixedUpdateLoop()
         {
-            Debug.Log(LogCategory.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
-            timer = new System.Timers.Timer(1000f / updateFrequency);
-            timer.Elapsed += new System.Timers.ElapsedEventHandler(FixedUpdate);
-            timer.AutoReset = true;
-            timer.Start();
+            Thread t = new Thread(StartFixedUpdateLoopTimer);
+            t.Name = "Primary ECS FixedUpdate Thread";
+            t.Start();
         }
-        private static int lastWarning = 0; // The tick that the last performance warning was printed at
-        private static int curTick = 0;
-        private static bool ongoingFixedUpdate = false;
-        public static void FixedUpdate(object? sender, ElapsedEventArgs e)
+        private static void StartFixedUpdateLoopTimer()
         {
-            if (ongoingFixedUpdate)
+            Debug.Log(LogCategory.Framework, "Starting fixed update loop with a frequency of " + updateFrequency);
+            System.Diagnostics.Stopwatch updateDuration = new System.Diagnostics.Stopwatch();
+            while (doFixedUpdate)
             {
-                return;
+                updateDuration.Restart();
+                RunFixedUpdate();
+                updateDuration.Stop();
+                long delay = (1000 / updateFrequency - updateDuration.ElapsedMilliseconds);
+                if (delay > 0)
+                {
+                    Thread.Sleep((int)delay);
+                }
             }
-            ongoingFixedUpdate = true;
+        }
+        private static long lastWarning = 0; // The tick that the last performance warning was printed at
+        private static long curTick = 0; // The current tick
+        private static int fixedUpdatesThisSecond = 0;
+        public static int FixedUpdatesPerSecond { get; private set; }
+        /// <summary>
+        /// Time elapsed between fixedupdates, in seconds.
+        /// </summary>
+
+        private static System.Diagnostics.Stopwatch fixedUpdateCounterStopwatch = new System.Diagnostics.Stopwatch();
+        private static System.Diagnostics.Stopwatch fixedUpdateDeltaStopwatch = new System.Diagnostics.Stopwatch();
+        static void RunFixedUpdate()
+        {
+            fixedUpdateDeltaStopwatch.Stop();
+            Time.fixedDeltaTime = fixedUpdateDeltaStopwatch.Elapsed.TotalSeconds;
+            Time.fixedTime = primaryStopwatch.Elapsed.TotalSeconds;
+            if (!fixedUpdateCounterStopwatch.IsRunning)
+            {
+                fixedUpdateCounterStopwatch.Start();
+            }
+            if (fixedUpdateCounterStopwatch.ElapsedMilliseconds >= 1000)
+            {
+                FixedUpdatesPerSecond = fixedUpdatesThisSecond;
+                fixedUpdatesThisSecond = 0;
+                fixedUpdateCounterStopwatch.Restart();
+            }
             System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
             sw.Start();
+            fixedUpdatesThisSecond++;
             EntityComponentSystem.FixedUpdate();
             sw.Stop();
             if (sw.Elapsed.TotalMilliseconds > 1000f / updateFrequency && curTick - lastWarning > (updateFrequency * 10))
             {
                 lastWarning = curTick;
-                Debug.Warning("Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
+                Debug.Warning(LogCategory.ECS, "Atlas is unable to keep up with current update frequency of " + updateFrequency + ". FixedUpdate took " + sw.Elapsed.TotalMilliseconds + "ms");
             }
             curTick++;
-            ongoingFixedUpdate = false;
+            fixedUpdateDeltaStopwatch.Restart();
         }
 
         public static float GetUptime()
         {
-            return (watch.ElapsedMilliseconds) / 1000f;
+            if (primaryStopwatch == null)
+            {
+                return 0f;
+            }
+            return (float)primaryStopwatch.Elapsed.TotalSeconds;
         }
     }
 }

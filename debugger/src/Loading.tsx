@@ -7,7 +7,6 @@ export default function Loading() {
     return (
         <div class="loadingContainer">
             <img src={atlas}></img>
-
             <div class="loadingText">
                 <h2>Make sure a debug build of Atlas is running</h2>
                 <h3>

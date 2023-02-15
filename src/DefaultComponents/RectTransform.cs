@@ -2,7 +2,6 @@
 namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
-    using SolidCode.Atlas.ECS;
     using SolidCode.Atlas.Rendering;
 
     public enum PositionMode
