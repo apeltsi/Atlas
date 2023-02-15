@@ -30,10 +30,6 @@ namespace SolidCode.Atlas.Rendering
         public static RgbaFloat ClearColor = RgbaFloat.Black;
         PostProcess[] postProcess;
         /// <summary>
-        /// Time elapsed between frames, in seconds.
-        /// </summary>
-        public static double frameDeltaTime = 0.0;
-        /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
         public static float AverageFramerate = 0f;
@@ -150,8 +146,11 @@ namespace SolidCode.Atlas.Rendering
                     Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
                     EntityComponentSystem.Update();
-                    frameDeltaTime = watch.Elapsed.TotalSeconds;
-                    frameTimes += (float)frameDeltaTime;
+                    // Update time
+                    Time.deltaTime = watch.Elapsed.TotalSeconds;
+                    Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
+
+                    frameTimes += (float)Time.deltaTime;
                     if (frames >= 60)
                     {
                         frames = 0;
@@ -160,7 +159,7 @@ namespace SolidCode.Atlas.Rendering
                     }
                     frames++;
 
-                    double frameRenderTime = Math.Clamp(frameDeltaTime * 1000.0, 0f, 1000.0 / TargetFramerate);
+                    double frameRenderTime = Math.Clamp(Time.deltaTime * 1000.0, 0f, 1000.0 / TargetFramerate);
                     watch = System.Diagnostics.Stopwatch.StartNew();
 #if DEBUG
                     Profiler.EndTimer();

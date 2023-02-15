@@ -1,3 +1,4 @@
+using SolidCode.Atlas;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 
@@ -15,7 +16,7 @@ class FrameCounter : Component
 
     public override void Update()
     {
-        time += Window.frameDeltaTime;
+        time += Time.deltaTime;
         if (frames >= 10)
         {
             frames = 0;
