@@ -92,7 +92,10 @@ namespace SolidCode.Atlas.ECS
         {
             foreach (Entity e in RootEntity.children)
             {
-                e.Destroy();
+                if (e != null)
+                {
+                    e.Destroy();
+                }
             }
         }
 

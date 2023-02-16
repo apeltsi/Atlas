@@ -249,8 +249,6 @@ namespace SolidCode.Atlas.Rendering
             {
                 // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
                 // Could the transformbuffer be updated during updatebuffer?
-                // Temporary fix, might work?
-                _graphicsDevice.WaitForIdle();
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
             }
         }
