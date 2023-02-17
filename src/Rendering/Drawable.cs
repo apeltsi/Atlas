@@ -85,7 +85,7 @@ namespace SolidCode.Atlas.Rendering
                 this._mesh = mesh;
             if (t == null)
             {
-                Debug.Error("No transform assigned to Drawable. Drawable can not be properly sorted!");
+                Debug.Error(LogCategory.Rendering, "Stray Drawable. The drawable isn't assigned to a Transform. Drawable can not be properly sorted!");
             }
             this.transform = t;
             this.uniform = uniform;
