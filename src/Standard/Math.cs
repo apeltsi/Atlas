@@ -36,6 +36,14 @@ namespace SolidCode.Atlas.Mathematics
         {
             return (int)Math.Round(value);
         }
+        public static int FloorToInt(float value)
+        {
+            return (int)Math.Floor(value);
+        }
+        public static int CeilToInt(float value)
+        {
+            return (int)Math.Ceiling(value);
+        }
 
     }
 }
