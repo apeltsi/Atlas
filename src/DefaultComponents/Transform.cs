@@ -1,8 +1,10 @@
 namespace SolidCode.Atlas.Components
 {
+    using System.Collections.Concurrent;
     using System.Numerics;
     using SolidCode.Atlas.ECS;
     using SolidCode.Atlas.Rendering;
+    using SolidCode.Atlas.Standard;
 
     public class Transform : Component
     {
@@ -24,8 +26,7 @@ namespace SolidCode.Atlas.Components
         /// Local z of entity
         /// </summary>
 
-        private List<Drawable> _drawables = new List<Drawable>();
-
+        private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
         public float z
         {
             get
@@ -35,6 +36,7 @@ namespace SolidCode.Atlas.Components
             set
             {
                 _z = value;
+                _drawables.Update();
                 foreach (Drawable d in _drawables)
                 {
                     Window.ResortDrawable(d);
