@@ -39,10 +39,8 @@ namespace SolidCode.Atlas.ECS
                 if (e != null)
                 {
                     List<Entity> entitiesToRemove = new List<Entity>();
-                    for (int i = 0; i < e.children.Count; i++)
-                    {
-                        entitiesToRemove.Add(e.children[i]);
-                    }
+                    entitiesToRemove.AddRange(e.GetAllChildrenRecursively());
+
                     entitiesToRemove.Add(e);
                     e.parent.RemoveChildren(e);
                     e.children.Clear();
@@ -184,6 +182,10 @@ namespace SolidCode.Atlas.ECS
 
         static ECSElement GetEntityECSElement(Entity e)
         {
+            if (e == null)
+            {
+                return new ECSElement("NULL ENTITY", new Component[0], new ECSElement[0]);
+            }
             List<ECSElement> children = new List<ECSElement>();
             for (int i = 0; i < e.children.Count; i++)
             {

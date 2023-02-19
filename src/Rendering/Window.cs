@@ -9,6 +9,7 @@ using static Veldrid.Sdl2.Sdl2Native;
 using System.Collections.Concurrent;
 namespace SolidCode.Atlas.Rendering
 {
+
     public class Window
     {
         public static GraphicsDevice _graphicsDevice;
@@ -198,6 +199,20 @@ namespace SolidCode.Atlas.Rendering
             Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
         }
 
+        public static void ResortDrawable(Drawable d)
+        {
+            // Lets just grab out the drawable out of our sorted List and add it back
+            Drawable[] curDrawables = _drawables.ToArray();
+            foreach (Drawable dr in curDrawables)
+            {
+                if (dr == d)
+                {
+                    _drawables.Remove(d);
+                }
+            }
+            _drawables.AddSorted<Drawable>(d);
+        }
+
 
         public static CommandList GetCommandList()
         {
@@ -216,7 +231,10 @@ namespace SolidCode.Atlas.Rendering
             }
             drawablesToRemove.Clear();
 
-            _drawables.AddRange(drawablesToAdd.ToArray());
+            foreach (Drawable d in drawablesToAdd)
+            {
+                _drawables.AddSorted<Drawable>(d);
+            }
             drawablesToAdd.Clear();
 
             // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
@@ -236,9 +254,6 @@ namespace SolidCode.Atlas.Rendering
 
             // First we have to sort our drawables in order to perform the back-to-front render pass
             Drawable[] sortedDrawbles = _drawables.ToArray();
-            // TODO(amos): vvv - this could be improved a lot! by sorting only when z leves change or a drawable is added
-            // although for now cpu performance isn't really a problem, and sorting every frame shouldn't have an impact on performance
-            Array.Sort(sortedDrawbles, Compare);
 
             foreach (Drawable drawable in sortedDrawbles)
             {
@@ -411,26 +426,31 @@ namespace SolidCode.Atlas.Rendering
                 0, 0, 0, 1);
         }
 
-        private static int Compare(Drawable x, Drawable y)
-        {
-            if (x == null)
-            {
-                return 0;
-            }
-            if (y == null)
-            {
-                return 0;
-            }
-            if (x.transform == null)
-            {
-                return 0;
-            }
-            if (y.transform == null)
-            {
-                return 0;
-            }
-            return x.transform.globalZ.CompareTo(y.transform.globalZ);
-        }
-
     }
+    public static class ListExt
+    {
+        public static void AddSorted<T>(this List<T> @this, T item) where T : IComparable<T>
+        {
+            if (@this.Count == 0)
+            {
+                @this.Add(item);
+                return;
+            }
+            if (@this[@this.Count - 1].CompareTo(item) <= 0)
+            {
+                @this.Add(item);
+                return;
+            }
+            if (@this[0].CompareTo(item) >= 0)
+            {
+                @this.Insert(0, item);
+                return;
+            }
+            int index = @this.BinarySearch(item);
+            if (index < 0)
+                index = ~index;
+            @this.Insert(index, item);
+        }
+    }
+
 }

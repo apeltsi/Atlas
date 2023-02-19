@@ -8,7 +8,7 @@ namespace SolidCode.Atlas.Rendering
     /// <summary>
     /// A representation of something that will be drawn onscreen
     /// </summary>
-    public abstract class Drawable
+    public abstract class Drawable : IComparable<Drawable>
     {
         public Pipeline pipeline;
         public Veldrid.Shader[] _shaders;
@@ -49,6 +49,26 @@ namespace SolidCode.Atlas.Rendering
         {
 
         }
+        public virtual int CompareTo(Drawable x)
+        {
+            if (this == null)
+            {
+                return 0;
+            }
+            if (x == null)
+            {
+                return 0;
+            }
+            if (this.transform == null)
+            {
+                return 0;
+            }
+            if (x.transform == null)
+            {
+                return 0;
+            }
+            return this.transform.globalZ.CompareTo(x.transform.globalZ);
+        }
     }
     public struct TransformStruct
     {
@@ -85,7 +105,7 @@ namespace SolidCode.Atlas.Rendering
                 this._mesh = mesh;
             if (t == null)
             {
-                Debug.Error(LogCategory.Rendering, "Stray Drawable. The drawable isn't assigned to a Transform. Drawable can not be properly sorted!");
+                Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
             }
             this.transform = t;
             this.uniform = uniform;
@@ -108,8 +128,12 @@ namespace SolidCode.Atlas.Rendering
         {
             CreateResources(_graphicsDevice, _shader);
         }
+
         protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
         {
+            // Make sure our transform knows us
+            this.transform.RegisterDrawable(this);
+
             Shader shader = ShaderManager.GetShader(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             List<Texture> _loadedTextures = new List<Texture>();
@@ -260,6 +284,7 @@ namespace SolidCode.Atlas.Rendering
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             transformBuffer.Dispose();
+            this.transform.UnregisterDrawable(this);
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
             {
                 buffer.Dispose();

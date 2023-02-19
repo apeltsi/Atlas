@@ -375,6 +375,17 @@
 
         }
 
+        public Entity[] GetAllChildrenRecursively()
+        {
+            List<Entity> allchildren = new List<Entity>();
+            foreach (Entity e in children)
+            {
+                allchildren.Add(e);
+                allchildren.AddRange(e.GetAllChildrenRecursively());
+            }
+            return allchildren.ToArray();
+        }
+
 
         public void Destroy()
         {
