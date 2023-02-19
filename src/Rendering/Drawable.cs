@@ -85,7 +85,7 @@ namespace SolidCode.Atlas.Rendering
                 this._mesh = mesh;
             if (t == null)
             {
-                Debug.Error("No transform assigned to Drawable. Drawable can not be properly sorted!");
+                Debug.Error(LogCategory.Rendering, "Stray Drawable. The drawable isn't assigned to a Transform. Drawable can not be properly sorted!");
             }
             this.transform = t;
             this.uniform = uniform;
@@ -243,13 +243,13 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            Matrix4x4 tmat = transform.GetTransformationMatrix();
+            Matrix4x4 cmat = Camera.GetTransformMatrix();
             if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
                 // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
                 // Could the transformbuffer be updated during updatebuffer?
-                // Temporary fix, might work?
-                _graphicsDevice.WaitForIdle();
-                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, transform.GetTransformationMatrix(), Camera.GetTransformMatrix()));
+                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
             }
         }
 

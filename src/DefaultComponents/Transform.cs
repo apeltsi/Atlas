@@ -4,10 +4,28 @@ namespace SolidCode.Atlas.Components
     using SolidCode.Atlas.ECS;
     public class Transform : Component
     {
+        /// <summary>
+        /// Local position of entity
+        /// </summary>
         public Vector2 position;
+        /// <summary>
+        /// Local scale of entity
+        /// </summary>
         public Vector2 scale;
+        /// <summary>
+        /// Local rotation of entity, measured in degrees
+        /// </summary>
+
         public float rotation = 0f;
+        /// <summary>
+        /// Local z of entity
+        /// </summary>
+
         public float z = 0.1f;
+        /// <summary>
+        /// Global position of entity
+        /// </summary>
+
         public Vector2 globalPosition
         {
             get
@@ -49,6 +67,10 @@ namespace SolidCode.Atlas.Components
                 position = value;
             }
         }
+        /// <summary>
+        /// Global scale of entity
+        /// </summary>
+
         public Vector2 globalScale
         {
 
@@ -71,6 +93,10 @@ namespace SolidCode.Atlas.Components
                 return scale;
             }
         }
+        /// <summary>
+        /// Global rotation of entity, measured in degrees
+        /// </summary>
+
         public float globalRotation
         {
             get
@@ -113,6 +139,10 @@ namespace SolidCode.Atlas.Components
             }
 
         }
+        /// <summary>
+        /// Global z of entity
+        /// </summary>
+
         public float globalZ
         {
             get
@@ -156,7 +186,6 @@ namespace SolidCode.Atlas.Components
             }
         }
 
-        public Vector2 inheritedScale = Vector2.One;
 
         public Transform(Vector2 position, Vector2 scale)
         {
@@ -173,19 +202,25 @@ namespace SolidCode.Atlas.Components
         {
             Vector2 pos = this.globalPosition;
             Vector2 scale = this.globalScale;
-            float rot = this.globalRotation;
-            float trueZ = this.globalZ;
-            Matrix4x4 translationAndPosition = new Matrix4x4(
-                scale.X, 0, 0, pos.X,
-                0, scale.Y, 0, pos.Y,
+            float rot = this.globalRotation * ((float)Math.PI / 180f);
+            Matrix4x4 scaleMat = new Matrix4x4(
+                scale.X, 0, 0, 0,
+                0, scale.Y, 0, 0,
                 0, 0, 1, 0,
-                0, 0, 0, 1);
+                0, 0, 0, 1
+            );
             Matrix4x4 rotation = new Matrix4x4(
                 (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,
                 (float)Math.Sin(rot), (float)Math.Cos(rot), 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
-            return translationAndPosition * rotation;
+            Matrix4x4 translation = new Matrix4x4(
+                1, 0, 0, pos.X,
+                0, 1, 0, pos.Y,
+                0, 0, 1, 0,
+                0, 0, 0, 1);
+
+            return translation * rotation * scaleMat;
         }
 
     }
