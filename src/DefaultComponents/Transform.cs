@@ -2,6 +2,8 @@ namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
     using SolidCode.Atlas.ECS;
+    using SolidCode.Atlas.Rendering;
+
     public class Transform : Component
     {
         /// <summary>
@@ -17,11 +19,28 @@ namespace SolidCode.Atlas.Components
         /// </summary>
 
         public float rotation = 0f;
+        private float _z = 1f;
         /// <summary>
         /// Local z of entity
         /// </summary>
 
-        public float z = 0.1f;
+        private List<Drawable> _drawables = new List<Drawable>();
+
+        public float z
+        {
+            get
+            {
+                return _z;
+            }
+            set
+            {
+                _z = value;
+                foreach (Drawable d in _drawables)
+                {
+                    Window.ResortDrawable(d);
+                }
+            }
+        }
         /// <summary>
         /// Global position of entity
         /// </summary>
@@ -197,6 +216,17 @@ namespace SolidCode.Atlas.Components
             this.position = Vector2.Zero;
             this.scale = Vector2.One;
         }
+
+        public void RegisterDrawable(Drawable d)
+        {
+            _drawables.Add(d);
+        }
+        public void UnregisterDrawable(Drawable d)
+        {
+            if (_drawables.Contains(d))
+                _drawables.Remove(d);
+        }
+
 
         public virtual Matrix4x4 GetTransformationMatrix()
         {

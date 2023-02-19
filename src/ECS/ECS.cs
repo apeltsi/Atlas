@@ -182,6 +182,10 @@ namespace SolidCode.Atlas.ECS
 
         static ECSElement GetEntityECSElement(Entity e)
         {
+            if (e == null)
+            {
+                return new ECSElement("NULL ENTITY", new Component[0], new ECSElement[0]);
+            }
             List<ECSElement> children = new List<ECSElement>();
             for (int i = 0; i < e.children.Count; i++)
             {
