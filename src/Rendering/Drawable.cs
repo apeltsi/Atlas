@@ -280,6 +280,8 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
+            // Mby this will help with our problem above
+            Window._graphicsDevice.WaitForIdle();
             pipeline.Dispose();
 
             vertexBuffer.Dispose();
