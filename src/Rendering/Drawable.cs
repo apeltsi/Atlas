@@ -132,7 +132,8 @@ namespace SolidCode.Atlas.Rendering
         protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
         {
             // Make sure our transform knows us
-            this.transform.RegisterDrawable(this);
+            if(this.transform != null)
+                this.transform.RegisterDrawable(this);
 
             Shader shader = ShaderManager.GetShader(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
