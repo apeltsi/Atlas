@@ -124,6 +124,7 @@ namespace SolidCode.Atlas.Rendering
                         ReloadAllShaders();
                     }
                     InputManager.ClearInputs();
+                    InputManager.WheelDelta = inputSnapshot.WheelDelta;
                     for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
                     {
                         KeyEvent e = inputSnapshot.KeyEvents[i];
