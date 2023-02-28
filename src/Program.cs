@@ -44,7 +44,7 @@ namespace SolidCode.Atlas
             {
                 // Were running in from the development path. Lets grab our shaders from there instead!
                 ShaderDirectory = "./data/shaders";
-                Debug.Log(LogCategory.Framework, "It looks like Atlas is running from a development enviroment. Loading shaders from dev enviroment instead.");
+                Debug.Log(LogCategory.Framework, "It looks like Atlas is running from a development environment. Loading shaders from dev environment instead.");
             }
 #endif
 
