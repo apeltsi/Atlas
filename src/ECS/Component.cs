@@ -1,7 +1,10 @@
-﻿namespace SolidCode.Atlas.ECS
+﻿using System.Reflection;
+
+namespace SolidCode.Atlas.ECS
 {
     public abstract class Component
     {
+        internal bool isNew = true;
         private bool _enabled = false;
         public bool enabled
         {
@@ -17,42 +20,52 @@
                 switch (value)
                 {
                     case true:
-
-                        this.OnEnable();
+                        TryInvokeMethod("OnEnable");
                         break;
                     case false:
-                        this.OnDisable();
+                        TryInvokeMethod("OnDisable");
                         break;
                 }
             }
         }
 
 
+        public void TryInvokeMethod(string method)
+        {
+            this.GetType().GetMethod(method)?.Invoke(this, null);
+        }
+
         [HideInInspector]
         public Entity? entity;
 
-        public virtual void Start()
+        protected Component()
         {
+            MethodInfo? updateMethod = this.GetType().GetMethod("Update");
+            MethodInfo? tickMethod = this.GetType().GetMethod("Tick");
 
+            if (updateMethod != null)
+            {
+                EntityComponentSystem.RegisterUpdateMethod(this, () => updateMethod.Invoke(this, null));
+            }
+            if (tickMethod != null)
+            {
+                EntityComponentSystem.RegisterTickMethod(this, () => tickMethod.Invoke(this, null));
+            }
         }
-        public virtual void Update()
+        internal void UnregisterMethods()
         {
+            MethodInfo? updateMethod = this.GetType().GetMethod("Update");
+            MethodInfo? tickMethod = this.GetType().GetMethod("Tick");
 
-        }
-        public virtual void FixedUpdate()
-        {
+            if (updateMethod != null)
+            {
+                EntityComponentSystem.UnregisterUpdateMethod(this);
+            }
+            if (tickMethod != null)
+            {
+                EntityComponentSystem.UnregisterTickMethod(this);
+            }
 
-        }
-        public virtual void OnRemove()
-        {
-
-        }
-        protected virtual void OnEnable()
-        {
-
-        }
-        protected virtual void OnDisable()
-        {
         }
     }
 }

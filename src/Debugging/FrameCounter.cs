@@ -7,14 +7,14 @@ class FrameCounter : Component
     TextRenderer tr;
     int frames = 0;
     double time = 0f;
-    public override void Start()
+    public void Start()
     {
         TextRenderer? textRenderer = entity.GetComponent<TextRenderer>();
         if (textRenderer == null) return;
         tr = textRenderer;
     }
 
-    public override void Update()
+    public void Update()
     {
         time += Time.deltaTime;
         if (frames >= 10)
@@ -24,9 +24,6 @@ class FrameCounter : Component
             time = 0;
         }
         frames++;
-    }
-    public override void FixedUpdate()
-    {
     }
 
 }

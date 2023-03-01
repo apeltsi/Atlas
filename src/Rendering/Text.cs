@@ -7,6 +7,7 @@ namespace SolidCode.Atlas.Rendering
     using System.Runtime.InteropServices;
     using FontStashSharp;
     using FontStashSharp.Interfaces;
+    using SolidCode.Atlas.AssetManagement;
     using SolidCode.Atlas.Components;
     using Veldrid;
 
@@ -20,16 +21,21 @@ namespace SolidCode.Atlas.Rendering
         FontRenderer renderer;
         Matrix4x4 lastMatrix;
         bool centered = true;
+        private Vector4 _color;
         public Vector4 color
         {
             get
             {
-                return renderer.Color;
+                return _color;
             }
             set
             {
-                renderer.Color = value;
-                renderer.UpdateColor(value);
+                _color = value;
+                if (renderer != null)
+                {
+                    renderer.Color = value;
+                    renderer.UpdateColor(value);
+                }
             }
         }
         public TextDrawable(string text, string[] fontPaths, Vector4 Color, bool centered, int size, Transform transform)
@@ -39,11 +45,8 @@ namespace SolidCode.Atlas.Rendering
             this.fontPaths = fontPaths;
             this.size = size;
             this.centered = centered;
+            this.color = Color;
             CreateResources(Window._graphicsDevice);
-            renderer = new FontRenderer(Window._graphicsDevice, Color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
-            if (centered)
-                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
         }
 
         public void UpdateText(string text, int size)
@@ -63,6 +66,11 @@ namespace SolidCode.Atlas.Rendering
             {
                 FontManager.AddFont(this.font, this.fontPaths[i]);
             }
+            renderer = new FontRenderer(Window._graphicsDevice, this.color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
+            if (centered)
+                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
+            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
+
         }
         public override void Draw(CommandList cl)
         {
@@ -80,6 +88,7 @@ namespace SolidCode.Atlas.Rendering
         public override void Dispose()
         {
             this.font.Dispose();
+            this.renderer.Dispose();
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
@@ -150,7 +159,7 @@ namespace SolidCode.Atlas.Rendering
         float HorizontalOffset = 0f;
         DeviceBuffer colorBuffer;
         public Vector4 Color = new Vector4(1, 1, 1, 1f);
-        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<string>(), transformShaderStages)
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<Asset<TextureResource>>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),

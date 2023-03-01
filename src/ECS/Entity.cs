@@ -20,7 +20,6 @@
 
         private ConcurrentQueue<Component> componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> componentsToRemove = new ConcurrentQueue<Component>();
-        private bool isNew = true;
 
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
@@ -110,11 +109,14 @@
             Component component = new T();
             component.entity = this;
             componentsToAdd.Enqueue(component);
+            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
+
             return (T)component;
         }
         public Entity RemoveComponent(Component component)
         {
             componentsToRemove.Enqueue(component);
+            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
@@ -151,88 +153,6 @@
             return null;
         }
 
-        // WARNING! Does not call Start() for children, as it is up to themselveves to decide when their first Fixed update is
-        private void Start()
-        {
-            UpdateComponentsAndChildren();
-            Component[] cur_components = components.ToArray();
-
-            foreach (Component component in cur_components)
-            {
-                component.enabled = true; // This is done so that OnEnable() is called
-                try
-                {
-                    component.Start();
-                }
-                catch (Exception e)
-                {
-                    Debug.Error(LogCategory.General, e.ToString());
-                }
-            }
-        }
-        public void Update()
-        {
-            if (isNew)
-            {
-                isNew = false;
-                Start();
-            }
-            UpdateComponentsAndChildren();
-            Component[] cur_components = components.ToArray();
-            foreach (Component component in cur_components)
-            {
-                if (component.enabled)
-                    component.Update();
-            }
-            Entity[] cur_children = children.ToArray();
-            foreach (Entity e in cur_children)
-            {
-                if (e != null)
-                {
-                    try
-                    {
-                        e.Update();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Error(LogCategory.General, ex.ToString());
-                    }
-                }
-
-            }
-        }
-
-        public void FixedUpdate()
-        {
-            if (isNew)
-            {
-                isNew = false;
-                Start();
-            }
-            UpdateComponentsAndChildren();
-            Component[] cur_components = components.ToArray();
-            foreach (Component component in cur_components)
-            {
-                if (component.enabled && component != null)
-                    component.FixedUpdate();
-            }
-            Entity[] cur_children = children.ToArray();
-
-            foreach (Entity e in cur_children)
-            {
-                if (e != null)
-                {
-                    try
-                    {
-                        e.FixedUpdate();
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.Error(LogCategory.General, ex.ToString());
-                    }
-                }
-            }
-        }
 
         /// <summary>
         /// Assigns children to Entity
@@ -246,6 +166,7 @@
             {
                 childrenToAdd.Enqueue(e);
             }
+            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
 
@@ -261,6 +182,7 @@
             {
                 childrenToRemove.Enqueue(e);
             }
+            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
         /// <summary>
@@ -276,6 +198,7 @@
             {
                 childrenToDestroy.Enqueue(e);
             }
+            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
 
             return this;
         }
@@ -334,10 +257,9 @@
                 if (component != null)
                 {
                     component.entity = this;
-                    if (EntityComponentSystem.HasStarted && !isNew)
+                    if (EntityComponentSystem.HasStarted)
                     {
-                        component.enabled = true; // This is done so that OnEnable() is called
-                        component.Start();
+                        EntityComponentSystem.AddStartMethod(component);
                     }
                     components.Add(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
@@ -363,7 +285,7 @@
                         // We have to remove the component from the instance count limit
                     }
                     component.enabled = false;
-                    component.OnRemove();
+                    component.TryInvokeMethod("OnRemove");
 
                     components.Remove(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))

@@ -8,10 +8,10 @@ namespace SolidCode.Atlas
 
         public static double time { get; internal set; }
         /// <summary>
-        /// Time between the current fixed update and the start of the application. Measured in seconds
+        /// Time between the current tick and the start of the application. Measured in seconds
         /// </summary>
 
-        public static double fixedTime { get; internal set; }
+        public static double tickTime { get; internal set; }
 
         /// <summary>
         /// The time between the current frame and the previous frame. Measured in seconds
@@ -20,10 +20,10 @@ namespace SolidCode.Atlas
         public static double deltaTime { get; internal set; }
 
         /// <summary>
-        /// The time between the current fixed upadte and the previous fixed update. Measured in seconds
+        /// The time between the current tick and the previous tick. Measured in seconds
         /// </summary>
 
-        public static double fixedDeltaTime { get; internal set; }
+        public static double tickDeltaTime { get; internal set; }
 
     }
 }

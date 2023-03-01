@@ -11,19 +11,19 @@ namespace SolidCode.Atlas.Components
         public static Vector2 Scale = Vector2.One;
         Transform t;
 
-        public override void Start()
+        public void Start()
         {
             t = entity.GetComponent<Transform>();
             Position = t.globalPosition;
             Scale = t.globalScale;
         }
-        public override void FixedUpdate()
+        public void Tick()
         {
             Position = t.globalPosition;
             Scale = t.globalScale;
 
         }
-        public override void Update()
+        public void Update()
         {
             Position = t.globalPosition;
             Scale = t.globalScale;

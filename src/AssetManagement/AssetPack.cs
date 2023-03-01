@@ -1,0 +1,4 @@
+namespace SolidCode.Atlas.AssetManagement
+{
+
+}

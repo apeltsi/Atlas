@@ -115,7 +115,7 @@ namespace SolidCode.Atlas.Rendering
                     {
                         window.Visible = true;
                         window.WindowState = WindowState.Normal;
-                        Atlas.StartFixedUpdateLoop();
+                        Atlas.StartTickLoop();
                     }
                     InputSnapshot inputSnapshot = window.PumpEvents();
                     if (reloadShaders)
