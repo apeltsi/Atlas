@@ -67,7 +67,7 @@ namespace SolidCode.Atlas.Rendering
                 SwapchainDepthFormat = null,
             };
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
-            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
+            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options, GraphicsBackend.Direct3D11);
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
             window.Resized += () =>
             {

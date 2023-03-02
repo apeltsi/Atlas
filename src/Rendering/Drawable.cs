@@ -32,7 +32,7 @@ namespace SolidCode.Atlas.Rendering
         {
         }
 
-        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
+        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : unmanaged
         {
 
         }
@@ -87,7 +87,9 @@ namespace SolidCode.Atlas.Rendering
 
 
 
-    public class Drawable<T, Uniform> : Drawable where T : struct where Uniform : struct
+    public class Drawable<T, Uniform> : Drawable
+    where T : unmanaged
+    where Uniform : unmanaged
     {
         protected string _shader;
         protected Mesh<T> _mesh;
@@ -103,6 +105,8 @@ namespace SolidCode.Atlas.Rendering
             this._shader = shaderPath;
             if (mesh != null)
                 this._mesh = mesh;
+            else
+                this._mesh = new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
             if (t == null)
             {
                 Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
@@ -144,8 +148,7 @@ namespace SolidCode.Atlas.Rendering
             // Uniform
             _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(uniform), BufferUsage.UniformBuffer)));
 
-            _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, uniform);
-
+            _graphicsDevice.UpdateBuffer<Uniform>(_uniformBuffers["Default Uniform"], 0, uniform);
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
@@ -258,7 +261,8 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
         {
-            _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
+            if (_uniformBuffers.ContainsKey("Default Uniform"))
+                _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
