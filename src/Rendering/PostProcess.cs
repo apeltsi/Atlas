@@ -17,11 +17,12 @@ namespace SolidCode.Atlas.Rendering
             Vector4 Position;
             Vector4 UV;
 
-            public VertexPositionUV(Vector4 position, Vector4 uV)
+            public VertexPositionUV(Vector2 position, Vector4 uV)
             {
-                Position = position;
+                Position = new Vector4(position.X, position.Y, 0, 0);
                 UV = uV;
             }
+
         }
 
         public PostProcess(GraphicsDevice _graphicsDevice, Veldrid.TextureView[] textures, string path, Veldrid.Framebuffer? buffer = null)
@@ -29,10 +30,10 @@ namespace SolidCode.Atlas.Rendering
             this._shader = path;
             this.texViews = textures;
             VertexPositionUV[] positions = {
-                new VertexPositionUV(new Vector4(-1f, 1f, 0,0), new Vector4(0, 0,0,0)),
-                new VertexPositionUV(new Vector4(1f, 1f, 0,0), new Vector4(1, 0,0,0)),
-                new VertexPositionUV(new Vector4(-1f, -1f, 0,0), new Vector4(0, 1,0,0)),
-                new VertexPositionUV(new Vector4(1f, -1f, 0,0), new Vector4(1, 1,0,0))
+                new VertexPositionUV(new Vector2(-1f, 1f), new Vector4(0, 0,0,0)),
+                new VertexPositionUV(new Vector2(1f, 1f), new Vector4(1, 0,0,0)),
+                new VertexPositionUV(new Vector2(-1f, -1f), new Vector4(0, 1,0,0)),
+                new VertexPositionUV(new Vector2(1f, -1f), new Vector4(1, 1,0,0))
             };
             ushort[] quadIndices = { 0, 1, 2, 3 };
             var layout = new VertexLayoutDescription(
@@ -44,10 +45,6 @@ namespace SolidCode.Atlas.Rendering
 
             CreateResources(_graphicsDevice, textures);
         }
-        public override void CreateResources(GraphicsDevice _graphicsDevice)
-        {
-            CreateResources(_graphicsDevice, this.texViews);
-        }
         void CreateResources(GraphicsDevice _graphicsDevice, TextureView[] textures)
         {
             Shader shader = ShaderManager.GetShader(_shader);
@@ -55,8 +52,7 @@ namespace SolidCode.Atlas.Rendering
 
 
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionUV>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
-            transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
@@ -127,7 +123,6 @@ namespace SolidCode.Atlas.Rendering
             {
                 cl.SetFramebuffer(buffer);
             }
-
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
             cl.SetPipeline(pipeline);
@@ -145,7 +140,7 @@ namespace SolidCode.Atlas.Rendering
             pipeline.Dispose();
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
-            transformBuffer.Dispose();
+            _transformSet.Dispose();
         }
 
     }
