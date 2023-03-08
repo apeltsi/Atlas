@@ -390,7 +390,7 @@ namespace SolidCode.Atlas.Rendering
 
             framebuffers[2] = factory.CreateFramebuffer(desc3);
 
-            if (postProcess != null)
+            if (postProcess != null && DoPostProcess)
             {
                 for (int i = 0; i < postProcess.Length; i++)
                 {
