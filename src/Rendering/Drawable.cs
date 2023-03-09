@@ -276,7 +276,7 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
         {
-            if (_uniformBuffers.ContainsKey("Default Uniform"))
+            if (_uniformBuffers.ContainsKey("Default Uniform") && !_uniformBuffers["Default Uniform"].IsDisposed)
                 _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
         }
 
