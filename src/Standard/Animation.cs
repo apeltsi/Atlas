@@ -225,12 +225,12 @@ namespace SolidCode.Atlas.Animation
         {
             public static AnimationManager? instance;
 
-            public override void Start()
+            public void Start()
             {
                 instance = this;
             }
 
-            public override void Update()
+            public void Tick()
             {
                 List<ITween> curTweens = new List<ITween>(Animation.tweens);
                 foreach (ITween tween in curTweens)

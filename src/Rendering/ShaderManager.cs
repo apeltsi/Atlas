@@ -19,7 +19,8 @@ namespace SolidCode.Atlas.Rendering
             }
             Debug.Log(LogCategory.Rendering, "Generating shader \"" + path + "\"");
             Shader shader = new Shader(Window._graphicsDevice.ResourceFactory, path + ".vert", path + ".frag");
-            shaders.Add(path, shader);
+
+            shaders.TryAdd(path, shader);
             return shader;
         }
 

@@ -54,11 +54,4 @@ public class TextRenderer : RenderComponent
         return new Drawable[] { drawable };
     }
 
-    public override void Update()
-    {
-    }
-    public override void FixedUpdate()
-    {
-
-    }
 }

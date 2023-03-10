@@ -85,10 +85,6 @@ namespace SolidCode.Atlas.Components
             }
         }
 
-        public override void Start()
-        {
-            Debug.Log(LogCategory.General, "Hello, im '" + entity.name + "' and this is my scale: " + GetAdjustedScale().ToString());
-        }
 
         Vector2 GetParentBoundingBox()
         {

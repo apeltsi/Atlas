@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
 using SolidCode.Atlas.Rendering;
+using SolidCode.Atlas.Standard;
 
 namespace SolidCode.Atlas.ECS
 {
@@ -17,9 +18,17 @@ namespace SolidCode.Atlas.ECS
         ///</summary>
         public static readonly Entity DestroyedRoot = new Entity("DESTROYED_ROOT", false);
 
+
         public static Window? window;
         private static ConcurrentQueue<Entity> removeQueue = new ConcurrentQueue<Entity>();
         private static ConcurrentQueue<Entity> addQueue = new ConcurrentQueue<Entity>();
+        internal delegate void ComponentMethod();
+
+        private static ConcurrentDictionary<Component, ComponentMethod> UpdateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
+        private static ConcurrentDictionary<Component, ComponentMethod> TickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
+        private static ConcurrentQueue<ComponentMethod> DirtyEntities = new ConcurrentQueue<ComponentMethod>();
+        private static ConcurrentBag<Component> StartMethods = new ConcurrentBag<Component>();
+
         public static ConcurrentDictionary<Type, int> InstanceCount = new ConcurrentDictionary<Type, int>();
 
         public static bool HasStarted { get; set; }
@@ -29,9 +38,61 @@ namespace SolidCode.Atlas.ECS
         {
             removeQueue.Enqueue(entity);
         }
+        static internal void AddDirtyEntity(ComponentMethod method)
+        {
+            DirtyEntities.Enqueue(method);
+        }
+
+        static internal void AddStartMethod(Component c)
+        {
+            StartMethods.Add(c);
+        }
+
+        static internal void RegisterUpdateMethod(Component c, ComponentMethod method)
+        {
+            UpdateMethods.TryAdd(c, method);
+        }
+        static internal void RegisterTickMethod(Component c, ComponentMethod method)
+        {
+            TickMethods.TryAdd(c, method);
+        }
+        static internal void UnregisterUpdateMethod(Component c)
+        {
+            UpdateMethods.Remove(c, out _);
+        }
+        static internal void UnregisterTickMethod(Component c)
+        {
+            TickMethods.Remove(c, out _);
+        }
+
+
 
         static void UpdateECS()
         {
+            lock (DirtyEntities)
+            {
+                while (DirtyEntities.Count > 0)
+                {
+                    ComponentMethod? m;
+                    DirtyEntities.TryDequeue(out m);
+                    if (m != null)
+                    {
+                        m.Invoke();
+                    }
+                }
+            }
+            lock (StartMethods)
+            {
+                foreach (Component c in StartMethods)
+                {
+                    c.enabled = true; // This is done so that OnEnable() is called
+                    c.TryInvokeMethod("Start");
+                    c.isNew = false;
+                }
+                StartMethods.Clear();
+
+            }
+
             while (removeQueue.Count > 0)
             {
                 Entity? e;
@@ -48,11 +109,13 @@ namespace SolidCode.Atlas.ECS
                     {
                         entity.enabled = false;
                         entity.ForceParent(DestroyedRoot);
+
                         for (int i = 0; i < entity.components.Count; i++)
                         {
                             Component c = entity.components[i];
                             c.enabled = false;
-                            c.OnRemove();
+                            c.TryInvokeMethod("OnRemove");
+                            c.UnregisterMethods();
                             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
                             if (attr != null)
                             {
@@ -71,19 +134,42 @@ namespace SolidCode.Atlas.ECS
 
         public static void Update()
         {
-
+            if (!HasStarted)
+            {
+                return;
+            }
             UpdateECS();
-            RootEntity.Update();
+            lock (UpdateMethods)
+            {
+                foreach (KeyValuePair<Component, ComponentMethod> pair in UpdateMethods)
+                {
+                    if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
+                    pair.Value.Invoke();
+                }
+            }
         }
 
-        public static void FixedUpdate()
+        public static void Tick()
         {
             if (!HasStarted)
             {
                 HasStarted = true;
             }
             UpdateECS();
-            RootEntity.FixedUpdate();
+            lock (TickMethods)
+            {
+                foreach (KeyValuePair<Component, ComponentMethod> pair in TickMethods)
+                {
+                    if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
+                    if (pair.Key.isNew)
+                    {
+                        pair.Key.enabled = true; // This is done so that OnEnable() is called
+                        pair.Key.TryInvokeMethod("Start");
+                        pair.Key.isNew = false;
+                    }
+                    pair.Value.Invoke();
+                }
+            }
         }
 
         public static void Dispose()

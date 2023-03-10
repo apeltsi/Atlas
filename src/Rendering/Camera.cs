@@ -11,19 +11,19 @@ namespace SolidCode.Atlas.Components
         public static Vector2 Scale = Vector2.One;
         Transform t;
 
-        public override void Start()
+        public void Start()
         {
             t = entity.GetComponent<Transform>();
             Position = t.globalPosition;
             Scale = t.globalScale;
         }
-        public override void FixedUpdate()
+        public void Tick()
         {
             Position = t.globalPosition;
             Scale = t.globalScale;
 
         }
-        public override void Update()
+        public void Update()
         {
             Position = t.globalPosition;
             Scale = t.globalScale;
@@ -32,8 +32,12 @@ namespace SolidCode.Atlas.Components
         public static Matrix4x4 GetTransformMatrix()
         {
             return new Matrix4x4(
-                1f / Scale.X, 0, 0, -Position.X,
-                0, 1f / Scale.Y, 0, -Position.Y, // NOTE: These are inverted because we "move" the world, not the viewport
+                1f / Scale.X, 0, 0, 0,
+                0, 1f / Scale.Y, 0, 0, // NOTE: These are inverted because we "move" the world, not the viewport
+                0, 0, 1, 0,
+                0, 0, 0, 1) * new Matrix4x4(
+                1f, 0, 0, -Position.X,
+                0, 1f, 0, -Position.Y, // NOTE: These are inverted because we "move" the world, not the viewport
                 0, 0, 1, 0,
                 0, 0, 0, 1);
         }

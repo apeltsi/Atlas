@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using Veldrid;
 
@@ -15,8 +16,10 @@ namespace SolidCode.Atlas.Rendering
         public DeviceBuffer vertexBuffer;
         public DeviceBuffer indexBuffer;
         public DeviceBuffer transformBuffer;
-        public ResourceSet _transformSet;
+        protected ResourceSet _transformSet;
+        protected ResourceSet _uniformSet;
         public Transform transform;
+
 
         public virtual void CreateResources(GraphicsDevice _graphicsDevice)
         {
@@ -31,7 +34,7 @@ namespace SolidCode.Atlas.Rendering
         {
         }
 
-        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
+        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : unmanaged
         {
 
         }
@@ -86,23 +89,26 @@ namespace SolidCode.Atlas.Rendering
 
 
 
-    public class Drawable<T, Uniform> : Drawable where T : struct where Uniform : struct
+    public class Drawable<T, Uniform> : Drawable
+    where T : unmanaged
+    where Uniform : unmanaged
     {
         protected string _shader;
         protected Mesh<T> _mesh;
         protected Uniform uniform;
-        protected List<string> _texturePrototypes;
         protected Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
         protected Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
-
+        protected List<Asset<TextureResource>> _textureAssets = new List<Asset<TextureResource>>();
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
         protected Sampler sampler;
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<string>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<Asset<TextureResource>>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
             this._shader = shaderPath;
             if (mesh != null)
                 this._mesh = mesh;
+            else
+                this._mesh = new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
             if (t == null)
             {
                 Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
@@ -113,14 +119,14 @@ namespace SolidCode.Atlas.Rendering
             this.transformShaderStages = transformShaderStages;
             if (textures == null)
             {
-                textures = new List<string>();
+                textures = new List<Asset<TextureResource>>();
             }
             if (sampler == null)
             {
                 sampler = _graphicsDevice.Aniso4xSampler;
             }
+            this._textureAssets = textures;
             this.sampler = sampler;
-            this._texturePrototypes = textures;
             if (mesh != null)
                 CreateResources(_graphicsDevice, shaderPath);
         }
@@ -132,16 +138,11 @@ namespace SolidCode.Atlas.Rendering
         protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
         {
             // Make sure our transform knows us
-            if(this.transform != null)
+            if (this.transform != null)
                 this.transform.RegisterDrawable(this);
 
             Shader shader = ShaderManager.GetShader(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
-            List<Texture> _loadedTextures = new List<Texture>();
-            foreach (string texPath in _texturePrototypes)
-            {
-                _loadedTextures.Add(new Texture(texPath + ".ktx", texPath, _graphicsDevice, factory));
-            }
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
@@ -149,8 +150,7 @@ namespace SolidCode.Atlas.Rendering
             // Uniform
             _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(uniform), BufferUsage.UniformBuffer)));
 
-            _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, uniform);
-
+            _graphicsDevice.UpdateBuffer<Uniform>(_uniformBuffers["Default Uniform"], 0, uniform);
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
@@ -158,9 +158,9 @@ namespace SolidCode.Atlas.Rendering
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
             // Next lets load textures to the gpu
-            foreach (Texture texture in _loadedTextures)
+            foreach (Asset<TextureResource> texture in _textureAssets)
             {
-                _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
+                _textures.Add(texture.Resource.name, factory.CreateTextureView(texture.Resource.texture));
             }
 
 
@@ -170,22 +170,27 @@ namespace SolidCode.Atlas.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
-            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[1 + _uniformBuffers.Count + _textures.Count * 2];
+            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[1 + _textures.Count * 2];
             elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, transformShaderStages);
             int i = 1;
 
-            elementDescriptions[i] = new ResourceLayoutElementDescription("Default Uniform", ResourceKind.UniformBuffer, uniformShaderStages);
-            i++;
 
-            foreach (Texture texture in _loadedTextures)
+            foreach (Asset<TextureResource> texture in _textureAssets)
             {
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.Resource.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
                 i++;
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.Resource.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
                 i++;
             }
-            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+            ResourceLayout transformTextureResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
+
+            // Next up we have to create the layout for our uniform
+            ResourceLayoutElementDescription[] uniformElementDescriptions = new ResourceLayoutElementDescription[_uniformBuffers.Count];
+            uniformElementDescriptions[0] = new ResourceLayoutElementDescription(_uniformBuffers["Default Uniform"].Name, ResourceKind.UniformBuffer, this.uniformShaderStages);
+            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+                new ResourceLayoutDescription(uniformElementDescriptions));
+
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
                 depthTestEnabled: false,
                 depthWriteEnabled: false,
@@ -203,18 +208,14 @@ namespace SolidCode.Atlas.Rendering
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                 shaders: _shaders);
-            pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
 
             pipelineDescription.Outputs = Window.DuplicatorFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
-            BindableResource[] buffers = new BindableResource[1 + _uniformBuffers.Count + _textures.Count * 2];
+            BindableResource[] buffers = new BindableResource[1 + _textures.Count * 2];
             buffers[0] = transformBuffer;
             i = 1;
-            foreach (DeviceBuffer buffer in _uniformBuffers.Values)
-            {
-                buffers[i] = buffer;
-                i++;
-            }
+
             foreach (TextureView texView in _textures.Values)
             {
                 buffers[i] = texView;
@@ -223,6 +224,17 @@ namespace SolidCode.Atlas.Rendering
                 i++;
             }
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
+                transformTextureResourceLayout,
+                buffers));
+            i = 0;
+            buffers = new BindableResource[_uniformBuffers.Count];
+            foreach (DeviceBuffer buffer in _uniformBuffers.Values)
+            {
+                buffers[i] = buffer;
+                i++;
+            }
+
+            _uniformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 uniformResourceLayout,
                 buffers));
 
@@ -253,6 +265,7 @@ namespace SolidCode.Atlas.Rendering
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
             cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
+            cl.SetGraphicsResourceSet(1, _uniformSet);
             cl.DrawIndexed(
                 indexCount: (uint)_mesh.Indicies.Length,
                 instanceCount: 1,
@@ -263,7 +276,8 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
         {
-            _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
+            if (_uniformBuffers.ContainsKey("Default Uniform") && !_uniformBuffers["Default Uniform"].IsDisposed)
+                _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
@@ -280,11 +294,15 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
+            // Mby this will help with our problem above
+            Window._graphicsDevice.WaitForIdle();
             pipeline.Dispose();
 
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             transformBuffer.Dispose();
+            _transformSet.Dispose();
+            _uniformSet.Dispose();
             this.transform.UnregisterDrawable(this);
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
             {

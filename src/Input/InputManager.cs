@@ -6,6 +6,7 @@ namespace SolidCode.Atlas.Input
     {
         private static List<Key> keys = new List<Key>();
         private static List<Key> downKeys = new List<Key>();
+        public static float WheelDelta { get; internal set; }
         public static void ClearInputs()
         {
             downKeys = new List<Key>();

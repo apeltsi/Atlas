@@ -29,14 +29,14 @@ namespace SolidCode.Atlas.ECS
         }
     }
     /// <summary>
-    /// Specifies what thread the entity's FixedUpdate method will be called on
+    /// Specifies what thread the entity's tick method will be called on
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class FixedUpdateThreadAttribute : Attribute
+    public class TickThreadAttribute : Attribute
     {
         // TODO: This function
         public string name { get; protected set; }
-        public FixedUpdateThreadAttribute(string name)
+        public TickThreadAttribute(string name)
         {
             this.name = name;
         }
