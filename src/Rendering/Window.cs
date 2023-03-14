@@ -165,7 +165,6 @@ namespace SolidCode.Atlas.Rendering
                     Task t = new Task(EntityComponentSystem.Update);
                     TickScheduler.RequestTick(t);
                     t.Wait();
-                    TickScheduler.FreeThreads();
                     // Update time
                     Time.deltaTime = watch.Elapsed.TotalSeconds;
                     Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
@@ -186,6 +185,7 @@ namespace SolidCode.Atlas.Rendering
 #endif
 
                     Draw();
+                    TickScheduler.FreeThreads(); // Everything we need should now be free for use!
                     if (TargetFramerate != 0)
                         Thread.Sleep((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
                 }
