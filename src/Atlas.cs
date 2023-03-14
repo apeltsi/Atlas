@@ -132,9 +132,9 @@ namespace SolidCode.Atlas
             sw.Start();
             ticksThisSecond++;
             tickDeltaStopwatch.Restart();
-            Task t = new Task(EntityComponentSystem.Tick);
-            TickScheduler.RequestTick(t);
+            Task t = TickScheduler.RequestTick();
             t.Wait();
+            EntityComponentSystem.Tick();
             TickScheduler.FreeThreads();
             sw.Stop();
             if (sw.Elapsed.TotalMilliseconds > 1000f / TickFrequency && curTick - lastWarning > (TickFrequency * 10))

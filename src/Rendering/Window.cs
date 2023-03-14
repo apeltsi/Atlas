@@ -162,8 +162,9 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
                     Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
-                    Task t = new Task(EntityComponentSystem.Update);
-                    TickScheduler.RequestTick(t);
+
+                    Task t = TickScheduler.RequestTick();
+                    EntityComponentSystem.Update();
                     t.Wait();
                     // Update time
                     Time.deltaTime = watch.Elapsed.TotalSeconds;
