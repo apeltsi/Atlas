@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Numerics;
 
-namespace SolidCode.Atlas.Standard
+namespace SolidCode.Atlas
 {
 
     public static class Color
