@@ -207,6 +207,7 @@ namespace SolidCode.Atlas
             }
 
             Thread t = new Thread(new ThreadStart(StartWebsocket));
+            t.Name = "Telescope Server";
             t.Start();
 
             Receive();

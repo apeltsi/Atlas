@@ -3,15 +3,15 @@ using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Input;
 using Veldrid;
 using Veldrid.Sdl2;
-using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
-using static Veldrid.Sdl2.Sdl2Native;
 using System.Collections.Concurrent;
+
 namespace SolidCode.Atlas.Rendering
 {
 
     public class Window
     {
+
         public static GraphicsDevice _graphicsDevice;
         private static CommandList _commandList;
         private static List<Shader> _shaders = new List<Shader>();
@@ -42,10 +42,58 @@ namespace SolidCode.Atlas.Rendering
         static ConcurrentBag<Drawable> drawablesToAdd = new ConcurrentBag<Drawable>();
         static ConcurrentBag<Drawable> drawablesToRemove = new ConcurrentBag<Drawable>();
 
+        public static string Title
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return "";
+                }
+                return window.Title;
+            }
+            set
+            {
+                if (window != null)
+                    window.Title = value + " | Atlas/" + Atlas.Version;
+            }
+        }
+
+        public static WindowState State
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return WindowState.Hidden;
+                }
+                return window.WindowState;
+            }
+            set
+            {
+                if (window != null)
+                    window.WindowState = value;
+            }
+        }
+
+        public static bool Focused
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return false;
+                }
+                return window.Focused;
+            }
+        }
+
+
+
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Atlas/" + Atlas.Version)
+        public Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
@@ -57,7 +105,7 @@ namespace SolidCode.Atlas.Rendering
                 WindowInitialState = WindowState.Hidden
             };
 
-            window = VeldridStartup.CreateWindow(ref windowCI);
+            window = CreateWindow.CreateWindowWithFlags(ref windowCI, flags);
             // Setup graphics device
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
@@ -90,17 +138,6 @@ namespace SolidCode.Atlas.Rendering
             CreateResources();
         }
 
-        public static void SetWindowState(WindowState state)
-        {
-            window.WindowState = state;
-        }
-
-        public static void SetWindowTitle(string title)
-        {
-            window.Title = title + " | Atlas/" + Atlas.Version;
-        }
-
-
         public static void AddDrawables(List<Drawable> drawables)
         {
             foreach (Drawable d in drawables)
@@ -113,10 +150,11 @@ namespace SolidCode.Atlas.Rendering
             drawablesToRemove.Add(drawable);
         }
 
-        public void StartRenderLoop()
+        public async void StartRenderLoop()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
+
             while (window.Exists)
             {
                 if (TargetFramerate == 0 || watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
@@ -188,7 +226,7 @@ namespace SolidCode.Atlas.Rendering
                     Draw();
                     TickScheduler.FreeThreads(); // Everything we need should now be free for use!
                     if (TargetFramerate != 0)
-                        Thread.Sleep((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
+                        await Task.Delay((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
                 }
             }
 
@@ -478,6 +516,7 @@ namespace SolidCode.Atlas.Rendering
                 index = ~index;
             @this.Insert(index, item);
         }
+
     }
 
 }
