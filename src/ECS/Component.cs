@@ -32,7 +32,11 @@ namespace SolidCode.Atlas.ECS
 
         public void TryInvokeMethod(string method)
         {
-            this.GetType().GetMethod(method)?.Invoke(this, null);
+            try {
+                this.GetType().GetMethod(method)?.Invoke(this, null);
+            } catch(Exception _) {
+                
+            }
         }
 
         [HideInInspector]

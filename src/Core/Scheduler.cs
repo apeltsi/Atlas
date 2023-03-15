@@ -6,9 +6,9 @@ namespace SolidCode.Atlas
         private static object runningLock = new Object();
         private static bool isRunning = false;
         public static PriorityQueue<Task, int> tickQueue = new PriorityQueue<Task, int>();
-        public static void RequestTick(Task t, int priority = 0)
+        public static Task RequestTick(int priority = 0)
         {
-
+            Task t = new Task(TaskAction);
             lock (runningLock)
             {
                 if (isRunning)
@@ -21,6 +21,12 @@ namespace SolidCode.Atlas
                     t.Start();
                 }
             }
+            return t;
+        }
+
+        private static void TaskAction()
+        {
+
         }
 
         public static void FreeThreads()

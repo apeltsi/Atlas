@@ -23,7 +23,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@1.4";
+        public const string Version = "peppermint-tea@1.6";
 
         public static int TickFrequency = 100;
         public static Timer timer;
@@ -132,9 +132,9 @@ namespace SolidCode.Atlas
             sw.Start();
             ticksThisSecond++;
             tickDeltaStopwatch.Restart();
-            Task t = new Task(EntityComponentSystem.Tick);
-            TickScheduler.RequestTick(t);
+            Task t = TickScheduler.RequestTick();
             t.Wait();
+            EntityComponentSystem.Tick();
             TickScheduler.FreeThreads();
             sw.Stop();
             if (sw.Elapsed.TotalMilliseconds > 1000f / TickFrequency && curTick - lastWarning > (TickFrequency * 10))

@@ -144,7 +144,11 @@ namespace SolidCode.Atlas.ECS
                 foreach (KeyValuePair<Component, ComponentMethod> pair in UpdateMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
-                    pair.Value.Invoke();
+                    try {
+                        pair.Value.Invoke();
+                    } catch (Exception e) {
+                        Debug.Error("Error while performing Update(): " + e.ToString());
+                    }
                 }
             }
         }
@@ -167,7 +171,11 @@ namespace SolidCode.Atlas.ECS
                         pair.Key.TryInvokeMethod("Start");
                         pair.Key.isNew = false;
                     }
-                    pair.Value.Invoke();
+                    try {
+                        pair.Value.Invoke();
+                    } catch (Exception e) {
+                        Debug.Error("Error while performing Tick(): " + e.ToString());
+                    }
                 }
             }
         }
