@@ -5,6 +5,7 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 using System.Collections.Concurrent;
+using SolidCode.Atlas.Mathematics;
 
 namespace SolidCode.Atlas.Rendering
 {
@@ -16,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         private static CommandList _commandList;
         private static List<Shader> _shaders = new List<Shader>();
         private static List<Drawable> _drawables = new List<Drawable>();
-        public static Sdl2Window window { get; protected set; }
+        protected static Sdl2Window window;
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
         public static int TargetFramerate = 72;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
@@ -88,19 +89,76 @@ namespace SolidCode.Atlas.Rendering
             }
         }
 
+        public static bool Resizable
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return false;
+                }
+                return window.Resizable;
+            }
+            set
+            {
+                if (window != null)
+                {
+                    window.Resizable = value;
+                }
+            }
+        }
 
+        public static Vector2 Position
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return Vector2.Zero;
+                }
+                unsafe
+                {
+                    int x = 0;
+                    int y = 0;
+                    Sdl2Native.SDL_GetWindowPosition(window.SdlWindowHandle, &x, &y);
+                    return new Vector2(x, y);
+                }
+            }
+            set
+            {
+                Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+            }
+        }
+        private static Vector2 _size;
+        public static Vector2 Size
+        {
+            get
+            {
+                if (window == null)
+                {
+                    return Vector2.Zero;
+                }
+
+                return _size;
+            }
+            set
+            {
+                Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+            }
+        }
 
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
         public Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
+            _size = new Vector2(800, 500);
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
                 X = 20,
                 Y = 50,
-                WindowWidth = 800,
-                WindowHeight = 500,
+                WindowWidth = AMath.RoundToInt(_size.X),
+                WindowHeight = AMath.RoundToInt(_size.Y),
                 WindowTitle = title + " | Atlas/" + Atlas.Version,
                 WindowInitialState = WindowState.Hidden
             };
@@ -131,11 +189,17 @@ namespace SolidCode.Atlas.Rendering
             }
             window.Resized += () =>
             {
+                _size = new Vector2(window.Width, window.Height);
                 _graphicsDevice.ResizeMainWindow((uint)window.Width, (uint)window.Height);
                 WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
                 CreateResources();
             };
             CreateResources();
+        }
+
+        public static void Close()
+        {
+            window.Close();
         }
 
         public static void AddDrawables(List<Drawable> drawables)
