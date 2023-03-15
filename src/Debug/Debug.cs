@@ -54,6 +54,7 @@ namespace SolidCode.Atlas
 #endif
             logsEnabled = true;
             Thread t = new Thread(new ThreadStart(UpdateLogs));
+            t.Name = "Debug Logging";
             t.Start();
         }
 

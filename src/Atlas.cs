@@ -6,6 +6,7 @@ namespace SolidCode.Atlas
     using SolidCode.Atlas.ECS;
     using SolidCode.Atlas.Components;
     using SolidCode.Atlas.ECS.SceneManagement;
+    using Veldrid.Sdl2;
 
     public enum LogCategory
     {
@@ -23,7 +24,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@1.6";
+        public const string Version = "peppermint-tea@1.7";
 
         public static int TickFrequency = 100;
         public static Timer timer;
@@ -34,7 +35,7 @@ namespace SolidCode.Atlas
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
-        public static void StartRenderFeatures(string windowTitle)
+        public static void StartRenderFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
             AppName = windowTitle;
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -50,7 +51,7 @@ namespace SolidCode.Atlas
 
 
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            w = new Window(windowTitle);
+            w = new Window(windowTitle, flags);
             Debug.Log(LogCategory.Framework, "Window created after " + primaryStopwatch.ElapsedMilliseconds + "ms");
             EntityComponentSystem.window = w;
             if (timer != null)
@@ -84,10 +85,10 @@ namespace SolidCode.Atlas
         public static void StartTickLoop()
         {
             Thread t = new Thread(StartTickLoopTimer);
-            t.Name = "Primary ECS Tick Thread";
+            t.Name = "ECS";
             t.Start();
         }
-        private static void StartTickLoopTimer()
+        private static async void StartTickLoopTimer()
         {
             Debug.Log(LogCategory.Framework, "Starting tick loop with a frequency of " + TickFrequency);
             System.Diagnostics.Stopwatch updateDuration = new System.Diagnostics.Stopwatch();
@@ -99,7 +100,7 @@ namespace SolidCode.Atlas
                 long delay = (1000 / TickFrequency - updateDuration.ElapsedMilliseconds);
                 if (delay > 0)
                 {
-                    Thread.Sleep((int)delay);
+                    await Task.Delay((int)delay);
                 }
             }
         }
