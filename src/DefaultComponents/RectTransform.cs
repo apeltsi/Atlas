@@ -35,7 +35,8 @@ namespace SolidCode.Atlas.Components
                         // We have a parent with a transform. Lets get its global position and add it to ours
                         // parents position + (parents size * anchor) + (position / window size)
                         //                                                  converted size (pixels to screenspace) 
-                        return (t.globalPosition - t.globalScale) + (t.globalScale * anchor) + (position / new Vector2(Window.window.Width, Window.window.Height));
+                        Vector2 win = Window.Size;
+                        return (t.globalPosition - t.globalScale) + (t.globalScale * anchor) + (position / new Vector2(win.X, win.Y));
                     }
                 }
                 return position;
@@ -88,11 +89,12 @@ namespace SolidCode.Atlas.Components
 
         Vector2 GetParentBoundingBox()
         {
+            Vector2 win = Window.Size;
             if (positionMode == PositionMode.Absolute || entity.parent == null || entity.parent.GetComponent<RectTransform>() == null)
             {
-                return new Vector2(Window.window.Width, Window.window.Height);
+                return new Vector2(win.X, win.Y);
             }
-            return new Vector2(Window.window.Width, Window.window.Height) * entity.parent.GetComponent<RectTransform>().GetAdjustedScale();
+            return new Vector2(win.X, win.Y) * entity.parent.GetComponent<RectTransform>().GetAdjustedScale();
         }
         public Vector2 GetAdjustedScale()
         {

@@ -70,7 +70,7 @@ namespace SolidCode.Atlas
             if (e.Data == "quit")
             {
                 Debug.Log("Remotely shutting down");
-                Window.window.Close();
+                Window.Close();
             }
             if (e.Data == "reloadshaders")
             {

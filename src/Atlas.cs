@@ -24,7 +24,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@1.7";
+        public const string Version = "peppermint-tea@1.8";
 
         public static int TickFrequency = 100;
         public static Timer timer;
