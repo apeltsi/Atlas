@@ -53,7 +53,7 @@ export default function LiveHeader() {
                     : liveDataState.fps.toString().padStart(3, "0")}
             </div>
             <div>
-                Updates:
+                Tick Rate:
                 {" " + liveDataState.updateRate.toString().padStart(4, "0")}
             </div>
             <div>Runtime: {runtime}</div>

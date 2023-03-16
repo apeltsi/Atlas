@@ -29,14 +29,16 @@ namespace SolidCode.Atlas
 
             Assembly assembly = Assembly.GetExecutingAssembly();
             using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("LogViewer.html"))))
-            using (StreamReader reader = new StreamReader(stream))
             {
-                string result = reader.ReadToEnd();
-                using (StreamWriter writer = new StreamWriter("logs/logs.html"))
+                using (StreamReader reader = new StreamReader(stream))
                 {
-                    writer.Write(result);
-                    writer.WriteLine("ENGINE_VERSION: " + Atlas.Version);
-                    writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
+                    string result = reader.ReadToEnd();
+                    using (StreamWriter writer = new StreamWriter("logs/logs.html"))
+                    {
+                        writer.Write(result);
+                        writer.WriteLine("ENGINE_VERSION: " + Atlas.Version);
+                        writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
+                    }
                 }
             }
 #if DEBUG

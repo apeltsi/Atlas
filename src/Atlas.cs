@@ -1,5 +1,4 @@
-﻿
-namespace SolidCode.Atlas
+﻿namespace SolidCode.Atlas
 {
     using System.Timers;
     using SolidCode.Atlas.Rendering;
@@ -24,13 +23,13 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@1.8";
-
+        public const string Version = "peppermint-tea@2.0";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
         static Window? w;
         static bool doTick = true;
+
         public static void InitializeLogging()
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
@@ -104,8 +103,6 @@ namespace SolidCode.Atlas
                 }
             }
         }
-        private static long lastWarning = 0; // The tick that the last performance warning was printed at
-        private static long curTick = 0; // The current tick
         private static int ticksThisSecond = 0;
         public static int TicksPerSecond { get; private set; }
         /// <summary>
@@ -138,12 +135,6 @@ namespace SolidCode.Atlas
             EntityComponentSystem.Tick();
             TickScheduler.FreeThreads();
             sw.Stop();
-            if (sw.Elapsed.TotalMilliseconds > 1000f / TickFrequency && curTick - lastWarning > (TickFrequency * 10))
-            {
-                lastWarning = curTick;
-                Debug.Warning(LogCategory.ECS, "Atlas is unable to keep up with current tick frequency of " + TickFrequency + ". Tick took " + sw.Elapsed.TotalMilliseconds + "ms");
-            }
-            curTick++;
         }
 
         public static float GetUptime()

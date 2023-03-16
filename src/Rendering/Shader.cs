@@ -6,8 +6,6 @@ namespace SolidCode.Atlas.Rendering
 {
     public class Shader
     {
-        private ShaderDescription vertexShaderDesc;
-        private ShaderDescription fragmentShaderDesc;
         public Veldrid.Shader[] shaders { get; protected set; }
         public Shader(ResourceFactory factory, string vertPath, string fragPath)
         {
@@ -17,11 +15,11 @@ namespace SolidCode.Atlas.Rendering
             var vertSource = File.ReadAllText(vertPath);
             var fragSource = File.ReadAllText(fragPath);
 
-            vertexShaderDesc = new ShaderDescription(
+            ShaderDescription vertexShaderDesc = new ShaderDescription(
                 ShaderStages.Vertex,
                 Encoding.UTF8.GetBytes(vertSource),
                 "main");
-            fragmentShaderDesc = new ShaderDescription(
+            ShaderDescription fragmentShaderDesc = new ShaderDescription(
                 ShaderStages.Fragment,
                 Encoding.UTF8.GetBytes(fragSource),
                 "main");

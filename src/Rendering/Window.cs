@@ -19,7 +19,7 @@ namespace SolidCode.Atlas.Rendering
         private static List<Drawable> _drawables = new List<Drawable>();
         protected static Sdl2Window window;
         Matrix4x4 WindowScalingMatrix = new Matrix4x4();
-        public static int TargetFramerate = 72;
+        public static int MaxFramerate = 0;
         public static Framebuffer DuplicatorFramebuffer { get; protected set; }
         Veldrid.Texture MainColorTexture;
         Veldrid.Texture MainDepthTexture;
@@ -150,7 +150,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        public Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
+        internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
             _size = new Vector2(800, 500);
             WindowCreateInfo windowCI = new WindowCreateInfo()
@@ -168,7 +168,7 @@ namespace SolidCode.Atlas.Rendering
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
                 PreferStandardClipSpaceYDirection = true,
-                SyncToVerticalBlank = TargetFramerate != 0,
+                SyncToVerticalBlank = true,
                 ResourceBindingModel = ResourceBindingModel.Improved,
                 SwapchainSrgbFormat = false,
                 SwapchainDepthFormat = null,
@@ -214,83 +214,82 @@ namespace SolidCode.Atlas.Rendering
             drawablesToRemove.Add(drawable);
         }
 
-        public async void StartRenderLoop()
+        private System.Diagnostics.Stopwatch renderTimeStopwatch = new System.Diagnostics.Stopwatch();
+        internal void StartRenderLoop()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
 
             while (window.Exists)
             {
-                if (TargetFramerate == 0 || watch.ElapsedMilliseconds > 1000.0 / TargetFramerate)
+                renderTimeStopwatch.Restart();
+                if (frame == 1)
                 {
-                    if (frame == 1)
-                    {
-                        window.Visible = true;
-                        window.WindowState = WindowState.Normal;
-                        Atlas.StartTickLoop();
-                    }
-                    if (frame == 2)
-                    {
-                        Debug.Log(LogCategory.Rendering, "First frame has been rendered");
-                    }
-                    InputSnapshot inputSnapshot = window.PumpEvents();
+                    window.Visible = true;
+                    window.WindowState = WindowState.Normal;
+                    Atlas.StartTickLoop();
+                }
+                if (frame == 2)
+                {
+                    Debug.Log(LogCategory.Rendering, "First frame has been rendered");
+                }
+                InputSnapshot inputSnapshot = window.PumpEvents();
 
-                    if (reloadShaders)
-                    {
-                        reloadShaders = false;
-                        ReloadAllShaders();
-                    }
-                    InputManager.ClearInputs();
-                    InputManager.WheelDelta = inputSnapshot.WheelDelta;
-                    for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
-                    {
-                        KeyEvent e = inputSnapshot.KeyEvents[i];
+                if (reloadShaders)
+                {
+                    reloadShaders = false;
+                    ReloadAllShaders();
+                }
+                InputManager.ClearInputs();
+                InputManager.WheelDelta = inputSnapshot.WheelDelta;
+                for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
+                {
+                    KeyEvent e = inputSnapshot.KeyEvents[i];
 
-                        if (e.Down == true)
+                    if (e.Down == true)
+                    {
+                        InputManager.KeyPress(e.Key);
+                        if (e.Key == Key.F5)
                         {
-                            InputManager.KeyPress(e.Key);
-                            if (e.Key == Key.F5)
-                            {
-                                ReloadAllShaders();
-                            }
-                        }
-                        else
-                        {
-                            InputManager.RemoveKeyPress(e.Key);
+                            ReloadAllShaders();
                         }
                     }
-                    MousePosition = inputSnapshot.MousePosition;
-                    frame++;
-#if DEBUG
-                    Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
-#endif
-
-                    Task t = TickScheduler.RequestTick();
-                    EntityComponentSystem.Update();
-                    t.Wait();
-                    // Update time
-                    Time.deltaTime = watch.Elapsed.TotalSeconds;
-                    Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
-
-                    frameTimes += (float)Time.deltaTime;
-                    if (frames >= 60)
+                    else
                     {
-                        frames = 0;
-                        AverageFramerate = 1f / (frameTimes / 60f);
-                        frameTimes = 0f;
+                        InputManager.RemoveKeyPress(e.Key);
                     }
-                    frames++;
-
-                    double frameRenderTime = Math.Clamp(Time.deltaTime * 1000.0, 0f, 1000.0 / TargetFramerate);
-                    watch = System.Diagnostics.Stopwatch.StartNew();
+                }
+                MousePosition = inputSnapshot.MousePosition;
+                frame++;
 #if DEBUG
-                    Profiler.EndTimer();
+                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
 
-                    Draw();
-                    TickScheduler.FreeThreads(); // Everything we need should now be free for use!
-                    if (TargetFramerate != 0)
-                        await Task.Delay((int)Math.Round(1000f / TargetFramerate - frameRenderTime));
+                TickScheduler.RequestTick().Wait();
+                EntityComponentSystem.Update();
+                // Update time
+                Time.deltaTime = watch.Elapsed.TotalSeconds;
+                Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
+
+                frameTimes += (float)Time.deltaTime;
+                if (frames >= 60)
+                {
+                    frames = 0;
+                    AverageFramerate = 1f / (frameTimes / 60f);
+                    frameTimes = 0f;
+                }
+                frames++;
+
+                watch = System.Diagnostics.Stopwatch.StartNew();
+#if DEBUG
+                Profiler.EndTimer();
+#endif
+                Draw();
+                TickScheduler.FreeThreads(); // Everything we need should now be free for use!
+                renderTimeStopwatch.Stop();
+                if (MaxFramerate != 0)
+                {
+                    Thread.Sleep(Math.Clamp(AMath.RoundToInt((1000.0 / MaxFramerate) - renderTimeStopwatch.Elapsed.TotalMilliseconds), 0, 1000));
                 }
             }
 
