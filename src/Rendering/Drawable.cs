@@ -98,11 +98,11 @@ namespace SolidCode.Atlas.Rendering
         protected Uniform uniform;
         protected Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
         protected Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
-        protected List<Asset<TextureResource>> _textureAssets = new List<Asset<TextureResource>>();
+        protected List<Texture> _textureAssets = new List<Texture>();
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
         protected Sampler sampler;
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<Asset<TextureResource>>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
             this._shader = shaderPath;
             if (mesh != null)
@@ -119,7 +119,7 @@ namespace SolidCode.Atlas.Rendering
             this.transformShaderStages = transformShaderStages;
             if (textures == null)
             {
-                textures = new List<Asset<TextureResource>>();
+                textures = new List<Texture>();
             }
             if (sampler == null)
             {
@@ -158,9 +158,9 @@ namespace SolidCode.Atlas.Rendering
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
             // Next lets load textures to the gpu
-            foreach (Asset<TextureResource> texture in _textureAssets)
+            foreach (Texture texture in _textureAssets)
             {
-                _textures.Add(texture.Resource.name, factory.CreateTextureView(texture.Resource.texture));
+                _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
             }
 
 
@@ -175,11 +175,11 @@ namespace SolidCode.Atlas.Rendering
             int i = 1;
 
 
-            foreach (Asset<TextureResource> texture in _textureAssets)
+            foreach (Texture texture in _textureAssets)
             {
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.Resource.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
                 i++;
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.Resource.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
                 i++;
             }
             ResourceLayout transformTextureResourceLayout = factory.CreateResourceLayout(

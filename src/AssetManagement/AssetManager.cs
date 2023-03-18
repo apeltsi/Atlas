@@ -18,7 +18,7 @@ namespace SolidCode.Atlas.AssetManagement
     {
         static ConcurrentDictionary<string, WeakReference<Asset>> loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
         static ConcurrentDictionary<string, Asset> keepAliveAssets = new ConcurrentDictionary<string, Asset>();
-        public static Asset<Resource>? GetAsset<Resource>(string path) where Resource : AssetResource, new()
+        public static T? GetAsset<T>(string path) where T : Asset, new()
         {
             Asset? asset = null;
             WeakReference<Asset>? a;
@@ -29,16 +29,30 @@ namespace SolidCode.Atlas.AssetManagement
             }
             if (asset != null)
             {
-                return asset as Asset<Resource>;
+                return asset as T;
             }
             // Okay, so the asset isn't currently loaded, lets try and load it up
-            return LoadAsset<Resource>(path, AssetMode.Unload) as Asset<Resource>;
+            return LoadAsset<T>(path, AssetMode.Unload);
         }
 
-        public static Asset? LoadAsset<Resource>(string path, AssetMode mode) where Resource : AssetResource, new()
+        public static T? LoadAsset<T>(string path, AssetMode mode) where T : Asset, new()
         {
             Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
-            Asset a = new Asset<Resource>(path, mode);
+            T a = new T();
+            a.Load(path, Path.GetFileName(path));
+            return FinalizeLoadingAsset<T>(a, mode, path);
+        }
+        public static T? LoadAsset<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
+        {
+            Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
+
+            T a = new T();
+            a.FromStreams(streams, Path.GetFileName(path));
+            return FinalizeLoadingAsset<T>(a, mode, path);
+        }
+
+        private static T? FinalizeLoadingAsset<T>(T a, AssetMode mode, string path) where T : Asset, new()
+        {
             if (!a.IsValid)
             {
                 Debug.Log(LogCategory.Framework, "Couldn't load asset: " + path);
@@ -50,6 +64,19 @@ namespace SolidCode.Atlas.AssetManagement
                 keepAliveAssets.TryAdd(path, a);
             }
             return a;
+        }
+
+        public static void FreeAsset(string path)
+        {
+            if (keepAliveAssets.ContainsKey(path))
+            {
+                Asset? asset;
+                keepAliveAssets.TryGetValue(path, out asset);
+                if (asset != null)
+                {
+                    keepAliveAssets.TryRemove(new KeyValuePair<string, Asset>(path, asset));
+                }
+            }
         }
 
         /// <summary>
@@ -64,7 +91,7 @@ namespace SolidCode.Atlas.AssetManagement
         /// <summary>
         /// Removes some null values from loadedAssets. Note that this doesn't actually unload any assets, only cleanup the remaining nulls from unloaded assets.
         /// </summary>
-        static void Cleanup()
+        private static void Cleanup()
         {
             lock (loadedAssets) // Lets make sure that we have the assets for ourselves ;)
             {

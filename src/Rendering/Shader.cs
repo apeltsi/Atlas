@@ -1,41 +1,65 @@
 using System.Text;
+using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 using Veldrid.SPIRV;
 
 namespace SolidCode.Atlas.Rendering
 {
-    public class Shader
+    public class Shader : Asset
     {
         public Veldrid.Shader[] shaders { get; protected set; }
-        public Shader(ResourceFactory factory, string vertPath, string fragPath)
+
+        public Shader()
         {
-            vertPath = Path.Join(Atlas.ShaderDirectory, vertPath);
-            fragPath = Path.Join(Atlas.ShaderDirectory, fragPath);
+            this.shaders = new Veldrid.Shader[0];
+        }
+
+
+
+        public override void Load(string path, string name)
+        {
+            string vertPath = Path.Join(Atlas.ShaderDirectory, path + ".vert");
+            string fragPath = Path.Join(Atlas.ShaderDirectory, path + ".frag");
 
             var vertSource = File.ReadAllText(vertPath);
             var fragSource = File.ReadAllText(fragPath);
+            FromSource(vertSource, fragSource);
+        }
+
+        private void FromSource(string vertSource, string fragSource)
+        {
 
             ShaderDescription vertexShaderDesc = new ShaderDescription(
-                ShaderStages.Vertex,
-                Encoding.UTF8.GetBytes(vertSource),
-                "main");
+    ShaderStages.Vertex,
+    Encoding.UTF8.GetBytes(vertSource),
+    "main");
             ShaderDescription fragmentShaderDesc = new ShaderDescription(
                 ShaderStages.Fragment,
                 Encoding.UTF8.GetBytes(fragSource),
                 "main");
             try
             {
-                shaders = factory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+                shaders = Window._graphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+                this.IsValid = true;
             }
             catch (Exception ex)
             {
                 Debug.Error(LogCategory.Rendering, ex.ToString());
             }
+
+
+        }
+        public override void FromStreams(Stream[] streams, string name)
+        {
+            using (StreamReader vreader = new StreamReader(streams[0]))
+            using (StreamReader freader = new StreamReader(streams[1]))
+                FromSource(vreader.ReadToEnd(), freader.ReadToEnd());
+
         }
 
-        public void Dispose()
+
+        public override void Dispose()
         {
-            // TODO(amos): There should probably be a way to unload shaders that haven't been used for a while
             for (int i = 0; i < shaders.Length; i++)
             {
                 shaders[i].Dispose();

@@ -6,6 +6,7 @@
     using SolidCode.Atlas.Components;
     using SolidCode.Atlas.ECS.SceneManagement;
     using Veldrid.Sdl2;
+    using SolidCode.Atlas.AssetManagement;
 
     public enum LogCategory
     {
@@ -23,7 +24,7 @@
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@2.0";
+        public const string Version = "peppermint-tea@3.0";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
@@ -59,6 +60,7 @@
 
         public static void Start(Scene defaultScene)
         {
+
             if (w == null)
             {
                 throw new NullReferenceException("Window hasn't been created yet!");

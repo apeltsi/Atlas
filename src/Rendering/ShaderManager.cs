@@ -17,8 +17,8 @@ namespace SolidCode.Atlas.Rendering
             {
                 return shaders[path];
             }
-            Debug.Log(LogCategory.Rendering, "Generating shader \"" + path + "\"");
-            Shader shader = new Shader(Window._graphicsDevice.ResourceFactory, path + ".vert", path + ".frag");
+            Debug.Log(LogCategory.Rendering, "Loading shader \"" + path + "\"");
+            Shader? shader = AssetManagement.AssetManager.GetAsset<Shader>(path);
 
             shaders.TryAdd(path, shader);
             return shader;
@@ -48,14 +48,19 @@ namespace SolidCode.Atlas.Rendering
 
         public static void RecompileAllShaders()
         {
+            // TODO(amos) reimplement this
+
+            throw new NotImplementedException("RecompileAllShaders has not been implemented yet!");
+            /*
             var watch = System.Diagnostics.Stopwatch.StartNew();
             Debug.Log(LogCategory.Rendering, "Recompiling shaders...");
             foreach (KeyValuePair<string, Shader> shader in shaders)
             {
-                shaders[shader.Key] = new Shader(Window._graphicsDevice.ResourceFactory, shader.Key + ".vert", shader.Key + ".frag");
+                shaders[shader.Key] = new Shader();
+                shaders[shader.Key].Load(shader.Key, "");
             }
             watch.Stop();
-            Debug.Log(LogCategory.Rendering, "All shaders have been recompiled [" + watch.ElapsedMilliseconds + "ms]");
+            Debug.Log(LogCategory.Rendering, "All shaders have been recompiled [" + watch.ElapsedMilliseconds + "ms]");*/
         }
 
     }

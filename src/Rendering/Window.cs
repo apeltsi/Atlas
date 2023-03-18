@@ -6,6 +6,7 @@ using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
+using SolidCode.Atlas.AssetManagement;
 
 namespace SolidCode.Atlas.Rendering
 {
@@ -181,6 +182,10 @@ namespace SolidCode.Atlas.Rendering
             WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
+
+            // We have to load our builtin shaders now
+            AssetPack builtinAssets = new AssetPack("atlas");
+            builtinAssets.Load();
 
             if (_graphicsDevice.BackendType == GraphicsBackend.Vulkan)
             {
