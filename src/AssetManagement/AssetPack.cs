@@ -13,21 +13,30 @@ namespace SolidCode.Atlas.AssetManagement
             this.relativePath = relativePath;
         }
 
+        internal void LoadAtlasAssetpack()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("atlas.assetpack"))))
+
+            using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
+                LoadFromArchive(zip);
+        }
+        ///<summary>
+        /// Loads the assetpack into memory
+        ///</summary>
+
         public void Load()
         {
-            Debug.Log("Loading AssetPack: " + relativePath);
-            if (relativePath == "atlas")
+            using (FileStream stream = File.Open(Path.Join(Atlas.AssetPackDirectory, relativePath), FileMode.Open))
             {
-                Assembly assembly = Assembly.GetExecutingAssembly();
-
-                using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("atlas.assetpack"))))
-
-                using (StreamReader reader = new StreamReader(stream))
                 using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
                     LoadFromArchive(zip);
             }
         }
-
+        ///<summary>
+        /// Allows the AssetManager to unload the assets IF needed. If some assets are still in use they won't get unloaded as long as they're being used.
+        ///</summary>
         public void Unload()
         {
             foreach (string path in assetsLoaded)
@@ -58,9 +67,17 @@ namespace SolidCode.Atlas.AssetManagement
                 }
                 else if (entry.Name.EndsWith("ktx"))
                 {
-                    string texturePath = entry.FullName.Substring("assets/".Length);
-                    using (var stream = entry.Open())
-                        AssetManager.LoadAsset<Texture>(new Stream[] { stream }, texturePath, AssetMode.KeepAlive);
+                    int startLength = "assets/".Length;
+                    string texturePath = entry.FullName.Substring(startLength, entry.FullName.Length - ".ktx".Length - startLength);
+                    using (var mstream = new MemoryStream())
+                    {
+                        using (var stream = entry.Open())
+                        {
+                            stream.CopyTo(mstream);
+                        }
+                        mstream.Position = 0;
+                        AssetManager.LoadAsset<Texture>(new Stream[] { mstream }, texturePath, AssetMode.KeepAlive);
+                    }
                     assetsLoaded.Add(entry.FullName);
                 }
 

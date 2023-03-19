@@ -185,7 +185,7 @@ namespace SolidCode.Atlas.Rendering
 
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("atlas");
-            builtinAssets.Load();
+            builtinAssets.LoadAtlasAssetpack();
 
             if (_graphicsDevice.BackendType == GraphicsBackend.Vulkan)
             {
