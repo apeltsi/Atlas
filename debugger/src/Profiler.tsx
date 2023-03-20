@@ -2,7 +2,7 @@ import { SolidApexCharts } from "solid-apexcharts";
 import { ChartSeries } from "solid-apexcharts/dist/types/SolidApexCharts";
 import { createEffect, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
-let dataNames = ["Scripting", "Pre-Render Tasks", "Rendering"];
+let dataNames = ["Waiting", "Scripting", "Pre-Render Tasks", "Rendering"];
 let frames: number[][] = [];
 
 interface Dataset {
@@ -29,7 +29,7 @@ var [options, setOptions] = createSignal({
             enabled: false,
         },
     },
-    colors: ["#0dd7ff", "#ffff00", "#00ff00"],
+    colors: ["#822222", "#0dd7ff", "#ffff00", "#00ff00"],
     dataLabels: {
         enabled: false,
     },

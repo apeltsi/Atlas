@@ -236,7 +236,7 @@ namespace SolidCode.Atlas.Rendering
                 }
                 if (frame == 2)
                 {
-                    Debug.Log(LogCategory.Rendering, "First frame has been rendered");
+                    Debug.Log(LogCategory.Rendering, "First frame has been rendered. Rendering frame 2");
                 }
                 InputSnapshot inputSnapshot = window.PumpEvents();
 
@@ -267,10 +267,15 @@ namespace SolidCode.Atlas.Rendering
                 MousePosition = inputSnapshot.MousePosition;
                 frame++;
 #if DEBUG
-                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+                Profiler.StartTimer(Profiler.FrameTimeType.Waiting);
 #endif
 
                 TickScheduler.RequestTick().Wait();
+#if DEBUG
+                Profiler.EndTimer();
+                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+#endif
+
                 EntityComponentSystem.Update();
                 // Update time
                 Time.deltaTime = watch.Elapsed.TotalSeconds;
@@ -290,6 +295,7 @@ namespace SolidCode.Atlas.Rendering
                 Profiler.EndTimer();
 #endif
                 Draw();
+
                 TickScheduler.FreeThreads(); // Everything we need should now be free for use!
                 renderTimeStopwatch.Stop();
                 if (MaxFramerate != 0)
