@@ -1,7 +1,8 @@
 lockfileVersion: 5.4
 
 specifiers:
-  solid-apexcharts: ^0.1.6
+  apexcharts: ^3.37.1
+  solid-apexcharts: ^0.2.4
   solid-js: ^1.4.7
   typescript: ^4.7.4
   vite: ^3.0.0
@@ -9,7 +10,8 @@ specifiers:
   vite-plugin-solid: ^2.3.0
 
 dependencies:
-  solid-apexcharts: 0.1.6
+  apexcharts: 3.37.1
+  solid-apexcharts: 0.2.4_wibr6l7vhgx65vcnc2bhhkmkiu
   solid-js: 1.4.7
 
 devDependencies:
@@ -372,8 +374,8 @@ packages:
       color-convert: 1.9.3
     dev: true
 
-  /apexcharts/3.35.4:
-    resolution: {integrity: sha512-dsXjETHF2OmKtxNv66wBeFGU2qtZQnr6kp/vcNY05GWs4vcBepg54qNgOJ2Gp/gXskiGw/frrmIKGi8lJ/UDnQ==}
+  /apexcharts/3.37.1:
+    resolution: {integrity: sha512-fmQ5Updeb/LASl+S1+mIxXUFxzY0Fa7gexfCs4o+OPP9f2NEBNjvybOtPrah44N4roK7U5o5Jis906QeEQu0cA==}
     dependencies:
       svg.draggable.js: 2.2.2
       svg.easing.js: 2.0.0
@@ -463,8 +465,8 @@ packages:
       ms: 2.1.2
     dev: true
 
-  /defu/6.0.0:
-    resolution: {integrity: sha512-t2MZGLf1V2rV4VBZbWIaXKdX/mUcYW0n2znQZoADBkGGxYL8EWqCuCZBmJPJ/Yy9fofJkyuuSuo5GSwo0XdEgw==}
+  /defu/6.1.2:
+    resolution: {integrity: sha512-+uO4+qr7msjNNWKYPHqN/3+Dx3NFkmIzayk2L1MyZQlvgZb/J1A0fo410dpKrN2SnqFjt8n4JL8fDJE0wIgjFQ==}
     dev: false
 
   /electron-to-chromium/1.4.189:
@@ -844,11 +846,14 @@ packages:
     hasBin: true
     dev: true
 
-  /solid-apexcharts/0.1.6:
-    resolution: {integrity: sha512-U9pFwLzDk3a/DPphXVlEGXbeU9HUcKVAH0CaSTXRJfRVFXQeVSJn4RDyScaMMJiqr8OZ+IsytudEcZQAvpHvMw==}
+  /solid-apexcharts/0.2.4_wibr6l7vhgx65vcnc2bhhkmkiu:
+    resolution: {integrity: sha512-8SJ48UrCSZOE2HzF9a3LKbUccnHxhCCTDgIMciWUPdIBxW7GpalRh/HcJapa4Lc6khP1scKhS3M7iKc+uUU7yg==}
+    peerDependencies:
+      apexcharts: '>=3.36.0'
+      solid-js: '>=1.4.0'
     dependencies:
-      apexcharts: 3.35.4
-      defu: 6.0.0
+      apexcharts: 3.37.1
+      defu: 6.1.2
       solid-js: 1.4.7
     dev: false
 

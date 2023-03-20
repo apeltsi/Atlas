@@ -91,7 +91,7 @@ namespace SolidCode.Atlas
             liveDataTimer.AutoReset = true;
             liveDataTimer.Start();
 
-            profilerDataTimer = new System.Timers.Timer(1000);
+            profilerDataTimer = new System.Timers.Timer(250);
             profilerDataTimer.Elapsed += SendProfilerData;
             profilerDataTimer.AutoReset = true;
             profilerDataTimer.Start();
