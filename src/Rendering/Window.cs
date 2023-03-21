@@ -318,6 +318,7 @@ namespace SolidCode.Atlas.Rendering
 
         public void ReloadAllShaders()
         {
+            TickScheduler.RequestTick().Wait();
             Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
             // First, lets recompile all our shaders
             ShaderManager.ClearAllShaders();
@@ -329,6 +330,7 @@ namespace SolidCode.Atlas.Rendering
             }
             CreateResources();
             Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
+            TickScheduler.FreeThreads();
         }
 
         public static void ResortDrawable(Drawable d)
@@ -526,6 +528,7 @@ namespace SolidCode.Atlas.Rendering
 
         private void DisposeResources()
         {
+            Debug.Log(LogCategory.Rendering, "Disposing all rendering resources");
             foreach (Drawable drawable in _drawables)
             {
                 drawable.Dispose();

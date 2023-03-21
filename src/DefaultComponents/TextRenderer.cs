@@ -9,7 +9,7 @@ public class TextRenderer : RenderComponent
     private string _text = "Hello World!";
     public int Size = 100;
     public bool Centered = true;
-    private Vector4 _color;
+    private Vector4 _color = new Vector4(1f, 1f, 1f, 1f);
     public Vector4 Color
     {
         get
