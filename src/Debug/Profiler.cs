@@ -7,12 +7,13 @@ namespace SolidCode.Atlas
     {
         public enum FrameTimeType
         {
+            Waiting,
             Scripting,
             PreRender,
             Rendering
         }
-        private static float[] curTimes = new float[3];
-        private static float[] allTimes = new float[3] { 0, 0, 0 };
+        private static float[] curTimes = new float[4];
+        private static float[] allTimes = new float[4] { 0, 0, 0, 0 };
         private static int frames = 0;
         private static Stopwatch watch = new Stopwatch();
         private static FrameTimeType curType;
@@ -47,14 +48,14 @@ namespace SolidCode.Atlas
             }
             else
             {
-                float[] avgTimes = new float[3];
+                float[] avgTimes = new float[4];
                 for (int i = 0; i < allTimes.Length; i++)
                 {
                     avgTimes[i] = allTimes[i] / frames;
                 }
                 cachedTimes = avgTimes;
                 frames = 0;
-                allTimes = new float[3];
+                allTimes = new float[4];
                 return avgTimes;
             }
         }

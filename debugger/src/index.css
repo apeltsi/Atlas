@@ -65,14 +65,21 @@ code {
     transform: translateX(-16px);
     z-index: 1;
 }
-
+#log-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: fit-content;
+}
+#log-actions span {
+    margin-right: 10px;
+}
 #filters {
     display: flex;
     flex-direction: row;
-    width: 100%;
 }
 
-#filters div {
+#log-actions button {
     padding: 15px;
     padding-left: 30px;
     margin-right: 10px;
@@ -83,13 +90,19 @@ code {
     cursor: pointer;
     transition-duration: 0.2s;
     opacity: 0.7;
+    border: none;
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    font-family: inherit;
+    overflow: hidden;
 }
 
-#filters div:hover {
+#log-actions button:hover {
     opacity: 1 !important;
 }
 
-#filters div::after {
+#log-actions button::after {
     content: "";
     left: 7.5px;
     top: calc(50% - 7.5px);
@@ -100,22 +113,33 @@ code {
     background-color: grey;
     transition-duration: 0.2s;
     transform: scale(0.5);
+    opacity: 0;
 }
-
-#filters div:hover::after {
+#filters button::after {
+    opacity: 1;
+}
+#log-actions button:hover::after {
     transform: scale(0.7);
+    opacity: 1;
 }
-
-#filters div.selected::after {
+#log-actions button.toggle::after {
+    opacity: 1 !important;
+}
+#log-actions button.selected::after {
     background-color: lime;
     transform: scale(1);
+    opacity: 1;
+}
+#log-actions button.button-only:focus::after {
+    transform: scale(15);
+    opacity: 0;
 }
 
-#filters div.selected:hover::after {
+#log-actions button.selected:hover::after {
     transform: scale(1.3);
 }
 
-#filters div.selected {
+#log-actions button.selected {
     background-color: rgb(6, 68, 6);
     opacity: 0.9;
 }

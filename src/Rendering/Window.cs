@@ -6,6 +6,7 @@ using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
+using SolidCode.Atlas.AssetManagement;
 
 namespace SolidCode.Atlas.Rendering
 {
@@ -107,7 +108,8 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
-
+        private static bool positionDirty = false;
+        private static Vector2 _position = new Vector2(50, 50);
         public static Vector2 Position
         {
             get
@@ -126,10 +128,12 @@ namespace SolidCode.Atlas.Rendering
             }
             set
             {
-                Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+                _position = value;
+                positionDirty = true;
             }
         }
-        private static Vector2 _size;
+        private static bool sizeDirty = false;
+        private static Vector2 _size = new Vector2(800, 500);
         public static Vector2 Size
         {
             get
@@ -143,7 +147,9 @@ namespace SolidCode.Atlas.Rendering
             }
             set
             {
-                Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+                _size = value;
+                sizeDirty = true;
+
             }
         }
 
@@ -152,11 +158,10 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
-            _size = new Vector2(800, 500);
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
-                X = 20,
-                Y = 50,
+                X = AMath.RoundToInt(_position.X),
+                Y = AMath.RoundToInt(_position.Y),
                 WindowWidth = AMath.RoundToInt(_size.X),
                 WindowHeight = AMath.RoundToInt(_size.Y),
                 WindowTitle = title + " | Atlas/" + Atlas.Version,
@@ -182,6 +187,10 @@ namespace SolidCode.Atlas.Rendering
             _graphicsDevice = VeldridStartup.CreateGraphicsDevice(window, options);
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + _graphicsDevice.BackendType.ToString());
 
+            // We have to load our builtin shaders now
+            AssetPack builtinAssets = new AssetPack("atlas");
+            builtinAssets.LoadAtlasAssetpack();
+
             if (_graphicsDevice.BackendType == GraphicsBackend.Vulkan)
             {
                 DoPostProcess = false;
@@ -189,11 +198,11 @@ namespace SolidCode.Atlas.Rendering
             }
             window.Resized += () =>
             {
-                _size = new Vector2(window.Width, window.Height);
                 _graphicsDevice.ResizeMainWindow((uint)window.Width, (uint)window.Height);
                 WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
                 CreateResources();
             };
+
             CreateResources();
         }
 
@@ -231,7 +240,7 @@ namespace SolidCode.Atlas.Rendering
                 }
                 if (frame == 2)
                 {
-                    Debug.Log(LogCategory.Rendering, "First frame has been rendered");
+                    Debug.Log(LogCategory.Rendering, "First frame has been rendered. Rendering frame 2");
                 }
                 InputSnapshot inputSnapshot = window.PumpEvents();
 
@@ -262,14 +271,32 @@ namespace SolidCode.Atlas.Rendering
                 MousePosition = inputSnapshot.MousePosition;
                 frame++;
 #if DEBUG
-                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+                Profiler.StartTimer(Profiler.FrameTimeType.Waiting);
 #endif
 
                 TickScheduler.RequestTick().Wait();
+#if DEBUG
+                Profiler.EndTimer();
+                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+#endif
+                // Update window if needed
+                if (positionDirty)
+                {
+                    Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, AMath.RoundToInt(_position.X), AMath.RoundToInt(_position.Y));
+                    positionDirty = false;
+                }
+                if (sizeDirty)
+                {
+                    window.Width = AMath.RoundToInt(_size.X);
+                    window.Height = AMath.RoundToInt(_size.Y);
+                    sizeDirty = false;
+                }
+
+
                 EntityComponentSystem.Update();
                 // Update time
                 Time.deltaTime = watch.Elapsed.TotalSeconds;
-                Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
+                Time.time = Atlas.ecsStopwatch.Elapsed.TotalSeconds;
 
                 frameTimes += (float)Time.deltaTime;
                 if (frames >= 60)
@@ -285,6 +312,7 @@ namespace SolidCode.Atlas.Rendering
                 Profiler.EndTimer();
 #endif
                 Draw();
+
                 TickScheduler.FreeThreads(); // Everything we need should now be free for use!
                 renderTimeStopwatch.Stop();
                 if (MaxFramerate != 0)
@@ -307,6 +335,7 @@ namespace SolidCode.Atlas.Rendering
 
         public void ReloadAllShaders()
         {
+            TickScheduler.RequestTick().Wait();
             Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
             // First, lets recompile all our shaders
             ShaderManager.ClearAllShaders();
@@ -318,6 +347,7 @@ namespace SolidCode.Atlas.Rendering
             }
             CreateResources();
             Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
+            TickScheduler.FreeThreads();
         }
 
         public static void ResortDrawable(Drawable d)
@@ -510,11 +540,11 @@ namespace SolidCode.Atlas.Rendering
                 postProcess[2] = new PostProcess(_graphicsDevice, new[] { ColorViews[1] }, "post/blur_vertical/shader", framebuffers[2]);
                 postProcess[3] = new PostProcess(_graphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[2] }, "post/combine/shader");
             }
-            Debug.Log(LogCategory.Rendering, "Primary window resources created!");
         }
 
         private void DisposeResources()
         {
+            Debug.Log(LogCategory.Rendering, "Disposing all rendering resources");
             foreach (Drawable drawable in _drawables)
             {
                 drawable.Dispose();

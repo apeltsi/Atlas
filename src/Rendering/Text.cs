@@ -159,7 +159,7 @@ namespace SolidCode.Atlas.Rendering
         float HorizontalOffset = 0f;
         DeviceBuffer colorBuffer;
         public Vector4 Color = new Vector4(1, 1, 1, 1f);
-        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<Asset<TextureResource>>(), transformShaderStages)
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),

@@ -6,6 +6,7 @@
     using SolidCode.Atlas.Components;
     using SolidCode.Atlas.ECS.SceneManagement;
     using Veldrid.Sdl2;
+    using SolidCode.Atlas.AssetManagement;
 
     public enum LogCategory
     {
@@ -22,11 +23,14 @@
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
+        public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@2.0";
+        public const string Version = "peppermint-tea@3.0";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
+        internal static System.Diagnostics.Stopwatch ecsStopwatch { get; private set; }
+
         static Window? w;
         static bool doTick = true;
 
@@ -34,11 +38,13 @@
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
-        public static void StartRenderFeatures(string windowTitle, SDL_WindowFlags flags = 0)
+        public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
             AppName = windowTitle;
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
+            AssetManager.LoadAssetMap();
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {
@@ -59,6 +65,7 @@
 
         public static void Start(Scene defaultScene)
         {
+
             if (w == null)
             {
                 throw new NullReferenceException("Window hasn't been created yet!");
@@ -115,7 +122,7 @@
         {
             tickDeltaStopwatch.Stop();
             Time.tickDeltaTime = tickDeltaStopwatch.Elapsed.TotalSeconds;
-            Time.tickTime = primaryStopwatch.Elapsed.TotalSeconds;
+            Time.tickTime = ecsStopwatch.Elapsed.TotalSeconds;
             if (!tickCounterStopwatch.IsRunning)
             {
                 tickCounterStopwatch.Start();
@@ -132,12 +139,16 @@
             tickDeltaStopwatch.Restart();
             Task t = TickScheduler.RequestTick();
             t.Wait();
+            if (!ecsStopwatch.IsRunning)
+            {
+                ecsStopwatch.Start();
+            }
             EntityComponentSystem.Tick();
             TickScheduler.FreeThreads();
             sw.Stop();
         }
 
-        public static float GetUptime()
+        public static float GetTotalUptime()
         {
             if (primaryStopwatch == null)
             {

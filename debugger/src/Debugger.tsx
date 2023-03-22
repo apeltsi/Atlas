@@ -1,9 +1,15 @@
-import { createSignal, For, Show } from "solid-js";
+import { createEffect, createSignal, For, Show } from "solid-js";
 import info from "./info.png";
 import warn from "./warn.png";
 import error from "./error.png";
 import LiveHeader, { LiveData } from "./LiveHeader";
-import { debuggerState, liveDataState, logState, subSystemsState } from "./App";
+import {
+    debuggerState,
+    liveDataState,
+    logState,
+    setLogState,
+    subSystemsState,
+} from "./App";
 import Profiler from "./Profiler";
 import Hierarchy from "./Hierarchy";
 
@@ -25,6 +31,15 @@ export interface Log {
 }
 export default function Debugger() {
     let [filter, setFilters] = createSignal<string[]>([]);
+    let [autoScroll, setAutoScroll] = createSignal(true);
+    let logContainer: HTMLDivElement | undefined;
+    createEffect((prevState: Log[]) => {
+        if (prevState.length != logState.length) console.log(logContainer);
+        if (logContainer !== undefined && autoScroll()) {
+            logContainer.scroll(0, logContainer.scrollHeight);
+        }
+        return logState;
+    }, []);
     return (
         <div id="debugger">
             <Show when={debuggerState.live}>
@@ -38,45 +53,73 @@ export default function Debugger() {
                 <h3>Atlas started at: {debuggerState.runDate}</h3>
             </Show>
 
-            <h2>Logs</h2>
-            <div id="filters">
-                <div
-                    onclick={() => {
-                        if (filter().length === subSystemsState.length) {
-                            setFilters([]);
-                        } else {
-                            setFilters([...subSystemsState]);
+            <h2>Logs ({logState.length})</h2>
+            <div id="log-actions">
+                <div id="filters">
+                    <button
+                        onclick={() => {
+                            if (filter().length === subSystemsState.length) {
+                                setFilters([]);
+                            } else {
+                                setFilters([...subSystemsState]);
+                            }
+                        }}
+                        class={
+                            filter().length === subSystemsState.length ||
+                            filter().length === 0
+                                ? "selected"
+                                : ""
                         }
-                    }}
-                    class={
-                        filter().length === subSystemsState.length ||
-                        filter().length === 0
-                            ? "selected"
-                            : ""
-                    }
-                >
-                    All
-                </div>
-                <For each={subSystemsState}>
-                    {(item: string) => (
-                        <div
-                            onclick={() => {
-                                let filters = filter();
-                                if (filters.includes(item)) {
-                                    filters.splice(filters.indexOf(item), 1);
-                                    setFilters([...filters]);
-                                } else {
-                                    setFilters([...filters, item]);
+                    >
+                        All
+                    </button>
+                    <For each={subSystemsState}>
+                        {(item: string) => (
+                            <button
+                                onclick={() => {
+                                    let filters = filter();
+                                    if (filters.includes(item)) {
+                                        filters.splice(
+                                            filters.indexOf(item),
+                                            1
+                                        );
+                                        setFilters([...filters]);
+                                    } else {
+                                        setFilters([...filters, item]);
+                                    }
+                                }}
+                                class={
+                                    filter().includes(item) ? "selected" : ""
                                 }
-                            }}
-                            class={filter().includes(item) ? "selected" : ""}
-                        >
-                            {item}
-                        </div>
-                    )}
-                </For>
+                            >
+                                {item}
+                            </button>
+                        )}
+                    </For>
+                </div>
+                <span>---</span>
+                <button
+                    onClick={() => {
+                        setLogState([]);
+                    }}
+                    class={"button-only"}
+                >
+                    Clear Logs
+                </button>
+                <button
+                    onClick={() => {
+                        setAutoScroll(!autoScroll());
+                    }}
+                    class={autoScroll() ? "selected" : "toggle"}
+                >
+                    Auto-Scroll
+                </button>
             </div>
-            <div id="logList" class={debuggerState.live ? "islive" : ""}>
+            <div
+                id="logList"
+                class={debuggerState.live ? "islive" : ""}
+                ref={logContainer}
+            >
                 <For each={logState}>
                     {(item: Log) => (
                         <Show

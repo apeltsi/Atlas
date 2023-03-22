@@ -91,7 +91,7 @@ namespace SolidCode.Atlas
             liveDataTimer.AutoReset = true;
             liveDataTimer.Start();
 
-            profilerDataTimer = new System.Timers.Timer(1000);
+            profilerDataTimer = new System.Timers.Timer(250);
             profilerDataTimer.Elapsed += SendProfilerData;
             profilerDataTimer.AutoReset = true;
             profilerDataTimer.Start();
@@ -117,7 +117,7 @@ namespace SolidCode.Atlas
                 return;
             }
 
-            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000, GetECSHierarchy(), Atlas.TicksPerSecond));
+            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetTotalUptime() * 1000, GetECSHierarchy(), Atlas.TicksPerSecond));
             try
             {
 
