@@ -108,7 +108,8 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
-
+        private static bool positionDirty = false;
+        private static Vector2 _position = new Vector2(50, 50);
         public static Vector2 Position
         {
             get
@@ -127,10 +128,12 @@ namespace SolidCode.Atlas.Rendering
             }
             set
             {
-                Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+                _position = value;
+                positionDirty = true;
             }
         }
-        private static Vector2 _size;
+        private static bool sizeDirty = false;
+        private static Vector2 _size = new Vector2(800, 500);
         public static Vector2 Size
         {
             get
@@ -144,7 +147,9 @@ namespace SolidCode.Atlas.Rendering
             }
             set
             {
-                Sdl2Native.SDL_SetWindowSize(window.SdlWindowHandle, AMath.RoundToInt(value.X), AMath.RoundToInt(value.Y));
+                _size = value;
+                sizeDirty = true;
+
             }
         }
 
@@ -153,11 +158,10 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
-            _size = new Vector2(800, 500);
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
-                X = 20,
-                Y = 50,
+                X = AMath.RoundToInt(_position.X),
+                Y = AMath.RoundToInt(_position.Y),
                 WindowWidth = AMath.RoundToInt(_size.X),
                 WindowHeight = AMath.RoundToInt(_size.Y),
                 WindowTitle = title + " | Atlas/" + Atlas.Version,
@@ -194,11 +198,11 @@ namespace SolidCode.Atlas.Rendering
             }
             window.Resized += () =>
             {
-                _size = new Vector2(window.Width, window.Height);
                 _graphicsDevice.ResizeMainWindow((uint)window.Width, (uint)window.Height);
                 WindowScalingMatrix = GetScalingMatrix(window.Width, window.Height);
                 CreateResources();
             };
+
             CreateResources();
         }
 
@@ -275,6 +279,19 @@ namespace SolidCode.Atlas.Rendering
                 Profiler.EndTimer();
                 Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
 #endif
+                // Update window if needed
+                if (positionDirty)
+                {
+                    Sdl2Native.SDL_SetWindowPosition(window.SdlWindowHandle, AMath.RoundToInt(_position.X), AMath.RoundToInt(_position.Y));
+                    positionDirty = false;
+                }
+                if (sizeDirty)
+                {
+                    window.Width = AMath.RoundToInt(_size.X);
+                    window.Height = AMath.RoundToInt(_size.Y);
+                    sizeDirty = false;
+                }
+
 
                 EntityComponentSystem.Update();
                 // Update time
@@ -523,7 +540,6 @@ namespace SolidCode.Atlas.Rendering
                 postProcess[2] = new PostProcess(_graphicsDevice, new[] { ColorViews[1] }, "post/blur_vertical/shader", framebuffers[2]);
                 postProcess[3] = new PostProcess(_graphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[2] }, "post/combine/shader");
             }
-            Debug.Log(LogCategory.Rendering, "Primary window resources created!");
         }
 
         private void DisposeResources()
