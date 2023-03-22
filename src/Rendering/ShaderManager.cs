@@ -17,7 +17,6 @@ namespace SolidCode.Atlas.Rendering
             {
                 return shaders[path];
             }
-            Debug.Log(LogCategory.Rendering, "Loading shader \"" + path + "\"");
             Shader? shader = AssetManagement.AssetManager.GetAsset<Shader>(path);
 
             shaders.TryAdd(path, shader);

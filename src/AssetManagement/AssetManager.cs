@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
 using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.AssetManagement
@@ -19,7 +20,8 @@ namespace SolidCode.Atlas.AssetManagement
     {
         static ConcurrentDictionary<string, WeakReference<Asset>> loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
         static ConcurrentDictionary<string, Asset> keepAliveAssets = new ConcurrentDictionary<string, Asset>();
-        public static T? GetAsset<T>(string path) where T : Asset, new()
+        static Dictionary<string, List<string>> assetMap = new Dictionary<string, List<string>>(); // <string: path, string[] index 0 = assetpackname index n = truepath of file(s)
+        public static T? GetAsset<T>(string path, bool tryLoad = true) where T : Asset, new()
         {
             Asset? asset = null;
             WeakReference<Asset>? a;
@@ -32,13 +34,79 @@ namespace SolidCode.Atlas.AssetManagement
             {
                 return asset as T;
             }
+            if (!tryLoad)
+            {
+                return null;
+            }
             // Okay, so the asset isn't currently loaded, lets try and load it up
-            return LoadAsset<T>(path, AssetMode.Unload);
+            return LoadAssetToMemory<T>(path, AssetMode.Unload);
         }
 
-        public static T? LoadAsset<T>(string path, AssetMode mode) where T : Asset, new()
+        internal static void LoadAssetMap()
         {
-            Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
+            try
+            {
+                string assetmapPath = Path.Join(Atlas.AssetPackDirectory, ".assetmap");
+                Debug.Log(assetmapPath);
+                Dictionary<string, List<string>> map = new Dictionary<string, List<string>>();
+                if (File.Exists(assetmapPath))
+                {
+                    Dictionary<string, string> tempmap = JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(assetmapPath));
+                    foreach (KeyValuePair<string, string> item in tempmap)
+                    {
+                        string extensionlessPath = item.Key.Substring(0, item.Key.Length - (item.Key.Split(".").Last().Length + 1));
+                        if (map.ContainsKey(extensionlessPath))
+                        {
+                            map[extensionlessPath].Add(item.Key);
+                        }
+                        else
+                        {
+                            List<string> paths = new List<string>();
+                            paths.Add(item.Value);
+                            paths.Add(item.Key);
+                            map.Add(extensionlessPath, paths);
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.Log(LogCategory.Framework, "Atlas starting without an AssetMap. Assets won't be loaded from AssetPacks unless manually loaded.");
+                    return;
+                }
+                if (map == null)
+                {
+                    return;
+                }
+                assetMap = map;
+                Debug.Log(LogCategory.Framework, "AssetMap loaded! (" + assetMap.Count + " assets mapped)");
+            }
+            catch (Exception e)
+            {
+                Debug.Error(LogCategory.Framework, "Couldn't load AssetMap: " + e.ToString());
+            }
+        }
+
+        public static T? LoadAssetToMemory<T>(string path, AssetMode mode) where T : Asset, new()
+        {
+            string prefix = "";
+            if (typeof(T) == typeof(Shader))
+            {
+                prefix = "shaders/";
+            }
+            else
+            {
+                prefix = "assets/";
+            }
+            if (assetMap.ContainsKey(prefix + path))
+            {
+                List<string> paths = assetMap[prefix + path];
+                Debug.Warning(LogCategory.Framework, "AssetPack containing asset '" + path + "' was not loaded. Attempting to load asset manually from '" + paths[0] + "'");
+
+                AssetPack pack = new AssetPack(paths[0]);
+                pack.LoadSpecificFiles(paths.GetRange(1, paths.Count - 1));
+                return GetAsset<T>(path, false);
+            }
+
             T a = new T();
             lock (Window._graphicsDevice)
             {
@@ -46,10 +114,8 @@ namespace SolidCode.Atlas.AssetManagement
             }
             return FinalizeLoadingAsset<T>(a, mode, path);
         }
-        public static T? LoadAsset<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
+        public static T? LoadAssetToMemory<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
         {
-            Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
-
             T a = new T();
             lock (Window._graphicsDevice)
             {

@@ -38,12 +38,13 @@
         {
             Debug.StartLogs("General", "Framework", "Rendering", "ECS");
         }
-        public static void StartRenderFeatures(string windowTitle, SDL_WindowFlags flags = 0)
+        public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
             AppName = windowTitle;
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
+            AssetManager.LoadAssetMap();
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
             {

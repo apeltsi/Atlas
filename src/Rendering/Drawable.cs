@@ -302,7 +302,8 @@ namespace SolidCode.Atlas.Rendering
             indexBuffer.Dispose();
             transformBuffer.Dispose();
             _transformSet.Dispose();
-            _uniformSet.Dispose();
+            if (_uniformSet != null)
+                _uniformSet.Dispose();
             this.transform.UnregisterDrawable(this);
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
             {
