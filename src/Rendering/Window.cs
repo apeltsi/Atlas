@@ -279,7 +279,7 @@ namespace SolidCode.Atlas.Rendering
                 EntityComponentSystem.Update();
                 // Update time
                 Time.deltaTime = watch.Elapsed.TotalSeconds;
-                Time.time = Atlas.primaryStopwatch.Elapsed.TotalSeconds;
+                Time.time = Atlas.ecsStopwatch.Elapsed.TotalSeconds;
 
                 frameTimes += (float)Time.deltaTime;
                 if (frames >= 60)

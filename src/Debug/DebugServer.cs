@@ -117,7 +117,7 @@ namespace SolidCode.Atlas
                 return;
             }
 
-            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetUptime() * 1000, GetECSHierarchy(), Atlas.TicksPerSecond));
+            string jsonString = JsonSerializer.Serialize(new LiveData((int)Math.Round(Window.AverageFramerate), Atlas.GetTotalUptime() * 1000, GetECSHierarchy(), Atlas.TicksPerSecond));
             try
             {
 

@@ -29,6 +29,8 @@
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
+        internal static System.Diagnostics.Stopwatch ecsStopwatch { get; private set; }
+
         static Window? w;
         static bool doTick = true;
 
@@ -40,6 +42,7 @@
         {
             AppName = windowTitle;
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
+            ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
@@ -118,7 +121,7 @@
         {
             tickDeltaStopwatch.Stop();
             Time.tickDeltaTime = tickDeltaStopwatch.Elapsed.TotalSeconds;
-            Time.tickTime = primaryStopwatch.Elapsed.TotalSeconds;
+            Time.tickTime = ecsStopwatch.Elapsed.TotalSeconds;
             if (!tickCounterStopwatch.IsRunning)
             {
                 tickCounterStopwatch.Start();
@@ -135,12 +138,16 @@
             tickDeltaStopwatch.Restart();
             Task t = TickScheduler.RequestTick();
             t.Wait();
+            if (!ecsStopwatch.IsRunning)
+            {
+                ecsStopwatch.Start();
+            }
             EntityComponentSystem.Tick();
             TickScheduler.FreeThreads();
             sw.Stop();
         }
 
-        public static float GetUptime()
+        public static float GetTotalUptime()
         {
             if (primaryStopwatch == null)
             {
