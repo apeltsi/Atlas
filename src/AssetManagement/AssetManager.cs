@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.AssetManagement
 {
@@ -39,7 +40,10 @@ namespace SolidCode.Atlas.AssetManagement
         {
             Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
             T a = new T();
-            a.Load(path, Path.GetFileName(path));
+            lock (Window._graphicsDevice)
+            {
+                a.Load(path, Path.GetFileName(path));
+            }
             return FinalizeLoadingAsset<T>(a, mode, path);
         }
         public static T? LoadAsset<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
@@ -47,7 +51,10 @@ namespace SolidCode.Atlas.AssetManagement
             Debug.Log(LogCategory.Framework, "Loading Asset: " + path);
 
             T a = new T();
-            a.FromStreams(streams, Path.GetFileName(path));
+            lock (Window._graphicsDevice)
+            {
+                a.FromStreams(streams, Path.GetFileName(path));
+            }
             return FinalizeLoadingAsset<T>(a, mode, path);
         }
 
