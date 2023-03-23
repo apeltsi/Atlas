@@ -206,7 +206,6 @@ namespace SolidCode.Atlas.Rendering
         {
             Shader shader = ShaderManager.GetShader("text");
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
-
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
@@ -302,7 +301,7 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Draw(CommandList cl)
         {
-            if (!resourcesCreated && buffersDirty && texture != null)
+            if (!resourcesCreated && buffersDirty && texture != null && virtualMesh.Vertices.Length > 0)
             {
                 _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
                 CreateResources(Window._graphicsDevice, this.texture);
