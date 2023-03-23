@@ -153,6 +153,18 @@ namespace SolidCode.Atlas.Rendering
             }
         }
 
+        public static bool CursorVisible
+        {
+            get
+            {
+                return window.CursorVisible;
+            }
+            set
+            {
+                window.CursorVisible = value;
+            }
+        }
+
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
