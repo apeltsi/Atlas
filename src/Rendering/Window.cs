@@ -325,7 +325,6 @@ namespace SolidCode.Atlas.Rendering
 #endif
                 Draw();
 
-                TickScheduler.FreeThreads(); // Everything we need should now be free for use!
                 renderTimeStopwatch.Stop();
                 if (MaxFramerate != 0)
                 {
@@ -442,6 +441,7 @@ namespace SolidCode.Atlas.Rendering
 
             }
             _commandList.End();
+            TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 
             // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
 #if DEBUG
