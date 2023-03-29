@@ -6,9 +6,10 @@ namespace SolidCode.Atlas.AssetManagement
 {
     public class AssetPack
     {
+        private static Dictionary<string, AssetPack> loadedAssetPacks = new Dictionary<string, AssetPack>();
         private static Dictionary<string, List<string>> loadFiles = new Dictionary<string, List<string>>();
         public string relativePath { get; protected set; }
-        private List<string> assetsLoaded = new List<string>();
+        internal List<string> assetsLoaded = new List<string>();
         public delegate string[] AssetHandler(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode);
         private static Dictionary<string, AssetHandler> assetHandlers = new Dictionary<string, AssetHandler>();
         public static void AddAssetHandler(string extension, AssetHandler handler)
@@ -59,6 +60,7 @@ namespace SolidCode.Atlas.AssetManagement
 
         public void Load()
         {
+
             using (FileStream stream = File.Open(Path.Join(Atlas.AssetPackDirectory, relativePath + ".assetpack"), FileMode.Open))
             {
                 using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
@@ -66,8 +68,23 @@ namespace SolidCode.Atlas.AssetManagement
             }
         }
 
+        public Task LoadAsync()
+        {
+            return Task.Run(() => Load()); ;
+        }
+
         internal List<string> LoadSpecificFiles(List<string> files)
         {
+            lock (loadedAssetPacks)
+            {
+                if (loadedAssetPacks.ContainsKey(this.relativePath))
+                {
+                    lock (loadedAssetPacks[this.relativePath])
+                    {
+                        return loadedAssetPacks[this.relativePath].assetsLoaded;
+                    }
+                }
+            }
             lock (loadFiles)
             {
                 if (loadFiles.ContainsKey(this.relativePath))
@@ -112,6 +129,10 @@ namespace SolidCode.Atlas.AssetManagement
         ///</summary>
         public void Unload()
         {
+            lock (loadedAssetPacks)
+            {
+                loadedAssetPacks.Remove(this.relativePath);
+            }
             foreach (string path in assetsLoaded)
             {
                 AssetManager.FreeAsset(path);
@@ -119,46 +140,60 @@ namespace SolidCode.Atlas.AssetManagement
         }
         private void LoadFromArchive(ZipArchive zip, string[]? paths = null)
         {
-            List<Thread> threads = new List<Thread>();
-            foreach (var entry in zip.Entries)
+            if (paths == null)
             {
-                AssetMode mode = AssetMode.KeepAlive;
-                if (paths != null)
+                // Lets add this AssetPack to the loaded list so that the same assets don't get loaded multiple times
+                lock (loadedAssetPacks)
                 {
-                    mode = AssetMode.Unload;
-                    bool matches = false;
-                    foreach (string path in paths)
+                    loadedAssetPacks.Add(this.relativePath, this);
+                }
+            }
+            // We lock loadfiles so that we can't manually load anything twice accidentally
+            lock (loadFiles) lock (loadedAssetPacks[this.relativePath] ?? this)
+                {
+
+                    List<Thread> threads = new List<Thread>();
+                    foreach (var entry in zip.Entries)
                     {
-                        if (path == entry.FullName)
+                        AssetMode mode = AssetMode.KeepAlive;
+                        if (paths != null)
                         {
-                            matches = true;
+                            mode = AssetMode.Unload;
+                            bool matches = false;
+                            foreach (string path in paths)
+                            {
+                                if (path == entry.FullName)
+                                {
+                                    matches = true;
+                                }
+                            }
+                            if (!matches) continue;
+                        }
+
+                        string extension = entry.Name.Split(".").Last();
+                        if (assetHandlers.ContainsKey(extension))
+                        {
+                            Thread t = new Thread(() => LoadAssetFromPack(zip, entry, extension, mode));
+                            threads.Add(t);
+                            t.Start();
                         }
                     }
-                    if (!matches) continue;
-                }
-                string extension = entry.Name.Split(".").Last();
-                if (assetHandlers.ContainsKey(extension))
-                {
-                    Thread t = new Thread(() => LoadAssetFromPack(zip, entry, extension, mode));
-                    threads.Add(t);
-                    t.Start();
-                }
-            }
-            while (threads.Count > 0)
-            {
-                bool removed = false;
-                foreach (Thread t in threads)
-                {
-                    if (!t.IsAlive)
+                    while (threads.Count > 0)
                     {
-                        threads.Remove(t);
-                        removed = true;
-                        break;
+                        bool removed = false;
+                        foreach (Thread t in threads)
+                        {
+                            if (!t.IsAlive)
+                            {
+                                threads.Remove(t);
+                                removed = true;
+                                break;
+                            }
+                        }
+                        if (!removed)
+                            Thread.Sleep(5);
                     }
                 }
-                if (!removed)
-                    Thread.Sleep(5);
-            }
             Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "'");
         }
 

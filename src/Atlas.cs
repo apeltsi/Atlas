@@ -25,7 +25,7 @@
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@3.2";
+        public const string Version = "peppermint-tea@3.3";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
