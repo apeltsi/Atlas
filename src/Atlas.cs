@@ -25,7 +25,7 @@
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@3.3";
+        public const string Version = "peppermint-tea@3.4";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
@@ -100,9 +100,16 @@
             System.Diagnostics.Stopwatch updateDuration = new System.Diagnostics.Stopwatch();
             while (doTick)
             {
+                if (TickFrequency == 0 && EntityComponentSystem.HasStarted)
+                {
+                    await Task.Delay(20);
+                    continue;
+                }
                 updateDuration.Restart();
                 RunTick();
                 updateDuration.Stop();
+                if (TickFrequency == 0)
+                    continue;
                 long delay = (1000 / TickFrequency - updateDuration.ElapsedMilliseconds);
                 if (delay > 0)
                 {
