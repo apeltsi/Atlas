@@ -50,5 +50,15 @@ namespace SolidCode.Atlas.Mathematics
             return (int)Math.Ceiling(value);
         }
 
+        public static float LerpRotation(float startAngle, float targetAngle, float t)
+        {
+            return startAngle + t * DeltaAngle(startAngle, targetAngle);
+        }
+
+        static float DeltaAngle(float angle1, float angle2)
+        {
+            float delta = (angle2 - angle1 + 180.0f) % 360.0f - 180.0f;
+            return delta;
+        }
     }
 }
