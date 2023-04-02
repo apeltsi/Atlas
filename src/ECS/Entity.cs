@@ -285,6 +285,7 @@
                         // We have to remove the component from the instance count limit
                     }
                     component.enabled = false;
+                    component.entity = null;
                     component.TryInvokeMethod("OnRemove");
 
                     components.Remove(component);

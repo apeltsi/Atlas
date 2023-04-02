@@ -47,7 +47,6 @@ namespace SolidCode.Atlas.AssetManagement
             try
             {
                 string assetmapPath = Path.Join(Atlas.AssetPackDirectory, ".assetmap");
-                Debug.Log(assetmapPath);
                 Dictionary<string, List<string>> map = new Dictionary<string, List<string>>();
                 if (File.Exists(assetmapPath))
                 {

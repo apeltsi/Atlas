@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
 using SolidCode.Atlas.Rendering;
@@ -140,6 +141,7 @@ namespace SolidCode.Atlas.AssetManagement
         }
         private void LoadFromArchive(ZipArchive zip, string[]? paths = null)
         {
+            Stopwatch s = Stopwatch.StartNew();
             if (paths == null)
             {
                 // Lets add this AssetPack to the loaded list so that the same assets don't get loaded multiple times
@@ -194,7 +196,7 @@ namespace SolidCode.Atlas.AssetManagement
                             Thread.Sleep(5);
                     }
                 }
-            Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "'");
+            Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) +"s)");
         }
 
         private void LoadAssetFromPack(ZipArchive zip, ZipArchiveEntry entry, string extension, AssetMode mode)
