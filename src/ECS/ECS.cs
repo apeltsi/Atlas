@@ -114,6 +114,7 @@ namespace SolidCode.Atlas.ECS
                         {
                             Component c = entity.components[i];
                             c.enabled = false;
+                            c.entity = null;
                             c.TryInvokeMethod("OnRemove");
                             c.UnregisterMethods();
                             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
@@ -144,9 +145,12 @@ namespace SolidCode.Atlas.ECS
                 foreach (KeyValuePair<Component, ComponentMethod> pair in UpdateMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
-                    try {
+                    try
+                    {
                         pair.Value.Invoke();
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Debug.Error("Error while performing Update(): " + e.ToString());
                     }
                 }
@@ -171,9 +175,12 @@ namespace SolidCode.Atlas.ECS
                         pair.Key.TryInvokeMethod("Start");
                         pair.Key.isNew = false;
                     }
-                    try {
+                    try
+                    {
                         pair.Value.Invoke();
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e)
+                    {
                         Debug.Error("Error while performing Tick(): " + e.ToString());
                     }
                 }
