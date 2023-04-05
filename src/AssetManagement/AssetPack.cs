@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
+using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.AssetManagement
@@ -43,6 +44,11 @@ namespace SolidCode.Atlas.AssetManagement
                 {
                     AddAssetHandler("frag", DefaultHandlers.HandleShader);
                 }
+                if (!assetHandlers.ContainsKey("wav"))
+                {
+                    AddAssetHandler("wav", DefaultHandlers.HandleWav);
+                }
+
             }
         }
 
@@ -196,7 +202,7 @@ namespace SolidCode.Atlas.AssetManagement
                             Thread.Sleep(5);
                     }
                 }
-            Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) +"s)");
+            Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) + "s)");
         }
 
         private void LoadAssetFromPack(ZipArchive zip, ZipArchiveEntry entry, string extension, AssetMode mode)
@@ -259,6 +265,26 @@ namespace SolidCode.Atlas.AssetManagement
                     AssetManager.LoadAssetToMemory<Texture>(new Stream[] { mstream }, texturePath, mode);
                 }
                 return new string[] { entry.FullName };
+            }
+
+            public static string[] HandleWav(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode)
+            {
+                int startLength = "assets/".Length;
+                string audioPath = entry.FullName.Substring(startLength, entry.FullName.Length - ".wav".Length - startLength);
+                using (var mstream = new MemoryStream())
+                {
+                    lock (zip)
+                    {
+                        using (var stream = entry.Open())
+                        {
+                            stream.CopyTo(mstream);
+                        }
+                        mstream.Position = 0;
+                    }
+                    AssetManager.LoadAssetToMemory<AudioTrack>(new Stream[] { mstream }, audioPath, mode);
+                }
+                return new string[] { entry.FullName };
+
             }
         }
     }

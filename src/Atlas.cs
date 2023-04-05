@@ -7,6 +7,7 @@
     using SolidCode.Atlas.ECS.SceneManagement;
     using Veldrid.Sdl2;
     using SolidCode.Atlas.AssetManagement;
+    using SolidCode.Atlas.Audio;
 
     public enum LogCategory
     {
@@ -25,7 +26,7 @@
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "peppermint-tea@3.5";
+        public const string Version = "marble-soda@1.0";
         public static int TickFrequency = 100;
         public static Timer timer;
         internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
@@ -44,6 +45,7 @@
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
+            AudioManager.InitializeAudio();
             AssetManager.LoadAssetMap();
 #if DEBUG
             if (Directory.Exists("./data/shaders"))

@@ -170,7 +170,6 @@ namespace SolidCode.Atlas.Components
             {
                 if (entity == null)
                 {
-                    Debug.Error("Entity is null, cant return global z");
                     return 0f;
                 }
                 if (entity.parent != null)

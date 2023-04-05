@@ -127,7 +127,7 @@ namespace SolidCode.Atlas.AssetManagement
         {
             if (!a.IsValid)
             {
-                Debug.Log(LogCategory.Framework, "Couldn't load asset: " + path);
+                Debug.Warning(LogCategory.Framework, "Couldn't load asset: " + path);
                 return null;
             }
             loadedAssets.TryAdd(path, new WeakReference<Asset>(a, false));

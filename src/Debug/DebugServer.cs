@@ -69,7 +69,7 @@ namespace SolidCode.Atlas
             }
             if (e.Data == "quit")
             {
-                Debug.Log("Remotely shutting down");
+                Debug.Log(LogCategory.Framework, "Remotely shutting down");
                 Window.Close();
             }
             if (e.Data == "reloadshaders")
@@ -190,7 +190,7 @@ namespace SolidCode.Atlas
             wssv.Log.Output = (_, __) => { };
             wssv.AddWebSocketService<DebuggerSocketBehaviour>("/ws");
             wssv.Start();
-            Debug.Log("Telescope is now active on port " + Port.ToString());
+            Debug.Log(LogCategory.Framework, "Telescope is now active on port " + Port.ToString());
         }
         public DebugServer()
         {
