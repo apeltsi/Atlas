@@ -74,7 +74,6 @@
             }
             SceneManager.LoadScene(defaultScene);
             Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            Audio.AudioManager.InitializeAudio();
             try
             {
                 w.StartRenderLoop();
@@ -84,6 +83,7 @@
                 Debug.Error(ex.ToString());
             }
             doTick = false;
+            AudioManager.Dispose();
             EntityComponentSystem.Dispose();
             primaryStopwatch.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(primaryStopwatch.ElapsedMilliseconds / 100f) / 10) + "s...");

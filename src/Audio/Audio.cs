@@ -28,13 +28,26 @@ namespace SolidCode.Atlas.Audio
         {
             lock (AudioLock)
             {
+                List<string> devices = ALC.GetString(AlcGetStringList.AllDevicesSpecifier);
+                SolidCode.Atlas.Debug.Log(LogCategory.Framework, "Available devices: ");
+                for (int i = 0; i < devices.Count; i++)
+                {
+                    SolidCode.Atlas.Debug.Log(LogCategory.Framework, " - " + devices[i]);
+                }
                 unsafe
                 {
                     device = ALC.OpenDevice(null);
                     context = ALC.CreateContext(device, (int*)null);
                     bool valid = ALC.MakeContextCurrent(context);
+                    if (!valid)
+                    {
+                        SolidCode.Atlas.Debug.Error(LogCategory.Framework, "Failed to create OpenAL context!");
+                    }
+                    else
+                    {
+                        SolidCode.Atlas.Debug.Log(LogCategory.Framework, "AudioManager active on " + ALC.GetString(device, AlcGetString.AllDevicesSpecifier) + "");
+                    }
                 }
-                SolidCode.Atlas.Debug.Log(LogCategory.Framework, "AudioManager active on default device");
             }
         }
 
