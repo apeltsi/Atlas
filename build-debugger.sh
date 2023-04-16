@@ -1,4 +1,4 @@
-cd debugger
+cd Atlas.Telescope/debugger
 pnpm i
 pnpm run build
 cd dist
