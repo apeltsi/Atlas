@@ -34,7 +34,6 @@ namespace SolidCode.Atlas.Audio
             double[] samples;
             if (parser.ChannelCount == 2)
             {
-                Debug.Log("Parsing stereo audio...");
                 samples = new double[parser.SamplesCount * 2];
                 format = ALFormat.StereoDoubleExt;
                 for (int i = 0; i < samples.Length; i += 2)
@@ -42,7 +41,6 @@ namespace SolidCode.Atlas.Audio
                     samples[i] = parser.Samples[0][i / 2];
                     samples[i + 1] = parser.Samples[1][i / 2];
                 }
-                Debug.Log("Stereo Audio Fixed...");
             }
             else
             {
