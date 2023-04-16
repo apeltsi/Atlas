@@ -1,4 +1,5 @@
 using System.Numerics;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.Rendering;
 using Veldrid;
@@ -49,9 +50,8 @@ public class TextRenderer : RenderComponent
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        TextDrawable drawable = new TextDrawable(Text, new string[3] { "Comfortaa-Regular.ttf", "Gugi-Regular.ttf", "NotoSansJP-Regular.otf" }, Color, Centered, Size, entity.GetComponent<Transform>());
-        textDrawable = drawable;
-        return new Drawable[] { drawable };
+        textDrawable = new TextDrawable(Text, new Font[] { AssetManager.GetAsset<Font>("OpenSans-Regular") }, Color, Centered, Size, entity.GetComponent<Transform>());
+        return new Drawable[] { textDrawable };
     }
 
 }

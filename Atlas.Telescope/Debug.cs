@@ -132,15 +132,6 @@ public static class Debug
         }
     }
 
-    public static void Stop()
-    {
-        logsEnabled = false;
-        WriteLogBuffer();
-#if DEBUG
-
-        ds.Stop();
-#endif
-    }
 
     public static void Log<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
     {
@@ -184,6 +175,17 @@ public static class Debug
     {
         DateTime date = DateTime.Now;
         return "[" + date.Hour.ToString("D2") + ":" + date.Minute.ToString("D2") + ":" + date.Second.ToString("D2") + "]";
+    }
+
+    public static void Dispose()
+    {
+        logsEnabled = false;
+        WriteLogBuffer();
+
+        actions = new Dictionary<string, TelescopeAction>();
+#if DEBUG
+        ds.Stop();
+#endif
     }
 
     #region Gets the build date and time (by reading the COFF header)

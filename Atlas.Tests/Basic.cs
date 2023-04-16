@@ -19,4 +19,19 @@ public class Basic
         entities.Add(e);
         Atlas.Start(new Scene(entities));
     }
+    [Fact]
+    public void TestConfirm()
+    {
+        Atlas.InitializeLogging();
+        Atlas.StartCoreFeatures("Atlas Manual Confirm Test");
+
+        List<Entity> entities = new List<Entity>();
+        Entity e = new Entity("Test entity");
+        e.AddComponent<UserConfirm>();
+        entities.Add(e);
+        entities.Add(Util.TextEntity("Space = Pass | Backspace = Fail"));
+        Window.ClearColor = Veldrid.RgbaFloat.Blue;
+        Atlas.Start(new Scene(entities));
+    }
+
 }

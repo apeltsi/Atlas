@@ -160,6 +160,16 @@ namespace SolidCode.Atlas.AssetManagement
             Cleanup();
         }
 
+        internal static void Dispose()
+        {
+            loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
+            keepAliveAssets = new ConcurrentDictionary<string, Asset>();
+            assetMap = new Dictionary<string, List<string>>();
+            AssetPack.assetHandlers = new Dictionary<string, SolidCode.Atlas.AssetManagement.AssetPack.AssetHandler>();
+            AssetPack.loadedAssetPacks = new Dictionary<string, AssetPack>();
+            AssetPack.loadFiles = new Dictionary<string, List<string>>();
+        }
+
         /// <summary>
         /// Removes some null values from loadedAssets. Note that this doesn't actually unload any assets, only cleanup the remaining nulls from unloaded assets.
         /// </summary>

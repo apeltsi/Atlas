@@ -17,7 +17,7 @@ namespace SolidCode.Atlas.Rendering
         string text;
         int size;
         FontSystem font;
-        string[] fontPaths;
+        Font[] fonts;
         FontRenderer renderer;
         Matrix4x4 lastMatrix;
         bool centered = true;
@@ -38,11 +38,11 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
-        public TextDrawable(string text, string[] fontPaths, Vector4 Color, bool centered, int size, Transform transform)
+        public TextDrawable(string text, Font[] fonts, Vector4 Color, bool centered, int size, Transform transform)
         {
             this.text = text;
             this.transform = transform;
-            this.fontPaths = fontPaths;
+            this.fonts = fonts;
             this.size = size;
             this.centered = centered;
             this.color = Color;
@@ -62,9 +62,9 @@ namespace SolidCode.Atlas.Rendering
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
             this.font = new FontSystem();
-            for (int i = 0; i < this.fontPaths.Length; i++)
+            for (int i = 0; i < this.fonts.Length; i++)
             {
-                FontManager.AddFont(this.font, this.fontPaths[i]);
+                this.font.AddFont(this.fonts[i].Data);
             }
             renderer = new FontRenderer(Window._graphicsDevice, this.color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
             if (centered)

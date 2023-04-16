@@ -9,12 +9,12 @@ namespace SolidCode.Atlas.AssetManagement
 {
     public class AssetPack
     {
-        private static Dictionary<string, AssetPack> loadedAssetPacks = new Dictionary<string, AssetPack>();
-        private static Dictionary<string, List<string>> loadFiles = new Dictionary<string, List<string>>();
+        internal static Dictionary<string, AssetPack> loadedAssetPacks = new Dictionary<string, AssetPack>();
+        internal static Dictionary<string, List<string>> loadFiles = new Dictionary<string, List<string>>();
         public string relativePath { get; protected set; }
         internal List<string> assetsLoaded = new List<string>();
         public delegate string[] AssetHandler(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode);
-        private static Dictionary<string, AssetHandler> assetHandlers = new Dictionary<string, AssetHandler>();
+        internal static Dictionary<string, AssetHandler> assetHandlers = new Dictionary<string, AssetHandler>();
         public static void AddAssetHandler(string extension, AssetHandler handler)
         {
             assetHandlers.Add(extension, handler);
@@ -39,7 +39,7 @@ namespace SolidCode.Atlas.AssetManagement
                 // First, lets make sure that the default handlers don't exist
                 if (!assetHandlers.ContainsKey("ktx"))
                 {
-                    AddAssetHandler("ktx", DefaultHandlers.HandleTexture);
+                    AddAssetHandler("ktx", DefaultHandlers.HandleBytedata<Texture>);
                 }
                 if (!assetHandlers.ContainsKey("frag"))
                 {
@@ -47,7 +47,11 @@ namespace SolidCode.Atlas.AssetManagement
                 }
                 if (!assetHandlers.ContainsKey("wav"))
                 {
-                    AddAssetHandler("wav", DefaultHandlers.HandleWav);
+                    AddAssetHandler("wav", DefaultHandlers.HandleBytedata<AudioTrack>);
+                }
+                if (!assetHandlers.ContainsKey("ttf"))
+                {
+                    AddAssetHandler("ttf", DefaultHandlers.HandleBytedata<Font>);
                 }
 
             }
@@ -249,10 +253,10 @@ namespace SolidCode.Atlas.AssetManagement
                 return new string[0];
             }
 
-            public static string[] HandleTexture(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode)
+            public static string[] HandleBytedata<T>(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode) where T : Asset, new()
             {
                 int startLength = "assets/".Length;
-                string texturePath = entry.FullName.Substring(startLength, entry.FullName.Length - ".ktx".Length - startLength);
+                string path = entry.FullName.Substring(startLength, entry.FullName.Length - ".ktx".Length - startLength);
                 using (var mstream = new MemoryStream())
                 {
                     lock (zip)
@@ -263,30 +267,11 @@ namespace SolidCode.Atlas.AssetManagement
                         }
                         mstream.Position = 0;
                     }
-                    AssetManager.LoadAssetToMemory<Texture>(new Stream[] { mstream }, texturePath, mode);
+                    AssetManager.LoadAssetToMemory<T>(new Stream[] { mstream }, path, mode);
                 }
                 return new string[] { entry.FullName };
             }
 
-            public static string[] HandleWav(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode)
-            {
-                int startLength = "assets/".Length;
-                string audioPath = entry.FullName.Substring(startLength, entry.FullName.Length - ".wav".Length - startLength);
-                using (var mstream = new MemoryStream())
-                {
-                    lock (zip)
-                    {
-                        using (var stream = entry.Open())
-                        {
-                            stream.CopyTo(mstream);
-                        }
-                        mstream.Position = 0;
-                    }
-                    AssetManager.LoadAssetToMemory<AudioTrack>(new Stream[] { mstream }, audioPath, mode);
-                }
-                return new string[] { entry.FullName };
-
-            }
         }
     }
 }

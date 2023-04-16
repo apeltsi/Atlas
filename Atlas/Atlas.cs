@@ -98,9 +98,11 @@
             doTick = false;
             AudioManager.Dispose();
             EntityComponentSystem.Dispose();
+            AssetManager.Dispose();
+
             primaryStopwatch.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(primaryStopwatch.ElapsedMilliseconds / 100f) / 10) + "s...");
-            Telescope.Debug.Stop();
+            Telescope.Debug.Dispose();
         }
 
         public static void StartTickLoop()
