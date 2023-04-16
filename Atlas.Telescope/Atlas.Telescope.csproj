@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+        <EmbeddedResource Include="debugger\dist\LogViewer.html" />
+  </ItemGroup>
+  <!--<Choose>
+    <When Condition=" '$(Configuration)'=='Debug' ">-->
+      <ItemGroup>
+        <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+      </ItemGroup>
+    <!--</When>
+  </Choose>-->
+
+</Project>
