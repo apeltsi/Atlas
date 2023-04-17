@@ -1,6 +1,5 @@
 using System.Text;
 using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.Telescope;
 using Veldrid;
 using Veldrid.SPIRV;
 
@@ -40,7 +39,7 @@ namespace SolidCode.Atlas.Rendering
                 "main");
             try
             {
-                shaders = Window._graphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+                shaders = Window.GraphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
                 this.IsValid = true;
             }
             catch (Exception ex)

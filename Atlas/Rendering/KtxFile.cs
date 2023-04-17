@@ -156,7 +156,7 @@ namespace SolidCode.Atlas.Rendering
             }
         }
 
-        public static unsafe Veldrid.Texture LoadTexture(
+        public static Veldrid.Texture LoadTexture(
             GraphicsDevice gd,
             ResourceFactory factory,
             byte[] bytes,
@@ -169,7 +169,7 @@ namespace SolidCode.Atlas.Rendering
         }
 
 
-        public static unsafe Veldrid.Texture LoadTexture(
+        public static Veldrid.Texture LoadTexture(
             GraphicsDevice gd,
             ResourceFactory factory,
             string assetPath,

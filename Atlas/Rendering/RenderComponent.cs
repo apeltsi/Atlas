@@ -25,7 +25,7 @@ namespace SolidCode.Atlas.Rendering
         public void OnEnable()
         {
 
-            this.drawables = StartRender(Window._graphicsDevice);
+            this.drawables = StartRender(Window.GraphicsDevice);
             Window.AddDrawables(new List<Drawable>(this.drawables));
         }
     }

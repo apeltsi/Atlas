@@ -8,18 +8,18 @@
     public class Entity
     {
 
-        public string name = "Entity";
+        public string name;
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
         public Entity parent { get; protected set; }
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();
-        private ConcurrentQueue<Entity> childrenToAdd = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> childrenToRemove = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> childrenToDestroy = new ConcurrentQueue<Entity>();
+        private ConcurrentQueue<Entity> _childrenToAdd = new ConcurrentQueue<Entity>();
+        private ConcurrentQueue<Entity> _childrenToRemove = new ConcurrentQueue<Entity>();
+        private ConcurrentQueue<Entity> _childrenToDestroy = new ConcurrentQueue<Entity>();
 
-        private ConcurrentQueue<Component> componentsToAdd = new ConcurrentQueue<Component>();
-        private ConcurrentQueue<Component> componentsToRemove = new ConcurrentQueue<Component>();
+        private ConcurrentQueue<Component> _componentsToAdd = new ConcurrentQueue<Component>();
+        private ConcurrentQueue<Component> _componentsToRemove = new ConcurrentQueue<Component>();
 
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
@@ -75,12 +75,12 @@
             parent = e;
         }
 
-        public Entity? GetChildByName(string name)
+        public Entity? GetChildByName(string childName)
         {
             for (int i = 0; i < this.children.Count; i++)
             {
                 Entity e = this.children[i];
-                if (e.name == name)
+                if (e.name == childName)
                 {
                     return e;
                 }
@@ -108,22 +108,22 @@
 
             Component component = new T();
             component.entity = this;
-            componentsToAdd.Enqueue(component);
+            _componentsToAdd.Enqueue(component);
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
 
             return (T)component;
         }
         public Entity RemoveComponent(Component component)
         {
-            componentsToRemove.Enqueue(component);
+            _componentsToRemove.Enqueue(component);
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
-            Component[] queued_components = componentsToAdd.ToArray();
-            Component[] cur_components = components.ToArray();
-            foreach (Component c in cur_components)
+            Component[] queuedComponents = _componentsToAdd.ToArray();
+            Component[] curComponents = components.ToArray();
+            foreach (Component c in curComponents)
             {
                 if (c == null)
                     continue;
@@ -137,7 +137,7 @@
                 }
             }
             // It is possible, that the component the user is trying to access is still in the queue. lets check if thats the case
-            foreach (Component c in queued_components)
+            foreach (Component c in queuedComponents)
             {
                 if (c == null)
                     continue;
@@ -160,11 +160,11 @@
         /// <returns>
         /// Self
         /// </returns>
-        public Entity AddChildren(params Entity[] children)
+        public Entity AddChildren(params Entity[] childrenToAdd)
         {
-            foreach (Entity e in children)
+            foreach (Entity e in childrenToAdd)
             {
-                childrenToAdd.Enqueue(e);
+                _childrenToAdd.Enqueue(e);
             }
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
@@ -176,11 +176,11 @@
         /// <returns>
         /// Self
         /// </returns>
-        public Entity RemoveChildren(params Entity[] children)
+        public Entity RemoveChildren(params Entity[] childrenToRemove)
         {
-            foreach (Entity e in children)
+            foreach (Entity e in childrenToRemove)
             {
-                childrenToRemove.Enqueue(e);
+                _childrenToRemove.Enqueue(e);
             }
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
@@ -192,11 +192,11 @@
         /// Self
         /// </returns>
 
-        public Entity DestroyChildren(params Entity[] children)
+        public Entity DestroyChildren(params Entity[] childrenToDestroy)
         {
-            foreach (Entity e in children)
+            foreach (Entity e in childrenToDestroy)
             {
-                childrenToDestroy.Enqueue(e);
+                _childrenToDestroy.Enqueue(e);
             }
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
 
@@ -205,10 +205,10 @@
 
         void UpdateComponentsAndChildren()
         {
-            while (childrenToAdd.Count > 0)
+            while (_childrenToAdd.Count > 0)
             {
                 Entity? e;
-                childrenToAdd.TryDequeue(out e);
+                _childrenToAdd.TryDequeue(out e);
                 if (e != null)
                 {
                     if (e.parent != this)
@@ -227,20 +227,20 @@
                 }
             }
 
-            while (childrenToRemove.Count > 0)
+            while (_childrenToRemove.Count > 0)
             {
                 Entity? e;
-                childrenToRemove.TryDequeue(out e);
+                _childrenToRemove.TryDequeue(out e);
                 if (e != null)
                 {
                     children.Remove(e);
                 }
             }
 
-            while (childrenToDestroy.Count > 0)
+            while (_childrenToDestroy.Count > 0)
             {
                 Entity? e;
-                childrenToDestroy.TryDequeue(out e);
+                _childrenToDestroy.TryDequeue(out e);
                 if (e != null)
                 {
                     children.Remove(e);
@@ -249,11 +249,11 @@
                 }
             }
 
-            while (componentsToAdd.Count > 0)
+            while (_componentsToAdd.Count > 0)
             {
 
                 Component? component;
-                componentsToAdd.TryDequeue(out component);
+                _componentsToAdd.TryDequeue(out component);
                 if (component != null)
                 {
                     component.entity = this;
@@ -270,10 +270,10 @@
                 }
             }
 
-            while (componentsToRemove.Count > 0)
+            while (_componentsToRemove.Count > 0)
             {
                 Component? component;
-                componentsToRemove.TryDequeue(out component);
+                _componentsToRemove.TryDequeue(out component);
                 if (component != null)
                 {
                     LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(component.GetType(), typeof(LimitInstanceCountAttribute));

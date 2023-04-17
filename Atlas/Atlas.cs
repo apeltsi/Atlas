@@ -1,4 +1,6 @@
-﻿namespace SolidCode.Atlas
+﻿using System.Diagnostics;
+
+namespace SolidCode.Atlas
 {
     using System.Timers;
     using SolidCode.Atlas.Rendering;
@@ -20,7 +22,7 @@
 
     public static class Atlas
     {
-        public static string ActiveDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+        public static string ActiveDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
         public static string DataDirectory = Path.Join(ActiveDirectory, "data" + Path.DirectorySeparatorChar);
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
@@ -29,12 +31,12 @@
         public static string AppName = "Atlas";
         public const string Version = "marble-soda@1.0";
         public static int TickFrequency = 100;
-        public static Timer timer;
-        internal static System.Diagnostics.Stopwatch primaryStopwatch { get; private set; }
-        internal static System.Diagnostics.Stopwatch ecsStopwatch { get; private set; }
+        public static Timer? timer;
+        internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
+        internal static Stopwatch? ecsStopwatch { get; private set; }
 
-        static Window? w;
-        static bool doTick = true;
+        static Window? _w;
+        static bool _doTick = true;
 
         public static void InitializeLogging()
         {
@@ -71,9 +73,9 @@
 
 
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            w = new Window(windowTitle, flags);
+            _w = new Window(windowTitle, flags);
             Debug.Log(LogCategory.Framework, "Window created after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            EntityComponentSystem.window = w;
+            EntityComponentSystem.window = _w;
             if (timer != null)
                 timer.Stop();
         }
@@ -81,27 +83,27 @@
         public static void Start(Scene defaultScene)
         {
 
-            if (w == null)
+            if (_w == null)
             {
                 throw new NullReferenceException("Window hasn't been created yet!");
             }
             SceneManager.LoadScene(defaultScene);
-            Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch.ElapsedMilliseconds + "ms");
+            Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch?.ElapsedMilliseconds + "ms");
             try
             {
-                w.StartRenderLoop();
+                _w.StartRenderLoop();
             }
             catch (Exception ex)
             {
                 Debug.Error(ex.ToString());
             }
-            doTick = false;
+            _doTick = false;
             AudioManager.Dispose();
             EntityComponentSystem.Dispose();
             AssetManager.Dispose();
 
-            primaryStopwatch.Stop();
-            Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round(primaryStopwatch.ElapsedMilliseconds / 100f) / 10) + "s...");
+            primaryStopwatch?.Stop();
+            Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((primaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");
             Telescope.Debug.Dispose();
         }
 
@@ -115,7 +117,7 @@
         {
             Debug.Log(LogCategory.Framework, "Starting tick loop with a frequency of " + TickFrequency);
             System.Diagnostics.Stopwatch updateDuration = new System.Diagnostics.Stopwatch();
-            while (doTick)
+            while (_doTick)
             {
                 if (TickFrequency == 0 && EntityComponentSystem.HasStarted)
                 {
@@ -134,33 +136,33 @@
                 }
             }
         }
-        private static int ticksThisSecond = 0;
+        private static int _ticksThisSecond = 0;
         public static int TicksPerSecond { get; private set; }
         /// <summary>
         /// Time elapsed between ticks, in seconds.
         /// </summary>
 
-        private static System.Diagnostics.Stopwatch tickCounterStopwatch = new System.Diagnostics.Stopwatch();
-        private static System.Diagnostics.Stopwatch tickDeltaStopwatch = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch TickCounterStopwatch = new System.Diagnostics.Stopwatch();
+        private static readonly System.Diagnostics.Stopwatch TickDeltaStopwatch = new System.Diagnostics.Stopwatch();
         static void RunTick()
         {
-            tickDeltaStopwatch.Stop();
-            Time.tickDeltaTime = tickDeltaStopwatch.Elapsed.TotalSeconds;
-            Time.tickTime = ecsStopwatch.Elapsed.TotalSeconds;
-            if (!tickCounterStopwatch.IsRunning)
+            TickDeltaStopwatch.Stop();
+            Time.tickDeltaTime = TickDeltaStopwatch.Elapsed.TotalSeconds;
+            Time.tickTime = ecsStopwatch!.Elapsed.TotalSeconds;
+            if (!TickCounterStopwatch.IsRunning)
             {
-                tickCounterStopwatch.Start();
+                TickCounterStopwatch.Start();
             }
-            if (tickCounterStopwatch.ElapsedMilliseconds >= 1000)
+            if (TickCounterStopwatch.ElapsedMilliseconds >= 1000)
             {
-                TicksPerSecond = ticksThisSecond;
-                ticksThisSecond = 0;
-                tickCounterStopwatch.Restart();
+                TicksPerSecond = _ticksThisSecond;
+                _ticksThisSecond = 0;
+                TickCounterStopwatch.Restart();
             }
-            System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+            Stopwatch sw = new Stopwatch();
             sw.Start();
-            ticksThisSecond++;
-            tickDeltaStopwatch.Restart();
+            _ticksThisSecond++;
+            TickDeltaStopwatch.Restart();
             Task t = TickScheduler.RequestTick();
             t.Wait();
             if (!ecsStopwatch.IsRunning)
@@ -168,7 +170,7 @@
                 ecsStopwatch.Start();
             }
             EntityComponentSystem.Tick();
-            Telescope.Debug.LiveData = new LiveData(new string[] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime() * 1000, "TPS: " + Atlas.TicksPerSecond }, EntityComponentSystem.GetECSHierarchy());
+            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime() * 1000, "TPS: " + Atlas.TicksPerSecond }, EntityComponentSystem.GetECSHierarchy());
             TickScheduler.FreeThreads();
             sw.Stop();
         }

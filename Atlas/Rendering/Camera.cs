@@ -1,38 +1,41 @@
 namespace SolidCode.Atlas.Components
 {
     using System.Numerics;
-    using SolidCode.Atlas.ECS;
+    using ECS;
     [SingleInstance]
     public class Camera : Component
     {
         /// <summary>The camera position in world space</summary>
-        private static Vector2 Position = Vector2.Zero;
+        private static Vector2 _position = Vector2.Zero;
         /// <summary>The camera "size". Think of this like zoom where a smaller number means that the camera is more zoomed in.</summary>
-        private static Vector2 Scale = Vector2.One;
-        Transform t;
+        private static Vector2 _scale = Vector2.One;
+        private Transform? _t;
 
         public void Start()
         {
-            t = entity.GetComponent<Transform>();
-            Position = t.globalPosition;
-            Scale = t.globalScale;
+            _t = entity?.GetComponent<Transform>();
+            if (_t == null) return;
+            _position = _t.globalPosition;
+            _scale = _t.globalScale;
+            
         }
         public void Update()
         {
-            Position = t.globalPosition;
-            Scale = t.globalScale;
+            if (_t == null) return;
+            _position = _t.globalPosition;
+            _scale = _t.globalScale;
         }
 
         public static Matrix4x4 GetTransformMatrix()
         {
             Matrix4x4 scale = new Matrix4x4(
-                1f / Scale.X, 0, 0, 0,
-                0, 1f / Scale.Y, 0, 0, // NOTE: These are inverted because we "move" the world, not the viewport
+                1f / _scale.X, 0, 0, 0,
+                0, 1f / _scale.Y, 0, 0, // NOTE: These are inverted because we "move" the world, not the viewport
                 0, 0, 1, 0,
                 0, 0, 0, 1);
             Matrix4x4 translate = new Matrix4x4(
-                1f, 0, 0, -Position.X,
-                0, 1f, 0, -Position.Y, // NOTE: These are inverted because we "move" the world, not the viewport
+                1f, 0, 0, -_position.X,
+                0, 1f, 0, -_position.Y, // NOTE: These are inverted because we "move" the world, not the viewport
                 0, 0, 1f, 0,
                 0, 0, 0, 1f);
             return scale * translate;

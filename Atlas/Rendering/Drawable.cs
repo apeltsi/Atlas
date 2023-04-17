@@ -1,8 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
-using SolidCode.Atlas.Telescope;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering
@@ -246,15 +244,15 @@ namespace SolidCode.Atlas.Rendering
             if (vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>())
             {
                 vertexBuffer.Dispose();
-                vertexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
+                vertexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             }
             if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
             {
                 indexBuffer.Dispose();
-                indexBuffer = Window._graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+                indexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             }
-            Window._graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            Window._graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            Window.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            Window.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
         }
 
 
@@ -296,7 +294,7 @@ namespace SolidCode.Atlas.Rendering
         public override void Dispose()
         {
             // Mby this will help with our problem above
-            Window._graphicsDevice.WaitForIdle();
+            Window.GraphicsDevice.WaitForIdle();
             pipeline.Dispose();
 
             vertexBuffer.Dispose();

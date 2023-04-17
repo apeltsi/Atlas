@@ -9,9 +9,17 @@ namespace SolidCode.Atlas.Standard
         private ConcurrentBag<T> toRemove = new ConcurrentBag<T>();
         private ConcurrentBag<T> toAdd = new ConcurrentBag<T>();
 
-        public int Count => throw new NotImplementedException();
+        public int Count
+        {
+            get
+            {
+                lock(list) lock(toAdd) lock (toRemove)
+                    return list.Count + toAdd.Count - toRemove.Count;
+            }
+        }
 
-        public bool IsReadOnly => throw new NotImplementedException();
+
+        public bool IsReadOnly => false;
 
         public void Update()
         {

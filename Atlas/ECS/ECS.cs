@@ -20,14 +20,14 @@ namespace SolidCode.Atlas.ECS
 
 
         public static Window? window;
-        private static ConcurrentQueue<Entity> removeQueue = new ConcurrentQueue<Entity>();
-        private static ConcurrentQueue<Entity> addQueue = new ConcurrentQueue<Entity>();
+        private static ConcurrentQueue<Entity> _removeQueue = new ConcurrentQueue<Entity>();
+        private static ConcurrentQueue<Entity> _addQueue = new ConcurrentQueue<Entity>();
         internal delegate void ComponentMethod();
 
-        private static ConcurrentDictionary<Component, ComponentMethod> UpdateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentDictionary<Component, ComponentMethod> TickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentQueue<ComponentMethod> DirtyEntities = new ConcurrentQueue<ComponentMethod>();
-        private static ConcurrentBag<Component> StartMethods = new ConcurrentBag<Component>();
+        private static ConcurrentDictionary<Component, ComponentMethod> _updateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
+        private static ConcurrentDictionary<Component, ComponentMethod> _tickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
+        private static ConcurrentQueue<ComponentMethod> _dirtyEntities = new ConcurrentQueue<ComponentMethod>();
+        private static ConcurrentBag<Component> _startMethods = new ConcurrentBag<Component>();
 
         public static ConcurrentDictionary<Type, int> InstanceCount = new ConcurrentDictionary<Type, int>();
 
@@ -36,67 +36,70 @@ namespace SolidCode.Atlas.ECS
 
         public static void RemoveEntity(Entity entity)
         {
-            removeQueue.Enqueue(entity);
+            _removeQueue.Enqueue(entity);
         }
         static internal void AddDirtyEntity(ComponentMethod method)
         {
-            DirtyEntities.Enqueue(method);
+            _dirtyEntities.Enqueue(method);
         }
 
         static internal void AddStartMethod(Component c)
         {
-            StartMethods.Add(c);
+            lock (_startMethods)
+            {
+                _startMethods.Add(c);
+            }
         }
 
         static internal void RegisterUpdateMethod(Component c, ComponentMethod method)
         {
-            UpdateMethods.TryAdd(c, method);
+            _updateMethods.TryAdd(c, method);
         }
         static internal void RegisterTickMethod(Component c, ComponentMethod method)
         {
-            TickMethods.TryAdd(c, method);
+            _tickMethods.TryAdd(c, method);
         }
         static internal void UnregisterUpdateMethod(Component c)
         {
-            UpdateMethods.Remove(c, out _);
+            _updateMethods.Remove(c, out _);
         }
         static internal void UnregisterTickMethod(Component c)
         {
-            TickMethods.Remove(c, out _);
+            _tickMethods.Remove(c, out _);
         }
 
 
 
         static void UpdateECS()
         {
-            lock (DirtyEntities)
+            lock (_dirtyEntities)
             {
-                while (DirtyEntities.Count > 0)
+                while (_dirtyEntities.Count > 0)
                 {
                     ComponentMethod? m;
-                    DirtyEntities.TryDequeue(out m);
+                    _dirtyEntities.TryDequeue(out m);
                     if (m != null)
                     {
                         m.Invoke();
                     }
                 }
             }
-            lock (StartMethods)
+            lock (_startMethods)
             {
-                foreach (Component c in StartMethods)
+                foreach (Component c in _startMethods)
                 {
                     c.enabled = true; // This is done so that OnEnable() is called
                     c.TryInvokeMethod("Start");
                     c.isNew = false;
                 }
-                StartMethods.Clear();
+                _startMethods.Clear();
 
             }
 
-            while (removeQueue.Count > 0)
+            while (_removeQueue.Count > 0)
             {
                 Entity? e;
-                removeQueue.TryDequeue(out e);
+                _removeQueue.TryDequeue(out e);
                 if (e != null)
                 {
                     List<Entity> entitiesToRemove = new List<Entity>();
@@ -140,9 +143,9 @@ namespace SolidCode.Atlas.ECS
                 return;
             }
             UpdateECS();
-            lock (UpdateMethods)
+            lock (_updateMethods)
             {
-                foreach (KeyValuePair<Component, ComponentMethod> pair in UpdateMethods)
+                foreach (KeyValuePair<Component, ComponentMethod> pair in _updateMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
                     try
@@ -164,9 +167,9 @@ namespace SolidCode.Atlas.ECS
                 HasStarted = true;
             }
             UpdateECS();
-            lock (TickMethods)
+            lock (_tickMethods)
             {
-                foreach (KeyValuePair<Component, ComponentMethod> pair in TickMethods)
+                foreach (KeyValuePair<Component, ComponentMethod> pair in _tickMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
                     if (pair.Key.isNew)

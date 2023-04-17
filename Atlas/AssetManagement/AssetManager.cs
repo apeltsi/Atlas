@@ -107,7 +107,7 @@ namespace SolidCode.Atlas.AssetManagement
             }
 
             T a = new T();
-            lock (Window._graphicsDevice)
+            lock (Window.GraphicsDevice)
             {
                 a.Load(path, Path.GetFileName(path));
             }
@@ -116,7 +116,7 @@ namespace SolidCode.Atlas.AssetManagement
         public static T? LoadAssetToMemory<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
         {
             T a = new T();
-            lock (Window._graphicsDevice)
+            lock (Window.GraphicsDevice)
             {
                 a.FromStreams(streams, Path.GetFileName(path));
             }

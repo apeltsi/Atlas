@@ -5,8 +5,8 @@ namespace SolidCode.Atlas.Input
 {
     public static class InputManager
     {
-        private static List<Key> keys = new List<Key>();
-        private static List<Key> downKeys = new List<Key>();
+        private static List<Key> keys = new();
+        private static List<Key> downKeys = new();
         public static float WheelDelta { get; internal set; }
         public static void ClearInputs()
         {
@@ -40,8 +40,8 @@ namespace SolidCode.Atlas.Input
         }
     }
     public abstract class Input<T> {
-        public Dictionary<Veldrid.Key, T> keyboardContributors = new Dictionary<Key, T>();
-        public Dictionary<Veldrid.Sdl2.SDL_GameControllerAxis, T> axisContributors = new Dictionary<Veldrid.Sdl2.SDL_GameControllerAxis, T>();
+        public Dictionary<Key, T> keyboardContributors = new();
+        public Dictionary<Veldrid.Sdl2.SDL_GameControllerAxis, T> axisContributors = new();
         public abstract T Evaluate();
     }
     public class Action : Input<bool> {
