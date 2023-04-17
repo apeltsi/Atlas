@@ -2,7 +2,34 @@ namespace SolidCode.Atlas.Audio
 {
     using System.Diagnostics;
     using OpenTK.Audio.OpenAL;
-    using SolidCode.Atlas.Telescope;
+    
+    public struct PlaybackSettings
+    {
+        public float? Volume;
+        public float? Pitch;
+        public PlaybackSettings(float volume)
+        {
+            this.Volume = volume;
+            this.Pitch = 1f;
+        }
+        public PlaybackSettings(float volume, float pitch)
+        {
+            this.Volume = volume;
+            this.Pitch = pitch;
+        }
+
+        internal void SetDefaults()
+        {
+            if (Volume == null) Volume = 1f;
+            if (Pitch == null) Pitch = 1f;
+        }
+
+        public override string ToString()
+        {
+            return $"Volume: {Volume}, Pitch {Pitch}";
+        }
+    }
+    
     public static class AudioManager
     {
         internal static ALContext context;
@@ -52,14 +79,32 @@ namespace SolidCode.Atlas.Audio
             }
         }
 
-        public static PlayingAudio? PlayOneShot(AudioTrack track, float volume = 1f)
+        /// <summary>
+        /// Plays the given track once, with the given volume
+        /// </summary>
+        /// <param name="track">The track to play</param>
+        /// <param name="volume">The volume</param>
+        /// <returns>The currently playing audio as <c>PlayingAudio</c> if successful</returns>
+        public static PlayingAudio? Play(AudioTrack track, float volume)
+        {
+            return Play(track, new PlaybackSettings(volume));
+        }
+        /// <summary>
+        /// Plays the given track once, with <c>PlaybackSettings</c> if provided.
+        /// </summary>
+        /// <param name="track">The track to play</param>
+        /// <param name="settings">The settings </param>
+        /// <returns>The currently playing audio as <c>PlayingAudio</c> if successful</returns>
+        public static PlayingAudio? Play(AudioTrack track, PlaybackSettings settings = new PlaybackSettings())
         {
             if (track == null) return null;
+            settings.SetDefaults();
             lock (AudioLock)
             {
                 int source = AL.GenSource();
                 AL.Source(source, ALSourcei.Buffer, track.Buffer);
-                AL.Source(source, ALSourcef.Gain, volume);
+                AL.Source(source, ALSourcef.Gain, settings.Volume!.Value);
+                AL.Source(source, ALSourcef.Pitch, settings.Pitch!.Value);
                 AL.SourcePlay(source);
                 PlayingAudio p = new PlayingAudio(track, source);
                 RemoveSource(source, (float)track.Duration);
