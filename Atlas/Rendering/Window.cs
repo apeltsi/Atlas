@@ -545,10 +545,8 @@ namespace SolidCode.Atlas.Rendering
                 {
                     _postProcess[i].Dispose();
                 }
-            }
-            _postProcess = new PostProcessStep[4];
-            if (DoPostProcess)
-            {
+                
+                _postProcess = new PostProcessStep[4];
                 _postProcess[0] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView }, "post/bright/shader", _framebuffers[0]);
                 _postProcess[1] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[0] }, "post/blur_horizontal/shader", _framebuffers[1]);
                 _postProcess[2] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[1] }, "post/blur_vertical/shader", _framebuffers[2]);
