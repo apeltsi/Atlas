@@ -55,8 +55,13 @@ namespace SolidCode.Atlas.Rendering
             }
             set
             {
+                string modifiedTitle = value;
+#if DEBUG
+                modifiedTitle += " | Atlas/" + Atlas.Version + " | Telescope Active";
+#endif
+
                 if (_window != null)
-                    _window.Title = value + " | Atlas/" + Atlas.Version;
+                    _window.Title = modifiedTitle;
             }
         }
 
@@ -168,13 +173,17 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
+            string modifiedTitle = title;
+#if DEBUG
+            modifiedTitle += " | Atlas/" + Atlas.Version + " | Telescope Active";
+#endif
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
                 X = AMath.RoundToInt(_position.X),
                 Y = AMath.RoundToInt(_position.Y),
                 WindowWidth = AMath.RoundToInt(_size.X),
                 WindowHeight = AMath.RoundToInt(_size.Y),
-                WindowTitle = title + " | Atlas/" + Atlas.Version,
+                WindowTitle = modifiedTitle,
                 WindowInitialState = WindowState.Hidden
             };
 
