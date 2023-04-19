@@ -4,6 +4,19 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace SolidCode.Atlas.Telescope;
+public class LiveData
+{
+    public string type { get; set; }
+    public ECSElement hierarchy { get; set; }
+    public string[] globalData { get; set; }
+
+    public LiveData(string[] globalData, ECSElement hierarchy)
+    {
+        this.type = "livedata";
+        this.hierarchy = hierarchy;
+        this.globalData = globalData;
+    }
+}
 
 public static class Debug
 {

@@ -1,7 +1,6 @@
-#if DEBUG
 namespace SolidCode.Atlas.Telescope;
 
-
+#if DEBUG
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -10,7 +9,6 @@ using WebSocketSharp.Server;
 using System.Text.Json;
 using System.Timers;
 using System.Collections.Concurrent;
-
 class Log
 {
     public string type { get; set; }
@@ -23,19 +21,7 @@ class Log
         this.content = content;
     }
 }
-public class LiveData
-{
-    public string type { get; set; }
-    public ECSElement hierarchy { get; set; }
-    public string[] globalData { get; set; }
 
-    public LiveData(string[] globalData, ECSElement hierarchy)
-    {
-        this.type = "livedata";
-        this.hierarchy = hierarchy;
-        this.globalData = globalData;
-    }
-}
 class ProfilerData
 {
     public string type { get; set; }
