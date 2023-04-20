@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -31,40 +32,60 @@ public static class Debug
     {
         actions.Remove(name);
     }
+
+    public static void UseMultiProcessDebugging(string version)
+    {
+        var exists = System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1;
+        if (exists)
+        {
+            // We're the child process. So we get the exiting job of actually doing the work!
+            return;
+        }
+        else
+        {
+            Console.WriteLine("Multi Process Debugging is Active");
+            // We're the parent process. So we get the exiting job of spawning the child process! (and doing important debugger stuff)
+            // Get the path of the current executable
+            string currentExePath = Process.GetCurrentProcess().MainModule.FileName;
+
+            // Configure and start a new process with the same path
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                FileName = currentExePath,
+                UseShellExecute = false,
+                CreateNoWindow = false,
+                RedirectStandardOutput = true
+            };
+            FileLogs.InitializeFileLogs(version);
+            Process childProcess = Process.Start(startInfo);
+            childProcess.BeginOutputReadLine();
+            childProcess.OutputDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    Console.WriteLine(args.Data);
+                    FileLogs.DoLog(args.Data);
+                }
+            };
+            
+            while (!childProcess.HasExited)
+            {
+                Thread.Sleep(1000);
+            }
+            FileLogs.Dispose();
+            Environment.Exit(0);
+        }
+    }
+    
     public static List<string> Categories;
-    private static ConcurrentQueue<string> logItems = new ConcurrentQueue<string>();
     private static bool logsEnabled = false;
 #if DEBUG
     private static DebugServer? ds;
 #endif
-    public static void StartLogs(string[] categories, string version)
+    public static void StartLogs(string[] categories)
     {
         Categories = categories.ToList<string>();
-        if (!Directory.Exists("Logs"))
-        {
-            Directory.CreateDirectory("logs");
-        }
-
-        using (StreamWriter writer = new StreamWriter("logs/All.log"))
-        {
-            writer.WriteLine("ENGINE_VERSION: " + version);
-            writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
-        }
-
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("LogViewer.html"))))
-        {
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string result = reader.ReadToEnd();
-                using (StreamWriter writer = new StreamWriter("logs/logs.html"))
-                {
-                    writer.Write(result);
-                    writer.WriteLine("ENGINE_VERSION: " + version);
-                    writer.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
-                }
-            }
-        }
+        
 #if DEBUG
         try
         {
@@ -79,72 +100,23 @@ public static class Debug
         }
 #endif
         logsEnabled = true;
-        Thread t = new Thread(new ThreadStart(UpdateLogs));
-        t.Name = "Debug Logging";
-        t.Start();
+        
     }
-
-    public static void UpdateLogs()
-    {
-        Console.WriteLine("Log started");
-        while (logsEnabled)
-        {
-            if (logItems.Count > 0)
-            {
-                WriteLogBuffer();
-            }
-            Thread.Sleep(10);
-        }
-    }
-
-    static void LogToFileAndConsole(string prefix, string log, string category = "")
+    
+    static void PerformLog(string prefix, string log, string category = "")
     {
         if (category == "" || !Categories.Contains(category))
         {
             category = Categories[0];
         }
         string logtext = GetTimestamp() + " " + prefix + " " + category + " > " + log;
-        logItems.Enqueue(logtext);
-    }
-
-    static void WriteLogBuffer()
-    {
-        Queue<string> queue = new Queue<string>(logItems);
-        logItems.Clear();
-        foreach (string logtext in queue)
-        {
-            Console.WriteLine(logtext);
-            if (!Directory.Exists("Logs"))
-            {
-                Directory.CreateDirectory("logs");
-            }
-            try
-            {
-                using (StreamWriter writer = new StreamWriter("logs/All.log", true))
-                {
-                    writer.WriteLine(logtext);
-                }
-            }
-            catch (Exception e)
-            {
-            }
-            try
-            {
-                using (StreamWriter writer = new StreamWriter("logs/logs.html", true))
-                {
-                    writer.WriteLine(logtext);
-                }
-            }
-            catch (Exception e)
-            {
-            }
+        Console.WriteLine(logtext);
 #if DEBUG
-            if (ds != null)
+        if(ds != null)
+            lock(ds)
                 ds.Log(logtext);
 #endif
-        }
     }
-
 
     public static void Log<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
     {
@@ -155,7 +127,7 @@ public static class Debug
             Error(0, "(Telescope) Invalid category: " + category);
         }
         Console.ForegroundColor = ConsoleColor.White;
-        LogToFileAndConsole("[INFO]", String.Join(" ", log), Categories[index]);
+        PerformLog("[INFO]", String.Join(" ", log), Categories[index]);
         Console.ResetColor();
     }
     public static void Warning<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
@@ -167,7 +139,7 @@ public static class Debug
             Error(0, "(Telescope) Invalid category: " + category);
         }
         Console.ForegroundColor = ConsoleColor.Yellow;
-        LogToFileAndConsole("[WARN]", String.Join(" ", log), Categories[index]);
+        PerformLog("[WARN]", String.Join(" ", log), Categories[index]);
         Console.ResetColor();
     }
 
@@ -180,7 +152,7 @@ public static class Debug
             Error(0, "(Telescope) Invalid category: " + category);
         }
         Console.ForegroundColor = ConsoleColor.Red;
-        LogToFileAndConsole("[ERROR]", String.Join(" ", log), Categories[index]);
+        PerformLog("[ERROR]", String.Join(" ", log), Categories[index]);
         Console.ResetColor();
     }
 
@@ -193,7 +165,7 @@ public static class Debug
     public static void Dispose()
     {
         logsEnabled = false;
-        WriteLogBuffer();
+        
 
         actions = new Dictionary<string, TelescopeAction>();
 #if DEBUG

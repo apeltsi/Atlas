@@ -40,7 +40,8 @@ namespace SolidCode.Atlas
 
         public static void InitializeLogging()
         {
-            Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" }, Version);
+            Telescope.Debug.UseMultiProcessDebugging(Version);
+            Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
         }
