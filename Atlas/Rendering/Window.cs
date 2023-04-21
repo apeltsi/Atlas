@@ -524,9 +524,9 @@ namespace SolidCode.Atlas.Rendering
             DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
 
             // A texture with all the bright pixels
-            _colorTextures = new Veldrid.Texture[3];
-            ColorViews = new Veldrid.TextureView[3];
-            _framebuffers = new Veldrid.Framebuffer[3];
+            _colorTextures = new Veldrid.Texture[2];
+            ColorViews = new Veldrid.TextureView[2];
+            _framebuffers = new Veldrid.Framebuffer[2];
 
             _colorTextures[0] = factory.CreateTexture(mainColorDesc);
             ColorViews[0] = factory.CreateTextureView(_colorTextures[0]);
@@ -542,11 +542,6 @@ namespace SolidCode.Atlas.Rendering
             _framebuffers[1] = factory.CreateFramebuffer(ref desc2);
 
 
-            _colorTextures[2] = factory.CreateTexture(mainColorDesc);
-            ColorViews[2] = factory.CreateTextureView(_colorTextures[2]);
-            FramebufferDescription desc3 = new FramebufferDescription(null, _colorTextures[2]);
-
-            _framebuffers[2] = factory.CreateFramebuffer(desc3);
 
             if (DoPostProcess)
             {
@@ -555,11 +550,10 @@ namespace SolidCode.Atlas.Rendering
                     _postProcess[i].Dispose();
                 }
                 
-                _postProcess = new PostProcessStep[4];
+                _postProcess = new PostProcessStep[3];
                 _postProcess[0] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView }, "post/bright/shader", _framebuffers[0]);
-                _postProcess[1] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[0] }, "post/blur_horizontal/shader", _framebuffers[1]);
-                _postProcess[2] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[1] }, "post/blur_vertical/shader", _framebuffers[2]);
-                _postProcess[3] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[2] }, "post/combine/shader");
+                _postProcess[1] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[0] }, "post/kawase/shader", _framebuffers[1]);
+                _postProcess[2] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[1] }, "post/combine/shader");
             }
         }
 
