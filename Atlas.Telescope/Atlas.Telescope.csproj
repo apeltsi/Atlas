@@ -2,9 +2,11 @@
 
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>SolidCode.Atlas.Telescope</RootNamespace>
+    <AssemblyName>SolidCode.Atlas.Telescope</AssemblyName>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
         <EmbeddedResource Include="debugger\dist\LogViewer.html" />

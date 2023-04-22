@@ -33,11 +33,29 @@ public static class Debug
         actions.Remove(name);
     }
 
+    private static bool ArgsIncludeString(string arg)
+    {
+        foreach (var argument in Environment.GetCommandLineArgs())
+        {
+            if (arg.ToLower() == argument.ToLower())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+    
     public static void UseMultiProcessDebugging(string version)
     {
         var exists = System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1;
-        if (exists)
+        bool disable = ArgsIncludeString("--disable-multi-process-debugging");
+        if (exists || disable)
         {
+            if (disable)
+            {
+                Console.WriteLine("Multi Process Debugging is Disabled!");
+            }
             // We're the child process. So we get the exiting job of actually doing the work!
             return;
         }

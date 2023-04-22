@@ -122,7 +122,7 @@ namespace SolidCode.Atlas.Rendering
             }
             if (sampler == null)
             {
-                sampler = _graphicsDevice.Aniso4xSampler;
+                sampler = _graphicsDevice.LinearSampler;
             }
             this._textureAssets = textures;
             this.sampler = sampler;
@@ -209,7 +209,7 @@ namespace SolidCode.Atlas.Rendering
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
 
-            pipelineDescription.Outputs = Window.DuplicatorFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[1 + _textures.Count * 2];
             buffers[0] = transformBuffer;

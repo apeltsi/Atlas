@@ -259,7 +259,7 @@ namespace SolidCode.Atlas.Rendering
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
 
-            pipelineDescription.Outputs = Window.DuplicatorFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;

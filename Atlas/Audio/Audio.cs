@@ -57,11 +57,7 @@ namespace SolidCode.Atlas.Audio
             lock (AudioLock)
             {
                 List<string> devices = ALC.GetString(AlcGetStringList.AllDevicesSpecifier);
-                SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "Available devices: ");
-                for (int i = 0; i < devices.Count; i++)
-                {
-                    SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, " - " + devices[i]);
-                }
+              
                 unsafe
                 {
                     device = ALC.OpenDevice(null);

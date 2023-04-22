@@ -7,6 +7,7 @@ using Veldrid.StartupUtilities;
 using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.AssetManagement;
+using SolidCode.Atlas.Rendering.PostProcess;
 using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.Rendering
@@ -21,17 +22,21 @@ namespace SolidCode.Atlas.Rendering
         private static Sdl2Window? _window;
         private Matrix4x4 _windowScalingMatrix;
         public static int MaxFramerate { get; set; }
-        public static Framebuffer DuplicatorFramebuffer { get; protected set; }
+        public static Framebuffer PrimaryFramebuffer { get; protected set; }
         private Veldrid.Texture _mainColorTexture;
-        private Veldrid.Texture _mainSceneResolvedColorTexture;
-        public static TextureView MainSceneResolvedColorView { get; protected set; }
-        private Veldrid.Texture[] _colorTextures = new Veldrid.Texture[0];
-        public static TextureView[] ColorViews = new TextureView[0];
-        private Framebuffer[] _framebuffers = new Framebuffer[0];
+        private static TextureView? _mainColorView;
+        private static ShaderPass? _resolvePass;
+        private static TextureView? _finalTextureView;
+
         public static Vector2 MousePosition = Vector2.Zero;
         public static RgbaFloat ClearColor = RgbaFloat.Black;
+        
+        // Post Process
         public static bool DoPostProcess = true;
-        private PostProcessStep[] _postProcess = new PostProcessStep[0];
+        public static List<PostProcessEffect> PostProcessEffects { get; protected set; } = new();
+        
+        public static TextureDescription MainTextureDescription { get; protected set; }
+        
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
@@ -203,18 +208,13 @@ namespace SolidCode.Atlas.Rendering
 #endif
 
             _windowScalingMatrix = GetScalingMatrix(_window.Width, _window.Height);
-            GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
+            GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, GraphicsBackend.Direct3D11);
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + GraphicsDevice.BackendType.ToString());
-
+            PostProcessEffects.Add(new BloomEffect());
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("atlas");
             builtinAssets.LoadAtlasAssetpack();
 
-            if (GraphicsDevice.BackendType == GraphicsBackend.Vulkan)
-            {
-                DoPostProcess = false;
-                Debug.Warning(LogCategory.Rendering, "Post-Processing support for Vulkan has not been implemented yet.");
-            }
             _window.Resized += () =>
             {
                 GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
@@ -243,6 +243,9 @@ namespace SolidCode.Atlas.Rendering
         }
 
         private System.Diagnostics.Stopwatch _renderTimeStopwatch = new System.Diagnostics.Stopwatch();
+        private Veldrid.Texture _resolvedTexture;
+        private TextureView _resolvedTextureView;
+
         internal void StartRenderLoop()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -383,13 +386,7 @@ namespace SolidCode.Atlas.Rendering
             }
             _drawables.AddSorted<Drawable>(d);
         }
-
-
-        public static CommandList GetCommandList()
-        {
-            return _commandList;
-        }
-
+        
         public void Draw()
         {
             if (GraphicsDevice == null) return;
@@ -412,19 +409,11 @@ namespace SolidCode.Atlas.Rendering
             // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
             ResourceFactory factory = GraphicsDevice.ResourceFactory;
             _commandList.Begin();
-            // Lets start by clearing all of our frame-buffers
-            for (int i = 0; i < _framebuffers.Length; i++)
-            {
-                _commandList.SetFramebuffer(_framebuffers[i]);
-                _commandList.ClearColorTarget(0, RgbaFloat.Clear);
-            }
-            // Before we can issue a Draw command, we need to set a Framebuffer.
-            if (!DoPostProcess)
-                _commandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
-            else
-                _commandList.SetFramebuffer(DuplicatorFramebuffer);
 
-            // At the beginning of every frame, we clear the screen to black. In a static scene, this is not really necessary, but I will do it anyway for demonstration.
+            // Before we can issue a Draw command, we need to set a Framebuffer.
+            _commandList.SetFramebuffer(PrimaryFramebuffer);
+
+            // At the beginning of every frame, we clear the screen to black. 
             _commandList.ClearColorTarget(0, ClearColor);
 
             // First we have to sort our drawables in order to perform the back-to-front render pass
@@ -439,17 +428,20 @@ namespace SolidCode.Atlas.Rendering
                 drawable.SetScreenSize(GraphicsDevice, new Vector2(_window?.Width ?? 0, _window?.Height ?? 0));
                 drawable.Draw(_commandList);
             }
+            _commandList.InsertDebugMarker("Begin Post-Process");
             if (DoPostProcess)
             {
-                _commandList.ResolveTexture(_mainColorTexture, _mainSceneResolvedColorTexture);
-
-                _commandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
-                for (int i = 0; i < _postProcess.Length; i++)
+                foreach (var effect in PostProcessEffects)
                 {
-                    _postProcess[i].Draw(_commandList);
+                    effect.Draw(_commandList);
                 }
-
             }
+            _commandList.InsertDebugMarker("Resolving Texture");
+            _commandList.ResolveTexture(_finalTextureView.Target, _resolvedTexture);
+            _commandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
+            _commandList.InsertDebugMarker("Final Resolve shader");
+            
+            _resolvePass.Draw(_commandList);
             _commandList.End();
             TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 
@@ -482,79 +474,70 @@ namespace SolidCode.Atlas.Rendering
             {
                 _mainColorTexture.Dispose();
             }
-            if (_mainSceneResolvedColorTexture is { IsDisposed: false })
+            
+            if (PrimaryFramebuffer is { IsDisposed: false })
             {
-                _mainSceneResolvedColorTexture.Dispose();
+                PrimaryFramebuffer.Dispose();
             }
-            if (DuplicatorFramebuffer is { IsDisposed: false })
+
+
+            if (_mainColorView is { IsDisposed: false })
             {
-                DuplicatorFramebuffer.Dispose();
+                _mainColorView.Dispose();
             }
-            if (MainSceneResolvedColorView is { IsDisposed: false })
+
+            _resolvePass?.Dispose();
+            if(_resolvedTexture is { IsDisposed: false })
             {
-                MainSceneResolvedColorView.Dispose();
+                _resolvedTexture.Dispose();
             }
-            for (int i = 0; i < _colorTextures.Length; i++)
+            if(_resolvedTextureView is { IsDisposed: false })
             {
-                _colorTextures[i].Dispose();
+                _resolvedTextureView.Dispose();
             }
-            for (int i = 0; i < ColorViews.Length; i++)
-            {
-                ColorViews[i].Dispose();
-            }
-            for (int i = 0; i < _framebuffers.Length; i++)
-            {
-                _framebuffers[i].Dispose();
-            }
-            TextureDescription mainColorDesc = TextureDescription.Texture2D(
+            
+            MainTextureDescription = TextureDescription.Texture2D(
                 GraphicsDevice.SwapchainFramebuffer.Width,
                 GraphicsDevice.SwapchainFramebuffer.Height,
                 1,
                 1,
-                DoPostProcess ? PixelFormat.R16_G16_B16_A16_Float : GraphicsDevice.MainSwapchain.Framebuffer.ColorTargets[0].Target.Format,
-                TextureUsage.RenderTarget | TextureUsage.Sampled,
-            DoPostProcess ? TextureSampleCount.Count2 : TextureSampleCount.Count1);
+                PixelFormat.R16_G16_B16_A16_Float,
+                TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count2);
 
-            _mainColorTexture = factory.CreateTexture(mainColorDesc);
-
-            mainColorDesc.SampleCount = TextureSampleCount.Count1; // Reset the sample count for the target texture (the texture that is rendered on screen cant be multisampled)
-            _mainSceneResolvedColorTexture = factory.CreateTexture(ref mainColorDesc);
-            MainSceneResolvedColorView = factory.CreateTextureView(_mainSceneResolvedColorTexture);
+            _mainColorTexture = factory.CreateTexture(MainTextureDescription);
+            _mainColorTexture.Name = "Primary Color Texture";
+            _mainColorView = factory.CreateTextureView(_mainColorTexture);
+            _mainColorView.Name = "Primary Color Texture View";
             FramebufferDescription fbDesc = new FramebufferDescription(null, _mainColorTexture);
-            DuplicatorFramebuffer = factory.CreateFramebuffer(ref fbDesc);
-
-            // A texture with all the bright pixels
-            _colorTextures = new Veldrid.Texture[2];
-            ColorViews = new Veldrid.TextureView[2];
-            _framebuffers = new Veldrid.Framebuffer[2];
-
-            _colorTextures[0] = factory.CreateTexture(mainColorDesc);
-            ColorViews[0] = factory.CreateTextureView(_colorTextures[0]);
-            FramebufferDescription desc = new FramebufferDescription(null, _colorTextures[0]);
-
-            _framebuffers[0] = factory.CreateFramebuffer(ref desc);
-
-
-            _colorTextures[1] = factory.CreateTexture(mainColorDesc);
-            ColorViews[1] = factory.CreateTextureView(_colorTextures[1]);
-            FramebufferDescription desc2 = new FramebufferDescription(null, _colorTextures[1]);
-
-            _framebuffers[1] = factory.CreateFramebuffer(ref desc2);
-
-
+            PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
+            PrimaryFramebuffer.Name = "Primary Framebuffer";
+            
+            TextureDescription resolvedDescription = TextureDescription.Texture2D(
+                GraphicsDevice.SwapchainFramebuffer.Width,
+                GraphicsDevice.SwapchainFramebuffer.Height,
+                1,
+                1,
+                GraphicsDevice.SwapchainFramebuffer.OutputDescription.ColorAttachments[0].Format,
+                TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
+            _resolvedTexture = factory.CreateTexture(ref resolvedDescription);
+            _resolvedTexture.Name = "Resolved Texture";
+            _resolvedTextureView = factory.CreateTextureView(_resolvedTexture);
+            _resolvedTextureView.Name = "Resolved Texture View";
+            TextureView previousView = _mainColorView;
 
             if (DoPostProcess)
             {
-                for (int i = 0; i < _postProcess.Length; i++)
+                foreach (var effect in PostProcessEffects)
                 {
-                    _postProcess[i].Dispose();
+                    effect.Dispose();
+                    previousView = effect.CreateResources(previousView);
                 }
-                
-                _postProcess = new PostProcessStep[3];
-                _postProcess[0] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView }, "post/bright/shader", _framebuffers[0]);
-                _postProcess[1] = new PostProcessStep(GraphicsDevice, new[] { ColorViews[0] }, "post/kawase/shader", _framebuffers[1]);
-                _postProcess[2] = new PostProcessStep(GraphicsDevice, new[] { MainSceneResolvedColorView, ColorViews[1] }, "post/combine/shader");
             }
+
+            _finalTextureView = previousView;
+
+            _resolvePass = new ShaderPass("post/resolve/shader");
+            _resolvePass.CreateResources(GraphicsDevice.MainSwapchain.Framebuffer, new []{_finalTextureView});
         }
 
         private void DisposeResources()
@@ -566,29 +549,17 @@ namespace SolidCode.Atlas.Rendering
                 drawable.Dispose();
             }
             _mainColorTexture.Dispose();
-            _mainSceneResolvedColorTexture.Dispose();
-            MainSceneResolvedColorView.Dispose();
+            _mainColorView?.Dispose();
             _commandList.Dispose();
+            _resolvePass?.Dispose();
+            _resolvedTexture.Dispose();
+            _resolvedTextureView.Dispose();
             GraphicsDevice.Dispose();
-            
-            for (int i = 0; i < _postProcess.Length; i++)
+            foreach (var effect in PostProcessEffects)
             {
-                _postProcess[i].Dispose();
+                effect.Dispose();
             }
 
-            _postProcess = new PostProcessStep[0];
-            for (int i = 0; i < _colorTextures.Length; i++)
-            {
-                _colorTextures[i].Dispose();
-            }
-            for (int i = 0; i < ColorViews.Length; i++)
-            {
-                ColorViews[i].Dispose();
-            }
-            for (int i = 0; i < _framebuffers.Length; i++)
-            {
-                _framebuffers[i].Dispose();
-            }
 
             Debug.Log(LogCategory.Rendering, "Disposed all resources");
         }
