@@ -14,8 +14,8 @@ void main()
     if(brightness < 0.7) {
         discard;
     }
-    color -= vec4(0.75, 0.75, 0.75, 0);
-    color *= 2;
+    color *= color.a;
+    color -= vec4(0.5, 0.5, 0.5, 0);
     color.a = 1;
     fsout_Color = color;
 }
