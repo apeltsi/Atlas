@@ -8,7 +8,6 @@ namespace SolidCode.Atlas.Audio
     {
         public AudioTrack()
         {
-            Debug.Log(LogCategory.Framework, "Generating Buffer");
 
         }
 
