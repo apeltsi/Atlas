@@ -101,25 +101,18 @@ public class ShaderPass : PostProcessPass
                 scissorTestEnabled: false);
 
             pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
-            pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
             
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { _mesh.VertexLayout },
                 shaders: shader.shaders);
             
             pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
-            
-            
-            if (targetBuffer == null)
-            {
-                pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
-                targetBuffer = Window.PrimaryFramebuffer;
-            }
-            else
-            {
-                pipelineDescription.Outputs = targetBuffer.OutputDescription;
-            }
 
+
+            targetBuffer ??= Window.PrimaryFramebuffer;
+            
+            pipelineDescription.Outputs = targetBuffer.OutputDescription;
+        
             _targetBuffer = targetBuffer;
             _pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[textureViews.Length + 1];
@@ -158,5 +151,6 @@ public class ShaderPass : PostProcessPass
         _vertexBuffer?.Dispose();
         _indexBuffer?.Dispose();
         _pipeline?.Dispose();
+        _uniformSet?.Dispose();
     }
 }

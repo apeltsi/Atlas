@@ -33,6 +33,7 @@ namespace SolidCode.Atlas.Rendering
         
         // Post Process
         public static bool DoPostProcess = true;
+        public static TextureSampleCount SampleCount = TextureSampleCount.Count1;
         public static List<PostProcessEffect> PostProcessEffects { get; protected set; } = new();
         
         public static TextureDescription MainTextureDescription { get; protected set; }
@@ -47,7 +48,7 @@ namespace SolidCode.Atlas.Rendering
         private static bool _reloadShaders = false;
         private static ConcurrentBag<Drawable> _drawablesToAdd = new();
         private static ConcurrentBag<Drawable> _drawablesToRemove = new();
-
+        private static TextureView? _downSampledTextureView;
         public static string Title
         {
             get
@@ -191,7 +192,7 @@ namespace SolidCode.Atlas.Rendering
                 WindowTitle = modifiedTitle,
                 WindowInitialState = WindowState.Hidden
             };
-
+            
             _window = CreateWindow.CreateWindowWithFlags(ref windowCI, flags);
             // Setup graphics device
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
@@ -208,7 +209,16 @@ namespace SolidCode.Atlas.Rendering
 #endif
 
             _windowScalingMatrix = GetScalingMatrix(_window.Width, _window.Height);
-            GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, GraphicsBackend.Direct3D11);
+            GraphicsBackend? preferred = null;
+            if (Atlas.StartupArgumentExists("--use-dx"))
+                preferred = GraphicsBackend.Direct3D11;
+            if (Atlas.StartupArgumentExists("--use-vk"))
+                preferred = GraphicsBackend.Vulkan;
+            if(preferred != null)
+                GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, preferred!.Value);
+            else 
+                GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
+            
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + GraphicsDevice.BackendType.ToString());
             PostProcessEffects.Add(new BloomEffect());
             // We have to load our builtin shaders now
@@ -243,8 +253,6 @@ namespace SolidCode.Atlas.Rendering
         }
 
         private System.Diagnostics.Stopwatch _renderTimeStopwatch = new System.Diagnostics.Stopwatch();
-        private Veldrid.Texture _resolvedTexture;
-        private TextureView _resolvedTextureView;
 
         internal void StartRenderLoop()
         {
@@ -387,7 +395,7 @@ namespace SolidCode.Atlas.Rendering
             _drawables.AddSorted<Drawable>(d);
         }
         
-        public void Draw()
+        private void Draw()
         {
             if (GraphicsDevice == null) return;
 #if DEBUG
@@ -436,11 +444,12 @@ namespace SolidCode.Atlas.Rendering
                     effect.Draw(_commandList);
                 }
             }
-            _commandList.InsertDebugMarker("Resolving Texture");
-            _commandList.ResolveTexture(_finalTextureView.Target, _resolvedTexture);
-            _commandList.SetFramebuffer(GraphicsDevice.MainSwapchain.Framebuffer);
             _commandList.InsertDebugMarker("Final Resolve shader");
-            
+            // If we're using multi-sampling we need to resolve the texture first
+            if (SampleCount != TextureSampleCount.Count1)
+            {
+                _commandList.ResolveTexture(_finalTextureView.Target, _downSampledTextureView.Target);
+            }
             _resolvePass.Draw(_commandList);
             _commandList.End();
             TickScheduler.FreeThreads(); // Everything we need should now be free for use!
@@ -486,15 +495,17 @@ namespace SolidCode.Atlas.Rendering
                 _mainColorView.Dispose();
             }
 
+            if (_downSampledTextureView != null && _downSampledTextureView.Target is { IsDisposed: false })
+            {
+                _downSampledTextureView.Target.Dispose();
+            }
+            
+            if(_downSampledTextureView is { IsDisposed: false })
+            {
+                _downSampledTextureView.Dispose();
+            }
+            
             _resolvePass?.Dispose();
-            if(_resolvedTexture is { IsDisposed: false })
-            {
-                _resolvedTexture.Dispose();
-            }
-            if(_resolvedTextureView is { IsDisposed: false })
-            {
-                _resolvedTextureView.Dispose();
-            }
             
             MainTextureDescription = TextureDescription.Texture2D(
                 GraphicsDevice.SwapchainFramebuffer.Width,
@@ -502,7 +513,7 @@ namespace SolidCode.Atlas.Rendering
                 1,
                 1,
                 PixelFormat.R16_G16_B16_A16_Float,
-                TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count2);
+                TextureUsage.RenderTarget | TextureUsage.Sampled, SampleCount);
 
             _mainColorTexture = factory.CreateTexture(MainTextureDescription);
             _mainColorTexture.Name = "Primary Color Texture";
@@ -512,17 +523,6 @@ namespace SolidCode.Atlas.Rendering
             PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
             PrimaryFramebuffer.Name = "Primary Framebuffer";
             
-            TextureDescription resolvedDescription = TextureDescription.Texture2D(
-                GraphicsDevice.SwapchainFramebuffer.Width,
-                GraphicsDevice.SwapchainFramebuffer.Height,
-                1,
-                1,
-                GraphicsDevice.SwapchainFramebuffer.OutputDescription.ColorAttachments[0].Format,
-                TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
-            _resolvedTexture = factory.CreateTexture(ref resolvedDescription);
-            _resolvedTexture.Name = "Resolved Texture";
-            _resolvedTextureView = factory.CreateTextureView(_resolvedTexture);
-            _resolvedTextureView.Name = "Resolved Texture View";
             TextureView previousView = _mainColorView;
 
             if (DoPostProcess)
@@ -535,9 +535,26 @@ namespace SolidCode.Atlas.Rendering
             }
 
             _finalTextureView = previousView;
-
             _resolvePass = new ShaderPass("post/resolve/shader");
-            _resolvePass.CreateResources(GraphicsDevice.MainSwapchain.Framebuffer, new []{_finalTextureView});
+
+            if (SampleCount != TextureSampleCount.Count1)
+            {
+                TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
+                    GraphicsDevice.SwapchainFramebuffer.Width,
+                    GraphicsDevice.SwapchainFramebuffer.Height,
+                    1,
+                    1,
+                    GraphicsDevice.SwapchainFramebuffer.ColorTargets[0].Target.Format,
+                    TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
+                
+                _downSampledTextureView = factory.CreateTextureView(factory.CreateTexture(downSampledTextureDescription));
+                _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new []{_downSampledTextureView});
+            }
+            else
+            {
+                _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new []{_finalTextureView});
+            }
+            
         }
 
         private void DisposeResources()
@@ -552,9 +569,9 @@ namespace SolidCode.Atlas.Rendering
             _mainColorView?.Dispose();
             _commandList.Dispose();
             _resolvePass?.Dispose();
-            _resolvedTexture.Dispose();
-            _resolvedTextureView.Dispose();
             GraphicsDevice.Dispose();
+            _downSampledTextureView?.Target.Dispose();
+            _downSampledTextureView?.Dispose();
             foreach (var effect in PostProcessEffects)
             {
                 effect.Dispose();

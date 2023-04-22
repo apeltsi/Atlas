@@ -25,7 +25,7 @@ public class BloomEffect : PostProcessEffect
         brightView.Name = "Brightness Texture View";
         _textureViews.Add(brightView);
         FramebufferDescription brightDescription = new FramebufferDescription(null, brightTexture);
-        Framebuffer brightBuffer = factory.CreateFramebuffer(brightDescription);
+        Framebuffer brightBuffer = factory.CreateFramebuffer(ref brightDescription);
         _frameBuffers.Add(brightBuffer);
         ShaderPass brightPass = new ShaderPass("post/bright/shader");
         brightPass.CreateResources(brightBuffer, new []{textureView});
@@ -34,12 +34,12 @@ public class BloomEffect : PostProcessEffect
 #endregion
 #region Kawase Blur
 
-        int blurIterations = 8;
+        int blurIterations = 4;
         for (int i = 0; i < blurIterations; i++)
         {
             TextureDescription desc = Window.MainTextureDescription;
-            desc.Width /= (uint)Math.Pow(2, i);
-            desc.Height /= (uint)Math.Pow(2, i);
+            desc.Width /= (uint)Math.Pow(4, i);
+            desc.Height /= (uint)Math.Pow(4, i);
 
             Veldrid.Texture blurTexture = factory.CreateTexture(desc);
             blurTexture.Name = "Kawase Filter #" + i;
@@ -47,6 +47,7 @@ public class BloomEffect : PostProcessEffect
             _textureViews.Add(factory.CreateTextureView(blurTexture));
             FramebufferDescription blurDescription = new FramebufferDescription(null, blurTexture);
             Framebuffer kawaseFramebuffer = factory.CreateFramebuffer(blurDescription);
+            kawaseFramebuffer.Name = "Kawase Framebuffer #" + i;
             _frameBuffers.Add(kawaseFramebuffer);
             ShaderPass kawasePass = new ShaderPass("post/kawase/shader");
             kawasePass.CreateResources(kawaseFramebuffer, new []{_textureViews[^2]} );
@@ -71,9 +72,7 @@ public class BloomEffect : PostProcessEffect
             kawasePass.CreateResources(_frameBuffers[^1], new []{_textureViews[i + 1], _textureViews[^2]} );
             Passes.Add(kawasePass);
         }
-        
-        
-#endregion 
+#endregion
         ShaderPass combinePass = new ShaderPass("post/finalcombine/shader");
         combinePass.CreateResources(_frameBuffers[0], new []{textureView, _textureViews[^1]});
         Passes.Add(combinePass);

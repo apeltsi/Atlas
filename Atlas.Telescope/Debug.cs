@@ -70,6 +70,7 @@ public static class Debug
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = currentExePath,
+                Arguments = Environment.GetCommandLineArgs().ToList().Aggregate((a, b) => a + " " + b),
                 UseShellExecute = false,
                 CreateNoWindow = false,
                 RedirectStandardOutput = true

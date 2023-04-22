@@ -55,6 +55,18 @@ namespace SolidCode.Atlas
             Window.Close();
         }
 
+        public static bool StartupArgumentExists(string argument)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+            foreach (var arg in args)
+            {
+                if (arg.ToLower() == argument.ToLower())
+                    return true;
+            }
+
+            return false;
+        }
+
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
             AppName = windowTitle;
