@@ -10,7 +10,7 @@ public class Basic
     [Fact]
     public void Start()
     {
-        Atlas.InitializeLogging();
+        Atlas.InitializeLogging(DebuggingMode.Disabled);
         Atlas.StartCoreFeatures("Atlas Start Test");
 
         List<Entity> entities = new List<Entity>();
@@ -22,7 +22,7 @@ public class Basic
     [Fact]
     public void TestConfirm()
     {
-        Atlas.InitializeLogging();
+        Atlas.InitializeLogging(DebuggingMode.Disabled);
         Atlas.StartCoreFeatures("Atlas Manual Confirm Test");
 
         List<Entity> entities = new List<Entity>();

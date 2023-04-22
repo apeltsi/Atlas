@@ -20,6 +20,12 @@ namespace SolidCode.Atlas
         ECS
     }
 
+    public enum DebuggingMode
+    {
+        Auto,
+        Disabled
+    }
+
     public static class Atlas
     {
         public static string ActiveDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
@@ -38,9 +44,10 @@ namespace SolidCode.Atlas
         static Window? _w;
         static bool _doTick = true;
 
-        public static void InitializeLogging()
+        public static void InitializeLogging(DebuggingMode mode = DebuggingMode.Auto)
         {
-            Telescope.Debug.UseMultiProcessDebugging(Version);
+            if(mode != DebuggingMode.Disabled)
+                Telescope.Debug.UseMultiProcessDebugging(Version);
             Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
