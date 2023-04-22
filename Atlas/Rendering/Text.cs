@@ -7,9 +7,9 @@ namespace SolidCode.Atlas.Rendering
     using System.Runtime.InteropServices;
     using FontStashSharp;
     using FontStashSharp.Interfaces;
-    using SolidCode.Atlas.AssetManagement;
     using SolidCode.Atlas.Components;
     using Veldrid;
+    using SolidCode.Atlas.ECS;
 
     public class TextDrawable : Drawable
     {

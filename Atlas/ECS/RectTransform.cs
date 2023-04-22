@@ -1,5 +1,5 @@
 
-namespace SolidCode.Atlas.Components
+namespace SolidCode.Atlas.ECS
 {
     using System.Numerics;
     using SolidCode.Atlas.Rendering;

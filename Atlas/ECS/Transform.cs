@@ -1,4 +1,4 @@
-namespace SolidCode.Atlas.Components
+namespace SolidCode.Atlas.ECS
 {
     using System.Collections.Concurrent;
     using System.Numerics;

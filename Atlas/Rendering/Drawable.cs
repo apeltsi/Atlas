@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using SolidCode.Atlas.Components;
 using Veldrid;
+using SolidCode.Atlas.ECS;
 
 namespace SolidCode.Atlas.Rendering
 {
