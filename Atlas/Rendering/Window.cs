@@ -33,7 +33,7 @@ namespace SolidCode.Atlas.Rendering
         
         // Post Process
         public static bool DoPostProcess = true;
-        public static TextureSampleCount SampleCount = TextureSampleCount.Count1;
+        private static readonly TextureSampleCount SampleCount = TextureSampleCount.Count1;
         public static List<PostProcessEffect> PostProcessEffects { get; protected set; } = new();
         
         public static TextureDescription MainTextureDescription { get; protected set; }
