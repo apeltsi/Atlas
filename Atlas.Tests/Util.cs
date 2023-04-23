@@ -1,4 +1,5 @@
 using System.Numerics;
+using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 namespace SolidCode.Atlas.Tests;
 
