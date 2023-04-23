@@ -78,11 +78,36 @@ public static class Debug
             FileLogs.InitializeFileLogs(version);
             Process childProcess = Process.Start(startInfo);
             childProcess.BeginOutputReadLine();
+            childProcess.ErrorDataReceived += (sender, args) =>
+            {
+                if (args.Data != null)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(args.Data);
+                    Console.ResetColor();
+                    FileLogs.DoLog(args.Data);
+                }
+            };
+
             childProcess.OutputDataReceived += (sender, args) =>
             {
                 if (args.Data != null)
                 {
+                    if (args.Data.Contains(" [ERROR] "))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                    } else if (args.Data.Contains(" [WARN] "))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Yellow;
+                    } else if(!args.Data.Contains(" [INFO] "))
+                    {
+                        if((args.Data.ToLower().Contains("error") || args.Data.ToLower().Contains("err") || args.Data.ToLower().Contains("exception")))
+                            Console.ForegroundColor = ConsoleColor.Red;
+                        if(args.Data.ToLower().Contains("warning") || args.Data.ToLower().Contains("warn"))
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                    }
                     Console.WriteLine(args.Data);
+                    Console.ResetColor();
                     FileLogs.DoLog(args.Data);
                 }
             };
