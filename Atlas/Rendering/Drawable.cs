@@ -170,7 +170,7 @@ namespace SolidCode.Atlas.Rendering
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
-            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[1 + _textures.Count * 2];
+            ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[2 + _textures.Count];
             elementDescriptions[0] = new ResourceLayoutElementDescription("TransformMatrices", ResourceKind.UniformBuffer, transformShaderStages);
             int i = 1;
 
@@ -179,9 +179,10 @@ namespace SolidCode.Atlas.Rendering
             {
                 elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
                 i++;
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name + "Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
                 i++;
             }
+            elementDescriptions[^1] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
+
             ResourceLayout transformTextureResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
 
@@ -212,7 +213,7 @@ namespace SolidCode.Atlas.Rendering
 
             pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
-            BindableResource[] buffers = new BindableResource[1 + _textures.Count * 2];
+            BindableResource[] buffers = new BindableResource[2 + _textures.Count];
             buffers[0] = transformBuffer;
             i = 1;
 
@@ -220,9 +221,8 @@ namespace SolidCode.Atlas.Rendering
             {
                 buffers[i] = texView;
                 i++;
-                buffers[i] = this.sampler;
-                i++;
             }
+            buffers[^1] = this.sampler;
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 transformTextureResourceLayout,
                 buffers));
