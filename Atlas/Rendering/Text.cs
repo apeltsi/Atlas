@@ -91,6 +91,14 @@ namespace SolidCode.Atlas.Rendering
             this.renderer.Dispose();
         }
 
+        public void UpdateFonts(Font[] fonts)
+        {
+            Window.GraphicsDevice.WaitForIdle();
+            Dispose();
+            this.fonts = fonts;
+            CreateResources(Window.GraphicsDevice);
+        }
+
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
             renderer.SetGlobalMatrix(_graphicsDevice, matrix);

@@ -1,4 +1,4 @@
-﻿namespace SolidCode.Atlas.DefaultComponents;
+﻿namespace SolidCode.Atlas.Components;
 
 using System.Numerics;
 using AssetManagement;
