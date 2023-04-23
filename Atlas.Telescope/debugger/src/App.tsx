@@ -93,9 +93,7 @@ function StartListening() {
                     }
                 }
             } else if (
-                data.type === "livedata" &&
-                data.framerate !== undefined &&
-                data.runtime !== undefined
+                data.type === "livedata"
             ) {
                 setLiveDataState({
                     globalData: data.globalData,

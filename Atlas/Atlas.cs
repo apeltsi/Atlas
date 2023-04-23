@@ -190,7 +190,7 @@ namespace SolidCode.Atlas
                 ecsStopwatch.Start();
             }
             EntityComponentSystem.Tick();
-            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime() * 1000, "TPS: " + Atlas.TicksPerSecond }, EntityComponentSystem.GetECSHierarchy());
+            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond }, EntityComponentSystem.GetECSHierarchy());
             TickScheduler.FreeThreads();
             sw.Stop();
         }
