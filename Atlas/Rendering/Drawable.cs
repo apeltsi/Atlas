@@ -95,14 +95,14 @@ namespace SolidCode.Atlas.Rendering
     {
         protected string _shader;
         protected Mesh<T> _mesh;
-        protected Uniform uniform;
+        protected Uniform textUniform;
         protected Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
         protected Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
         protected List<Texture> _textureAssets = new List<Texture>();
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
         protected Sampler sampler;
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform uniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
             this._shader = shaderPath;
             if (mesh != null)
@@ -114,7 +114,7 @@ namespace SolidCode.Atlas.Rendering
                 Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
             }
             this.transform = t;
-            this.uniform = uniform;
+            this.textUniform = textUniform;
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
             if (textures == null)
@@ -148,9 +148,9 @@ namespace SolidCode.Atlas.Rendering
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
 
             // Uniform
-            _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(uniform), BufferUsage.UniformBuffer)));
+            _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(textUniform), BufferUsage.UniformBuffer)));
 
-            _graphicsDevice.UpdateBuffer<Uniform>(_uniformBuffers["Default Uniform"], 0, uniform);
+            _graphicsDevice.UpdateBuffer<Uniform>(_uniformBuffers["Default Uniform"], 0, textUniform);
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);

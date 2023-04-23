@@ -66,7 +66,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 this.font.AddFont(this.fonts[i].Data);
             }
-            renderer = new FontRenderer(Window.GraphicsDevice, this.color, transform, new Uniform(), ShaderStages.Vertex | ShaderStages.Fragment);
+            renderer = new FontRenderer(Window.GraphicsDevice, this.color, transform, new TextUniform(), ShaderStages.Vertex | ShaderStages.Fragment);
             if (centered)
                 renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
             this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
@@ -100,11 +100,11 @@ namespace SolidCode.Atlas.Rendering
 
     }
 
-    struct Uniform
+    struct TextUniform
     {
         Vector4 vector;
 
-        public Uniform(Vector4 vector)
+        public TextUniform(Vector4 vector)
         {
             this.vector = vector;
         }
@@ -152,14 +152,14 @@ namespace SolidCode.Atlas.Rendering
         }
     }
 
-    class FontRenderer : Drawable<VertexPositionColorTexture, Uniform>, IFontStashRenderer2
+    class FontRenderer : Drawable<VertexPositionColorTexture, TextUniform>, IFontStashRenderer2
     {
         bool resourcesCreated = false;
         Mesh<VertexPositionColorTexture> virtualMesh; // This is needed when the mesh is updated during rendering
         float HorizontalOffset = 0f;
         DeviceBuffer colorBuffer;
         public Vector4 Color = new Vector4(1, 1, 1, 1f);
-        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, Uniform uniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, uniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, TextUniform textUniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, textUniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
@@ -169,7 +169,7 @@ namespace SolidCode.Atlas.Rendering
             this._mesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.virtualMesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.transform = t;
-            this.uniform = uniform;
+            this.textUniform = textUniform;
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
             this.Color = Color;
@@ -209,7 +209,7 @@ namespace SolidCode.Atlas.Rendering
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
-            colorBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<Uniform>(), BufferUsage.UniformBuffer));
+            colorBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextUniform>(), BufferUsage.UniformBuffer));
 
 
 
@@ -217,7 +217,7 @@ namespace SolidCode.Atlas.Rendering
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4(), HorizontalOffset)); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
-            _graphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(this.Color));
+            _graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
             // Next lest load textures to the gpu
 
             TextureView texView = factory.CreateTextureView(texture);
@@ -281,7 +281,7 @@ namespace SolidCode.Atlas.Rendering
         public void UpdateColor(Vector4 color)
         {
             if (colorBuffer != null)
-                Window.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new Uniform(color));
+                Window.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)

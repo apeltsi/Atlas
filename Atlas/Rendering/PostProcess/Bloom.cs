@@ -1,4 +1,5 @@
-﻿using SolidCode.Atlas.Mathematics;
+﻿using System.Numerics;
+using SolidCode.Atlas.Mathematics;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
@@ -9,9 +10,56 @@ public class BloomEffect : PostProcessEffect
     List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();
     List<TextureView> _textureViews = new List<TextureView>();
     List<Framebuffer> _frameBuffers = new List<Framebuffer>();
+    private float _quality = 1f;
+    private float _intensity = 1;
+    private float _threshold = 0.7f;
+    /// <summary>
+    /// The quality of the blur, 1 means that the bloom is performed on the full texture, 0.5 means that the texture is half the resolution 
+    /// </summary>
+    public float Quality
+    {
+        get => _quality;
+        set { 
+            _quality = Math.Clamp(value, 0.01f, 1f);
+            RequestFullRecreation();
+        }
+    }
+
+    /// <summary>
+    /// How bright should the bloom be
+    /// </summary>
+    public float Intensity
+    {
+        get => _intensity;
+        set { _intensity = Math.Clamp(value, 0f, 1f); RequestRecreation();}
+    }
+
+    /// <summary>
+    /// How bright should the pixels be to be considered for bloom
+    /// </summary>
+    public float Threshold
+    {
+        get => _threshold;
+        set { _threshold = Math.Clamp(value, 0f, 1f); RequestRecreation(); }
+    }
 
     public BloomEffect()
     {
+    }
+
+    struct EmptyUniform
+    {
+        
+    }
+    
+    struct BloomUniform
+    {
+        public Vector4 Values;
+
+        public BloomUniform(float intensity, float threshold)
+        {
+            Values = new Vector4(intensity, threshold, 0, 0);
+        }
     }
 
     public override TextureView CreateResources(TextureView textureView)
@@ -28,19 +76,19 @@ public class BloomEffect : PostProcessEffect
         FramebufferDescription brightDescription = new FramebufferDescription(null, brightTexture);
         Framebuffer brightBuffer = factory.CreateFramebuffer(ref brightDescription);
         _frameBuffers.Add(brightBuffer);
-        ShaderPass brightPass = new ShaderPass("post/bright/shader");
+        ShaderPass<BloomUniform> brightPass = new ShaderPass<BloomUniform>("post/bright/shader", new BloomUniform(Intensity, Threshold));
         brightPass.CreateResources(brightBuffer, new []{textureView});
         Passes.Add(brightPass);
 
 #endregion
 #region Kawase Blur
 
-        int blurIterations = AMath.RoundToInt(Math.Sqrt(Window.ScalingIndex * 20));
+        int blurIterations = AMath.RoundToInt(Math.Sqrt((Window.ScalingIndex * Quality) * 20));
         for (int i = 0; i < blurIterations; i++)
         {
             TextureDescription desc = Window.MainTextureDescription;
-            desc.Width = (uint)Math.Clamp(desc.Width / Math.Pow(2, i), 1, uint.MaxValue);
-            desc.Height = (uint)Math.Clamp(desc.Height / Math.Pow(2, i), 1,uint.MaxValue);
+            desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
+            desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
 
             Veldrid.Texture blurTexture = factory.CreateTexture(desc);
             blurTexture.Name = "Kawase Filter #" + i;
@@ -50,7 +98,7 @@ public class BloomEffect : PostProcessEffect
             Framebuffer kawaseFramebuffer = factory.CreateFramebuffer(blurDescription);
             kawaseFramebuffer.Name = "Kawase Framebuffer #" + i;
             _frameBuffers.Add(kawaseFramebuffer);
-            ShaderPass kawasePass = new ShaderPass("post/kawase/shader");
+            ShaderPass kawasePass = new ShaderPass<EmptyUniform>("post/kawase/shader", null);
             kawasePass.CreateResources(kawaseFramebuffer, new []{_textureViews[^2]} );
             Passes.Add(kawasePass);
         }
@@ -60,10 +108,10 @@ public class BloomEffect : PostProcessEffect
 #region Combine Pass
         for (int i = blurIterations - 2; i >= 0; i--)
         {
-            ShaderPass kawasePass = new ShaderPass("post/combine/shader");
+            ShaderPass kawasePass = new ShaderPass<EmptyUniform>("post/combine/shader", null);
             TextureDescription desc = Window.MainTextureDescription;
-            desc.Width = (uint)Math.Clamp(desc.Width / Math.Pow(2, i), 1, uint.MaxValue);
-            desc.Height = (uint)Math.Clamp(desc.Height / Math.Pow(2, i), 1,uint.MaxValue);
+            desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
+            desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
             Veldrid.Texture upscaleTexture = factory.CreateTexture(desc);
             upscaleTexture.Name = "Upscale Filter Texture";
             _textures.Add(upscaleTexture);
@@ -74,7 +122,7 @@ public class BloomEffect : PostProcessEffect
             Passes.Add(kawasePass);
         }
 #endregion
-        ShaderPass combinePass = new ShaderPass("post/finalcombine/shader");
+        ShaderPass combinePass = new ShaderPass<EmptyUniform>("post/finalcombine/shader", null);
         combinePass.CreateResources(_frameBuffers[0], new []{textureView, _textureViews[^1]});
         Passes.Add(combinePass);
         return _textureViews[0];
@@ -116,5 +164,26 @@ public class BloomEffect : PostProcessEffect
             pass.Dispose();
         }
         Passes.Clear();
+    }
+        
+    /// <summary>
+    /// Completely recreates the effect, this calls Window.CreateResources() as the textureView returned by this effect has changed, so the window has to adapt
+    /// </summary>
+    void RequestFullRecreation()
+    {
+        lock (Passes)
+        {
+            if(Passes.Count > 0)
+                Window.RequestResourceCreation();
+        }
+    }
+
+    void RequestRecreation()
+    {
+        lock (Passes)
+        {
+            if(Passes.Count > 0)
+                ((ShaderPass<BloomUniform>)Passes[0]).UpdateUniform(new BloomUniform(Intensity, Threshold));
+        }
     }
 }

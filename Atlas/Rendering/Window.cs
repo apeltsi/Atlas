@@ -55,6 +55,9 @@ namespace SolidCode.Atlas.Rendering
         private static ConcurrentBag<Drawable> _drawablesToAdd = new();
         private static ConcurrentBag<Drawable> _drawablesToRemove = new();
         private static TextureView? _downSampledTextureView;
+        private static bool _resourcesDirty = false;
+        private static object _resourcesLock = new();
+
         public static string Title
         {
             get
@@ -226,7 +229,6 @@ namespace SolidCode.Atlas.Rendering
                 GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
             
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + GraphicsDevice.BackendType.ToString());
-            PostProcessEffects.Add(new BloomEffect());
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("atlas");
             builtinAssets.LoadAtlasAssetpack();
@@ -244,6 +246,26 @@ namespace SolidCode.Atlas.Rendering
         public static void Close()
         {
             _window?.Close();
+        }
+        /// <summary>
+        /// Adds a post process effect to the list of effects to be applied to the scene
+        /// </summary>
+        /// <param name="effect">The effect to be applied</param>
+        public static void AddPostProcessEffect(PostProcessEffect effect)
+        {
+            PostProcessEffects.Add(effect);
+            lock(_resourcesLock)
+                _resourcesDirty = true;
+        }
+        /// <summary>
+        /// Removes a post process effect from the list of effects to be applied to the scene
+        /// </summary>
+        /// <param name="effect">The effect to be removed</param>
+        public static void RemovePostProcessEffect(PostProcessEffect effect)
+        {
+            PostProcessEffects.Remove(effect);
+            lock(_resourcesLock)
+                _resourcesDirty = true;
         }
 
         public static void AddDrawables(List<Drawable> drawables)
@@ -400,13 +422,24 @@ namespace SolidCode.Atlas.Rendering
             }
             _drawables.AddSorted<Drawable>(d);
         }
+
+        public static void RequestResourceCreation()
+        {
+            lock(_resourcesLock)
+                _resourcesDirty = true;
+        }
         
         private void Draw()
         {
+            
             if (GraphicsDevice == null) return;
 #if DEBUG
             Profiler.StartTimer(Profiler.FrameTimeType.PreRender);
 #endif
+            if (_resourcesDirty)
+            {
+                CreateResources();
+            }
             // We should begin by removing any stray drawables
             foreach (Drawable d in _drawablesToRemove)
             {
@@ -478,88 +511,105 @@ namespace SolidCode.Atlas.Rendering
 
         void CreateResources()
         {
-            if (GraphicsDevice == null) return;
-            ResourceFactory factory = GraphicsDevice.ResourceFactory;
-            if (_commandList is { IsDisposed: false })
+            lock (_resourcesLock)
             {
-                _commandList.Dispose();
-            }
-            _commandList = factory.CreateCommandList();
-            if (_mainColorTexture is { IsDisposed: false })
-            {
-                _mainColorTexture.Dispose();
-            }
-            
-            if (PrimaryFramebuffer is { IsDisposed: false })
-            {
-                PrimaryFramebuffer.Dispose();
-            }
 
 
-            if (_mainColorView is { IsDisposed: false })
-            {
-                _mainColorView.Dispose();
-            }
-
-            if (_downSampledTextureView != null && _downSampledTextureView.Target is { IsDisposed: false })
-            {
-                _downSampledTextureView.Target.Dispose();
-            }
-            
-            if(_downSampledTextureView is { IsDisposed: false })
-            {
-                _downSampledTextureView.Dispose();
-            }
-            
-            _resolvePass?.Dispose();
-            
-            MainTextureDescription = TextureDescription.Texture2D(
-                GraphicsDevice.SwapchainFramebuffer.Width,
-                GraphicsDevice.SwapchainFramebuffer.Height,
-                1,
-                1,
-                PixelFormat.R16_G16_B16_A16_Float,
-                TextureUsage.RenderTarget | TextureUsage.Sampled, SampleCount);
-
-            _mainColorTexture = factory.CreateTexture(MainTextureDescription);
-            _mainColorTexture.Name = "Primary Color Texture";
-            _mainColorView = factory.CreateTextureView(_mainColorTexture);
-            _mainColorView.Name = "Primary Color Texture View";
-            FramebufferDescription fbDesc = new FramebufferDescription(null, _mainColorTexture);
-            PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
-            PrimaryFramebuffer.Name = "Primary Framebuffer";
-            
-            TextureView previousView = _mainColorView;
-
-            if (DoPostProcess)
-            {
-                foreach (var effect in PostProcessEffects)
+                if (GraphicsDevice == null) return;
+                ResourceFactory factory = GraphicsDevice.ResourceFactory;
+                if (_commandList is { IsDisposed: false })
                 {
-                    effect.Dispose();
-                    previousView = effect.CreateResources(previousView);
+                    _commandList.Dispose();
                 }
-            }
 
-            _finalTextureView = previousView;
-            _resolvePass = new ShaderPass("post/resolve/shader");
+                _commandList = factory.CreateCommandList();
+                if (_mainColorTexture is { IsDisposed: false })
+                {
+                    _mainColorTexture.Dispose();
+                }
 
-            if (SampleCount != TextureSampleCount.Count1)
-            {
-                TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
+                if (PrimaryFramebuffer is { IsDisposed: false })
+                {
+                    PrimaryFramebuffer.Dispose();
+                }
+
+
+                if (_mainColorView is { IsDisposed: false })
+                {
+                    _mainColorView.Dispose();
+                }
+
+                if (_downSampledTextureView != null && _downSampledTextureView.Target is { IsDisposed: false })
+                {
+                    _downSampledTextureView.Target.Dispose();
+                }
+
+                if (_downSampledTextureView is { IsDisposed: false })
+                {
+                    _downSampledTextureView.Dispose();
+                }
+
+                _resolvePass?.Dispose();
+
+                MainTextureDescription = TextureDescription.Texture2D(
                     GraphicsDevice.SwapchainFramebuffer.Width,
                     GraphicsDevice.SwapchainFramebuffer.Height,
                     1,
                     1,
-                    GraphicsDevice.SwapchainFramebuffer.ColorTargets[0].Target.Format,
-                    TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
-                
-                _downSampledTextureView = factory.CreateTextureView(factory.CreateTexture(downSampledTextureDescription));
-                _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new []{_downSampledTextureView});
+                    PixelFormat.R16_G16_B16_A16_Float,
+                    TextureUsage.RenderTarget | TextureUsage.Sampled, SampleCount);
+
+                _mainColorTexture = factory.CreateTexture(MainTextureDescription);
+                _mainColorTexture.Name = "Primary Color Texture";
+                _mainColorView = factory.CreateTextureView(_mainColorTexture);
+                _mainColorView.Name = "Primary Color Texture View";
+                FramebufferDescription fbDesc = new FramebufferDescription(null, _mainColorTexture);
+                PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
+                PrimaryFramebuffer.Name = "Primary Framebuffer";
+
+                TextureView previousView = _mainColorView;
+
+                if (DoPostProcess)
+                {
+                    foreach (var effect in PostProcessEffects)
+                    {
+                        effect.Dispose();
+                        previousView = effect.CreateResources(previousView);
+                    }
+                }
+
+                _finalTextureView = previousView;
+                _resolvePass = new ShaderPass<EmptyStruct>("post/resolve/shader", null);
+
+                if (SampleCount != TextureSampleCount.Count1)
+                {
+                    TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
+                        GraphicsDevice.SwapchainFramebuffer.Width,
+                        GraphicsDevice.SwapchainFramebuffer.Height,
+                        1,
+                        1,
+                        GraphicsDevice.SwapchainFramebuffer.ColorTargets[0].Target.Format,
+                        TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
+
+                    _downSampledTextureView =
+                        factory.CreateTextureView(factory.CreateTexture(downSampledTextureDescription));
+                    _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer,
+                        new[] { _downSampledTextureView });
+                }
+                else
+                {
+                    _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new[] { _finalTextureView });
+                }
+
+                if (_resourcesDirty)
+                {
+                    _resourcesDirty = false;
+                }
             }
-            else
-            {
-                _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new []{_finalTextureView});
-            }
+        }
+
+        struct EmptyStruct
+        {
             
         }
 
