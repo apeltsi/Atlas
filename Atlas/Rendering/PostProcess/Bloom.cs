@@ -11,7 +11,7 @@ public class BloomEffect : PostProcessEffect
     List<TextureView> _textureViews = new List<TextureView>();
     List<Framebuffer> _frameBuffers = new List<Framebuffer>();
     private float _quality = 1f;
-    private float _intensity = 1;
+    private float _intensity = 0.5f;
     private float _threshold = 0.7f;
     /// <summary>
     /// The quality of the blur, 1 means that the bloom is performed on the full texture, 0.5 means that the texture is half the resolution 

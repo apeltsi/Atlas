@@ -19,7 +19,8 @@ void main()
         discard;
     }
     color *= color.a;
-    color *= Values.x;
+    float removeAmount = (1.0 + 1.0 - Values.x) * 0.5;
+    color -= vec4(removeAmount, removeAmount, removeAmount, 0);
     color.a = 1;
     fsout_Color = color;
 }
