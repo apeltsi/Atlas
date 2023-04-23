@@ -1,6 +1,6 @@
 echo "Atlas Assets Conversion tool"
 echo "Converting all png assets to .ktx";
-cd ./data/assets
+cd ./Atlas/data/assets
 for file in *.png; do
     echo "Converting $file"
     toktx ${file::-4} $file

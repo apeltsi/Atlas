@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SolidCode.Atlas.Telescope</RootNamespace>
+    <AssemblyName>SolidCode.Atlas.Telescope</AssemblyName>
+    <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+        <EmbeddedResource Include="debugger\dist\LogViewer.html" />
+  </ItemGroup>
+  <!--<Choose>
+    <When Condition=" '$(Configuration)'=='Debug' ">-->
+      <ItemGroup>
+        <PackageReference Include="WebSocketSharp" Version="1.0.3-rc11" />
+      </ItemGroup>
+    <!--</When>
+  </Choose>-->
+
+</Project>
