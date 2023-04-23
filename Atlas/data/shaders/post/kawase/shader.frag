@@ -23,7 +23,8 @@ vec4 KawaseBlur(int pixelOffset, vec2 texelSize)
 void main()
 {
     vec2 size = textureSize(Texture, 0);
-    vec4 col = KawaseBlur(0, 1.0 / size) + KawaseBlur(1, 1.0 / size) * 0.5 + + KawaseBlur(2, 1.0 / size) * 0.25;
+    
+    vec4 col = KawaseBlur(1, 1.0 / size);
     fsout_Color = col;
 }
 

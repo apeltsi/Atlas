@@ -1,4 +1,5 @@
-﻿using Veldrid;
+﻿using SolidCode.Atlas.Mathematics;
+using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
 
@@ -34,12 +35,12 @@ public class BloomEffect : PostProcessEffect
 #endregion
 #region Kawase Blur
 
-        int blurIterations = 4;
+        int blurIterations = AMath.RoundToInt(Math.Sqrt(Window.ScalingIndex * 20));
         for (int i = 0; i < blurIterations; i++)
         {
             TextureDescription desc = Window.MainTextureDescription;
-            desc.Width /= (uint)Math.Pow(4, i);
-            desc.Height /= (uint)Math.Pow(4, i);
+            desc.Width = (uint)Math.Clamp(desc.Width / Math.Pow(2, i), 1, uint.MaxValue);
+            desc.Height = (uint)Math.Clamp(desc.Height / Math.Pow(2, i), 1,uint.MaxValue);
 
             Veldrid.Texture blurTexture = factory.CreateTexture(desc);
             blurTexture.Name = "Kawase Filter #" + i;
@@ -61,8 +62,8 @@ public class BloomEffect : PostProcessEffect
         {
             ShaderPass kawasePass = new ShaderPass("post/combine/shader");
             TextureDescription desc = Window.MainTextureDescription;
-            desc.Width /= (uint)Math.Pow(2, i);
-            desc.Height /= (uint)Math.Pow(2, i);
+            desc.Width = (uint)Math.Clamp(desc.Width / Math.Pow(2, i), 1, uint.MaxValue);
+            desc.Height = (uint)Math.Clamp(desc.Height / Math.Pow(2, i), 1,uint.MaxValue);
             Veldrid.Texture upscaleTexture = factory.CreateTexture(desc);
             upscaleTexture.Name = "Upscale Filter Texture";
             _textures.Add(upscaleTexture);

@@ -37,6 +37,12 @@ namespace SolidCode.Atlas.Rendering
         public static List<PostProcessEffect> PostProcessEffects { get; protected set; } = new();
         
         public static TextureDescription MainTextureDescription { get; protected set; }
+
+        
+        /// <summary>
+        /// Describes the scale of one unit. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.  
+        /// </summary>
+        public static float ScalingIndex { get; protected set; } = 1;
         
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
@@ -584,6 +590,8 @@ namespace SolidCode.Atlas.Rendering
         public static Matrix4x4 GetScalingMatrix(float width, float height)
         {
             float max = Math.Max(width, height);
+            ScalingIndex = max / 1000f;
+
             return new Matrix4x4(
                 height / max, 0, 0, 0,
                 0, width / max, 0, 0,
