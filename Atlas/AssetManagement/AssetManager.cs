@@ -39,7 +39,17 @@ namespace SolidCode.Atlas.AssetManagement
                 return null;
             }
             // Okay, so the asset isn't currently loaded, lets try and load it up
-            return LoadAssetToMemory<T>(path, AssetMode.Unload);
+            T? assetFromMemory = LoadAssetToMemory<T>(path, AssetMode.Unload);
+            
+            if (assetFromMemory == null)
+            {
+                // Okay so we still don't have an asset, lets see if we have a default available
+                if (typeof(T) == typeof(Texture))
+                {
+                    return GetAsset<T>("error");
+                }
+            }
+            return assetFromMemory;
         }
 
         internal static void LoadAssetMap()
