@@ -80,7 +80,7 @@ namespace SolidCode.Atlas
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
-            AudioManager.InitializeAudio();
+            Audio.Audio.InitializeAudio();
             AssetManager.LoadAssetMap();
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
@@ -118,10 +118,10 @@ namespace SolidCode.Atlas
                 Debug.Error(ex.ToString());
             }
             _doTick = false;
-            AudioManager.Dispose();
+            Audio.Audio.Dispose();
             EntityComponentSystem.Dispose();
             AssetManager.Dispose();
-
+            Input.Input.Dispose();
             primaryStopwatch?.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((primaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");
             Telescope.Debug.Dispose();

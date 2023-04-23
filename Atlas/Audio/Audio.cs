@@ -30,7 +30,7 @@ namespace SolidCode.Atlas.Audio
         }
     }
     
-    public static class AudioManager
+    public static class Audio
     {
         internal static ALContext context;
         static ALDevice device;

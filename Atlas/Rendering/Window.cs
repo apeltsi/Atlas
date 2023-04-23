@@ -28,7 +28,6 @@ namespace SolidCode.Atlas.Rendering
         private static ShaderPass? _resolvePass;
         private static TextureView? _finalTextureView;
 
-        public static Vector2 MousePosition = Vector2.Zero;
         public static RgbaFloat ClearColor = RgbaFloat.Black;
         
         // Post Process
@@ -216,7 +215,6 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
             options.Debug = true;
 #endif
-
             _windowScalingMatrix = GetScalingMatrix(_window.Width, _window.Height);
             GraphicsBackend? preferred = null;
             if (Atlas.StartupArgumentExists("--use-dx"))
@@ -295,6 +293,7 @@ namespace SolidCode.Atlas.Rendering
                     _window.Visible = true;
                     _window.WindowState = WindowState.Normal;
                     Atlas.StartTickLoop();
+                    Input.Input.Initialize();
                 }
                 if (frame == 2)
                 {
@@ -307,26 +306,7 @@ namespace SolidCode.Atlas.Rendering
                     _reloadShaders = false;
                     ReloadAllShaders();
                 }
-                InputManager.ClearInputs();
-                InputManager.WheelDelta = inputSnapshot.WheelDelta;
-                for (int i = 0; i < inputSnapshot.KeyEvents.Count; i++)
-                {
-                    KeyEvent e = inputSnapshot.KeyEvents[i];
-
-                    if (e.Down == true)
-                    {
-                        InputManager.KeyPress(e.Key);
-                        if (e.Key == Key.F5)
-                        {
-                            ReloadAllShaders();
-                        }
-                    }
-                    else
-                    {
-                        InputManager.RemoveKeyPress(e.Key);
-                    }
-                }
-                MousePosition = inputSnapshot.MousePosition;
+                Input.Input.UpdateInputs(inputSnapshot);
                 frame++;
 #if DEBUG
                 Profiler.StartTimer(Profiler.FrameTimeType.Waiting);

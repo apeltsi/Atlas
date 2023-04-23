@@ -45,7 +45,7 @@ namespace SolidCode.Atlas.Audio
             {
                 samples = parser.Samples[0].ToArray();
             }
-            lock (AudioManager.AudioLock)
+            lock (Audio.AudioLock)
             {
                 this.Buffer = AL.GenBuffer();
                 AL.BufferData<double>(Buffer, format, samples, (int)parser.SampleRate);
