@@ -257,7 +257,12 @@ namespace SolidCode.Atlas.Rendering
         }
 
 
-        // TODO: Add a way to update the textures
+        public void UpdateTexture(Texture texture, int index)
+        {
+            _textureAssets[index] = texture;
+            SoftDispose();
+            CreateResources(Window.GraphicsDevice);
+        }
 
         public override void Draw(CommandList cl)
         {
@@ -294,6 +299,13 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
+            SoftDispose();
+            this.transform.UnregisterDrawable(this);
+
+        }
+        
+        public void SoftDispose()
+        {
             // Mby this will help with our problem above
             Window.GraphicsDevice.WaitForIdle();
             pipeline.Dispose();
@@ -304,7 +316,6 @@ namespace SolidCode.Atlas.Rendering
             _transformSet.Dispose();
             if (_uniformSet != null)
                 _uniformSet.Dispose();
-            this.transform.UnregisterDrawable(this);
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
             {
                 buffer.Dispose();
