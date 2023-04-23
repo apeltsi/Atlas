@@ -24,6 +24,10 @@ namespace SolidCode.Atlas.ECS
         private static ConcurrentQueue<Entity> _addQueue = new ConcurrentQueue<Entity>();
         internal delegate void ComponentMethod();
 
+        public delegate void TickTask();
+
+        private static List<(int, TickTask)> _tickTasks = new List<(int, TickTask)>();
+
         private static ConcurrentDictionary<Component, ComponentMethod> _updateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
         private static ConcurrentDictionary<Component, ComponentMethod> _tickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
         private static ConcurrentQueue<ComponentMethod> _dirtyEntities = new ConcurrentQueue<ComponentMethod>();
@@ -169,6 +173,20 @@ namespace SolidCode.Atlas.ECS
             UpdateECS();
             lock (_tickMethods)
             {
+                lock(_tickTasks)
+                    for (int i = _tickTasks.Count - 1; i >= 0; i--)
+                    {
+                        (int, TickTask) task = _tickTasks[i];
+                        if (task.Item1 <= 0)
+                        {
+                            task.Item2.Invoke();
+                            _tickTasks.RemoveAt(i);
+                        }
+                        else
+                        {
+                            _tickTasks[i] = (task.Item1 - 1, task.Item2);
+                        }
+                    }
                 foreach (KeyValuePair<Component, ComponentMethod> pair in _tickMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
@@ -190,6 +208,12 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
+        public static void ScheduleTickTaskIn(int ticks, TickTask task)
+        {
+            lock(_tickTasks)
+                _tickTasks.Add((ticks, task));
+        }
+
         public static void Dispose()
         {
             foreach (Entity e in RootEntity.children)
@@ -199,6 +223,11 @@ namespace SolidCode.Atlas.ECS
                     e.Destroy();
                 }
             }
+            _tickTasks.Clear();
+            _tickMethods.Clear();
+            _updateMethods.Clear();
+            _dirtyEntities.Clear();
+            _startMethods.Clear();
         }
 
         public static void PrintHierarchy()
