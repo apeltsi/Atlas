@@ -52,6 +52,11 @@ namespace SolidCode.Atlas.Rendering
         {
 
         }
+
+        public virtual void UpdateTexture(Texture texture, int index)
+        {
+            
+        }
         public virtual int CompareTo(Drawable x)
         {
             if (this == null)
@@ -257,7 +262,7 @@ namespace SolidCode.Atlas.Rendering
         }
 
 
-        public void UpdateTexture(Texture texture, int index)
+        public override void UpdateTexture(Texture texture, int index)
         {
             _textureAssets[index] = texture;
             SoftDispose();
@@ -266,9 +271,9 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Draw(CommandList cl)
         {
+            cl.SetPipeline(pipeline);
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
-            cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.SetGraphicsResourceSet(1, _uniformSet);
             cl.DrawIndexed(

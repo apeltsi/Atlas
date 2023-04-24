@@ -9,7 +9,7 @@ using Veldrid;
 public class SpriteRenderer : RenderComponent
 {
     Mesh<VertexPositionUV> mesh;
-    private Rendering.Texture _sprite = AssetManager.GetAsset<Rendering.Texture>("error");
+    protected Rendering.Texture _sprite = AssetManager.GetAsset<Rendering.Texture>("error");
     protected Sampler? sampler;
     public Rendering.Texture Sprite
     {
@@ -24,7 +24,7 @@ public class SpriteRenderer : RenderComponent
         }
     }
     private Vector4 _color = Vector4.One;
-    Drawable<VertexPositionUV, ColorUniform> drawable;
+    protected Drawable drawable;
     public Vector4 Color
     {
         get
@@ -62,7 +62,7 @@ public class SpriteRenderer : RenderComponent
         return drawables.ToArray();
     }
     
-    struct ColorUniform
+    protected struct ColorUniform
     {
         public Vector4 Color;
 
@@ -73,7 +73,7 @@ public class SpriteRenderer : RenderComponent
     }
 
 
-    struct VertexPositionUV
+    protected struct VertexPositionUV
     {
         public Vector2 Position; // This is the position, in normalized device coordinates.
         public Vector4 UV; // This is the color of the vertex.

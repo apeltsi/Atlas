@@ -24,9 +24,16 @@ namespace SolidCode.Atlas.Rendering
 
         public void OnEnable()
         {
-
-            this.drawables = StartRender(Window.GraphicsDevice);
-            Window.AddDrawables(new List<Drawable>(this.drawables));
+            try
+            {
+                this.drawables = StartRender(Window.GraphicsDevice);
+                Window.AddDrawables(new List<Drawable>(this.drawables));
+            }
+            catch (Exception e)
+            {
+                Debug.Error(LogCategory.Rendering, "Error while creating drawable: " + e.Message);
+                Debug.Error(LogCategory.Rendering, e.StackTrace ?? "Stack trace not available");
+            }
         }
     }
 }
