@@ -56,26 +56,18 @@ namespace SolidCode.Atlas.Rendering
         private static TextureView? _downSampledTextureView;
         private static bool _resourcesDirty = false;
         private static object _resourcesLock = new();
-
+        private static string _title = "";
         public static string Title
         {
             get
             {
-                if (_window == null)
-                {
-                    return "";
-                }
-                return _window.Title;
+                return _title;
             }
             set
             {
-                string modifiedTitle = value;
-#if DEBUG
-                modifiedTitle += " | Atlas/" + Atlas.Version + " | Telescope Active";
-#endif
-
+                _title = value;
                 if (_window != null)
-                    _window.Title = modifiedTitle;
+                    _window.Title = GetAdjustedWindowTitle(value);
             }
         }
 
@@ -187,10 +179,9 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
         {
-            string modifiedTitle = title;
-#if DEBUG
-            modifiedTitle += " | Atlas/" + Atlas.Version + " | Telescope Active";
-#endif
+            _title = title;
+            string modifiedTitle = GetAdjustedWindowTitle(_title);
+
             WindowCreateInfo windowCI = new WindowCreateInfo()
             {
                 X = AMath.RoundToInt(_position.X),
@@ -227,6 +218,9 @@ namespace SolidCode.Atlas.Rendering
                 GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
             
             Debug.Log(LogCategory.Rendering, "Current graphics backend: " + GraphicsDevice.BackendType.ToString());
+#if DEBUG
+            _window.Title = GetAdjustedWindowTitle(_title);
+#endif
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("atlas");
             builtinAssets.LoadAtlasAssetpack();
@@ -486,6 +480,17 @@ namespace SolidCode.Atlas.Rendering
             Profiler.EndTimer();
             Profiler.SubmitTimes();
 #endif
+        }
+
+        private static string GetAdjustedWindowTitle(string preferred)
+        {
+#if DEBUG
+            return preferred + " | Atlas/" + Atlas.Version + " | " + GraphicsDevice?.BackendType.ToString() +
+                   " | Telescope Active" + (Atlas.StartupArgumentExists("--disable-multi-process-debugging")
+                       ? " | Multi-Process Debugging Disabled"
+                       : "");
+#endif
+            return preferred;
         }
 
 
