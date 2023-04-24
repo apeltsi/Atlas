@@ -35,7 +35,7 @@ namespace SolidCode.Atlas
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "marble-soda@1.0";
+        public const string Version = "marble-soda@1.1";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }

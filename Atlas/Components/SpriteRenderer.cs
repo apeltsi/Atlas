@@ -10,7 +10,7 @@ public class SpriteRenderer : RenderComponent
 {
     Mesh<VertexPositionUV> mesh;
     private Rendering.Texture _sprite = AssetManager.GetAsset<Rendering.Texture>("error");
-
+    protected Sampler? sampler;
     public Rendering.Texture Sprite
     {
         get => _sprite;
@@ -56,7 +56,7 @@ public class SpriteRenderer : RenderComponent
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         List<SolidCode.Atlas.Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
         textures.Add(Sprite);
-        drawable = new Drawable<VertexPositionUV, ColorUniform>(_graphicsDevice, "sprite/shader", mesh, entity.GetComponent<Transform>(), new ColorUniform(Color), ShaderStages.Fragment, textures);
+        drawable = new Drawable<VertexPositionUV, ColorUniform>(_graphicsDevice, "sprite/shader", mesh, entity.GetComponent<Transform>(), new ColorUniform(Color), ShaderStages.Fragment, textures, ShaderStages.Vertex, sampler);
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);
         return drawables.ToArray();
