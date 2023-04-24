@@ -25,22 +25,23 @@ public class InstancedSpriteRenderer : SpriteRenderer
 
     private InstanceData[] _data = new[]
     {
-        new InstanceData(Vector2.Zero, 0f, Vector2.One, Vector4.One),
-        new InstanceData(new Vector2(0, -1f), 3.14f, Vector2.One, Vector4.One)
+        new InstanceData(Vector2.Zero, 0f, Vector2.One, Vector4.One)
     };
-    public List<InstanceData> Instances
+    public InstanceData[] Instances
     {
-        get
-        {
-            return _data.ToList();
-        }
+        get => _data;
         set
         {
-            _data = value.ToArray();
-            if (drawable != null)
-            {
-                ((InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>)drawable).UpdateInstanceData(_data);
-            }
+            _data = value;
+            UpdateData();
+        }
+    }
+
+    public void UpdateData()
+    {
+        if (drawable != null)
+        {
+            ((InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>)drawable).UpdateInstanceData(_data);
         }
     }
     

@@ -229,8 +229,21 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         CreateResources(Window.GraphicsDevice);
     }
 
+    private bool _instancesDirty = false;
+
     public override void Draw(CommandList cl)
     {
+        if (_instancesDirty)
+        {
+            if (_instanceData.Length != _instanceCount)
+            {
+                _instanceCount = (uint)_instanceData.Length;
+                _instanceVB.Dispose();
+                _instanceVB = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TInstanceData>() * _instanceCount, BufferUsage.VertexBuffer));
+            }
+            Window.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
+            _instancesDirty = false;
+        }
         cl.SetPipeline(pipeline);
         cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
         cl.SetVertexBuffer(0, vertexBuffer);
@@ -267,15 +280,8 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
     public void UpdateInstanceData(TInstanceData[] newData)
     {
-        _instanceData = newData;
-        if (newData.Length != _instanceCount)
-        {
-            _instanceCount = (uint)newData.Length;
-            _instanceVB.Dispose();
-            _instanceVB = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TInstanceData>() * _instanceCount, BufferUsage.VertexBuffer));
-            
-        }
-        Window.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
+        _instancesDirty = true;
+        this._instanceData = newData;
     }
 
     public override void Dispose()
