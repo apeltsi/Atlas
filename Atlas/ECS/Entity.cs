@@ -40,8 +40,8 @@
                 sca = (Vector2)scale;
             }
             Transform t = AddComponent<Transform>();
-            t.position = pos;
-            t.scale = sca;
+            t.Position = pos;
+            t.Scale = sca;
         }
         public Entity(string name, bool transform)
         {
@@ -60,8 +60,8 @@
             if (transform)
             {
                 Transform t = AddComponent<Transform>();
-                t.position = Vector2.Zero;
-                t.scale = Vector2.One;
+                t.Position = Vector2.Zero;
+                t.Scale = Vector2.One;
             }
         }
 

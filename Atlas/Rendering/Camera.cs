@@ -15,15 +15,15 @@ namespace SolidCode.Atlas.Components
         {
             _t = entity?.GetComponent<Transform>();
             if (_t == null) return;
-            _position = _t.globalPosition;
-            _scale = _t.globalScale;
+            _position = _t.GlobalPosition;
+            _scale = _t.GlobalScale;
             
         }
         public void Update()
         {
             if (_t == null) return;
-            _position = _t.globalPosition;
-            _scale = _t.globalScale;
+            _position = _t.GlobalPosition;
+            _scale = _t.GlobalScale;
         }
 
         public static Matrix4x4 GetTransformMatrix()

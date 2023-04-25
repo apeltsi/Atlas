@@ -11,23 +11,23 @@ namespace SolidCode.Atlas.ECS
         /// <summary>
         /// Local position of entity
         /// </summary>
-        public Vector2 position;
+        public Vector2 Position;
         /// <summary>
         /// Local scale of entity
         /// </summary>
-        public Vector2 scale;
+        public Vector2 Scale;
         /// <summary>
         /// Local rotation of entity, measured in degrees
         /// </summary>
 
-        public float rotation = 0f;
+        public float Rotation = 0f;
         private float _z = 1f;
         /// <summary>
         /// Local z of entity
         /// </summary>
 
         private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
-        public float z
+        public float Z
         {
             get
             {
@@ -47,7 +47,7 @@ namespace SolidCode.Atlas.ECS
         /// Global position of entity
         /// </summary>
 
-        public Vector2 globalPosition
+        public Vector2 GlobalPosition
         {
             get
             {
@@ -62,16 +62,16 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
-                        return t.globalPosition + position * t.globalScale;
+                        return t.GlobalPosition + Position * t.GlobalScale;
                     }
                 }
-                return position;
+                return Position;
             }
             set
             {
                 if (entity == null)
                 {
-                    position = value;
+                    Position = value;
                     return;
                 }
                 if (entity.parent != null)
@@ -81,18 +81,18 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
-                        position = value - t.globalPosition;
+                        Position = value - t.GlobalPosition;
                     }
                 }
 
-                position = value;
+                Position = value;
             }
         }
         /// <summary>
         /// Global scale of entity
         /// </summary>
 
-        public Vector2 globalScale
+        public Vector2 GlobalScale
         {
 
             get
@@ -108,17 +108,17 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global scale and multiply it by ours
-                        return t.globalScale * scale;
+                        return t.GlobalScale * Scale;
                     }
                 }
-                return scale;
+                return Scale;
             }
         }
         /// <summary>
         /// Global rotation of entity, measured in degrees
         /// </summary>
 
-        public float globalRotation
+        public float GlobalRotation
         {
             get
             {
@@ -133,16 +133,16 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
-                        return t.globalRotation + rotation;
+                        return t.GlobalRotation + Rotation;
                     }
                 }
-                return rotation;
+                return Rotation;
             }
             set
             {
                 if (entity == null)
                 {
-                    rotation = value;
+                    Rotation = value;
                     return;
                 }
                 if (entity.parent != null)
@@ -152,11 +152,11 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
-                        rotation = value - t.globalRotation;
+                        Rotation = value - t.GlobalRotation;
                     }
                 }
 
-                rotation = value;
+                Rotation = value;
             }
 
         }
@@ -164,7 +164,7 @@ namespace SolidCode.Atlas.ECS
         /// Global z of entity
         /// </summary>
 
-        public float globalZ
+        public float GlobalZ
         {
             get
             {
@@ -179,16 +179,16 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours
-                        return t.globalZ + z;
+                        return t.GlobalZ + Z;
                     }
                 }
-                return z;
+                return Z;
             }
             set
             {
                 if (entity == null)
                 {
-                    z = value;
+                    Z = value;
                     return;
                 }
                 if (entity.parent != null)
@@ -198,24 +198,24 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours
-                        z = value - t.globalZ;
+                        Z = value - t.GlobalZ;
                     }
                 }
 
-                z = value;
+                Z = value;
             }
         }
 
 
         public Transform(Vector2 position, Vector2 scale)
         {
-            this.position = position;
-            this.scale = scale;
+            this.Position = position;
+            this.Scale = scale;
         }
         public Transform()
         {
-            this.position = Vector2.Zero;
-            this.scale = Vector2.One;
+            this.Position = Vector2.Zero;
+            this.Scale = Vector2.One;
         }
 
         public void RegisterDrawable(Drawable d)
@@ -231,9 +231,9 @@ namespace SolidCode.Atlas.ECS
 
         public virtual Matrix4x4 GetTransformationMatrix()
         {
-            Vector2 pos = this.globalPosition;
-            Vector2 scale = this.globalScale;
-            float rot = this.globalRotation * ((float)Math.PI / 180f);
+            Vector2 pos = this.GlobalPosition;
+            Vector2 scale = this.GlobalScale;
+            float rot = this.GlobalRotation * ((float)Math.PI / 180f);
             Matrix4x4 scaleMat = new Matrix4x4(
                 scale.X, 0, 0, 0,
                 0, scale.Y, 0, 0,
