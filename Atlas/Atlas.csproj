@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup Label="Resources"> 
       <EmbeddedResource Include="assets\atlas.assetpack" />
+      <EmbeddedResource Include="assets\atlas-post.assetpack" />
   </ItemGroup>
   <ItemGroup Label="Native Libraries">
     <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Mathematics;
 using Veldrid;
 
@@ -64,6 +65,11 @@ public class BloomEffect : PostProcessEffect
 
     public override TextureView CreateResources(TextureView textureView)
     {
+        if (!AssetPack.CheckIfLoaded("%ASSEMBLY%/atlas-post"))
+        {
+            Debug.Log(LogCategory.Rendering, "Necessary assets for bloom effect loading...");
+            new AssetPack("%ASSEMBLY%/atlas-post").Load();
+        }
         
 #region Bright Pixels
         ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;

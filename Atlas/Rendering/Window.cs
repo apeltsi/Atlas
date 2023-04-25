@@ -222,8 +222,8 @@ namespace SolidCode.Atlas.Rendering
             _window.Title = GetAdjustedWindowTitle(_title);
 #endif
             // We have to load our builtin shaders now
-            AssetPack builtinAssets = new AssetPack("atlas");
-            builtinAssets.LoadAtlasAssetpack();
+            AssetPack builtinAssets = new AssetPack("%ASSEMBLY%/atlas");
+            builtinAssets.Load();
 
             _window.Resized += () =>
             {
@@ -564,7 +564,7 @@ namespace SolidCode.Atlas.Rendering
                 }
 
                 _finalTextureView = previousView;
-                _resolvePass = new ShaderPass<EmptyStruct>("post/resolve/shader", null);
+                _resolvePass = new ShaderPass<EmptyStruct>("resolve/shader", null);
 
                 if (SampleCount != TextureSampleCount.Count1)
                 {
