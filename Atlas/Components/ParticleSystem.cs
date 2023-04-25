@@ -95,13 +95,15 @@ public class ParticleSystem : InstancedSpriteRenderer
     }
 
     private uint _particleCount = 20;
+    private bool _hasStarted = false;
     public uint ParticleCount
     {
         get => _particleCount;
         set
         {
             _particleCount = value;
-            GenerateInstances();
+            if(_hasStarted)
+                GenerateInstances();
         }
     }
     private uint _prevParticleCount = 0;
@@ -136,10 +138,8 @@ public class ParticleSystem : InstancedSpriteRenderer
     private float _currentPeriod = 0f;
     public void Start()
     {
-        if (ParticleCount == 20)
-        {
-            GenerateInstances();
-        }
+        GenerateInstances();
+        _hasStarted = true;
     }
     
     public void Update()

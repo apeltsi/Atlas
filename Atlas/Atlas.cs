@@ -35,7 +35,7 @@ namespace SolidCode.Atlas
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AppName = "Atlas";
-        public const string Version = "marble-soda@1.1";
+        public const string Version = "marble-soda@1.2";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
@@ -190,7 +190,7 @@ namespace SolidCode.Atlas
                 ecsStopwatch.Start();
             }
             EntityComponentSystem.Tick();
-            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond }, EntityComponentSystem.GetECSHierarchy());
+            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond, Version }, EntityComponentSystem.GetECSHierarchy());
             TickScheduler.FreeThreads();
             sw.Stop();
         }
