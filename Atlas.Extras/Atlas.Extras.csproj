@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>SolidCode.Atlas.Extras</RootNamespace>
+        <AssemblyName>SolidCode.Atlas.Extras</AssemblyName>
+    </PropertyGroup>
+    <ItemGroup Label="Resources">
+        <EmbeddedResource Include="assets\atlas-extras.assetpack" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Atlas\Atlas.csproj" />
+    </ItemGroup>
+
+</Project>

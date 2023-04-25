@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Telescope", "Atlas.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Tests", "Atlas.Tests\Atlas.Tests.csproj", "{A7176B35-07EA-4774-8870-D99E9AA8A530}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Atlas.Extras", "Atlas.Extras\Atlas.Extras.csproj", "{58CDC6D7-55C3-48C0-B4F9-789910F4B881}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{A7176B35-07EA-4774-8870-D99E9AA8A530}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7176B35-07EA-4774-8870-D99E9AA8A530}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7176B35-07EA-4774-8870-D99E9AA8A530}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58CDC6D7-55C3-48C0-B4F9-789910F4B881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58CDC6D7-55C3-48C0-B4F9-789910F4B881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58CDC6D7-55C3-48C0-B4F9-789910F4B881}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58CDC6D7-55C3-48C0-B4F9-789910F4B881}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -83,6 +83,7 @@ public class ParticleSystem : InstancedSpriteRenderer
             this.Position = _system.InitialPosition();
             this.Velocity = _system.InitialVelocity();
             this.Lifetime = _system.InitialLifetime();
+            this.Rotation = _system.InitialRotation();
         }
 
         public void ForceUpdate()
@@ -94,7 +95,7 @@ public class ParticleSystem : InstancedSpriteRenderer
         }
     }
 
-    private uint _particleCount = 20;
+    private uint _particleCount = 10;
     private bool _hasStarted = false;
     public uint ParticleCount
     {
@@ -124,7 +125,7 @@ public class ParticleSystem : InstancedSpriteRenderer
         },
         (ref Particle particle) =>
         {
-            particle.Color = new Vector4(1f - particle.Age / particle.Lifetime);
+            particle.Color = new Vector4(particle.Color.X, particle.Color.Y, particle.Color.Z, 1f - particle.Age / particle.Lifetime);
             particle.Scale += new Vector2(0.5f, 0.5f) * (float)Time.deltaTime;
         } 
     };
@@ -133,32 +134,34 @@ public class ParticleSystem : InstancedSpriteRenderer
     public Vector2Generator InitialScale = () => new Vector2(0.1f, 0.1f);
     public Vector2Generator InitialPosition = () => ARandom.Vector2();
     public FloatGenerator InitialLifetime = () => 1f;
+    public FloatGenerator InitialRotation = () => 0f;
 
-    public float Period = 5f;
+    
     private float _currentPeriod = 0f;
     public void Start()
     {
         GenerateInstances();
         _hasStarted = true;
     }
-    
+    Queue<Particle> _deadParticles = new();
+    public bool Burst = false;
     public void Update()
     {
         _currentPeriod += (float)Time.deltaTime;
-        if (_currentPeriod > Period)
-        {
-            _currentPeriod -= Period;
-        }
+        
+
+        float maxLifeTime = InitialLifetime();
         for (int i = 0; i < _particles.Count; i++)
         {
             Particle p = _particles[i];
-
+            maxLifeTime = Math.Max(maxLifeTime, p.Lifetime);
             if (p.Alive)
             {
                 p.Age += (float)Time.deltaTime;
                 if (p.Age > p.Lifetime)
                 {
                     _particles[i] = new Particle(this, (uint)i);
+                    _deadParticles.Enqueue(_particles[i]);
                     continue;
                 }
                 foreach (var pu in ParticleUpdates)
@@ -166,12 +169,18 @@ public class ParticleSystem : InstancedSpriteRenderer
                     pu(ref p);
                 }
             }
-            else
+            else if(!Burst)
             {
-                if ((Period / (float)ParticleCount) * i < _currentPeriod)
+                if (!_deadParticles.Contains(p))
                 {
-                    p.Alive = true;
-                    p.ForceUpdate();
+                    _deadParticles.Enqueue(p);
+                }
+                if (maxLifeTime / ParticleCount < _currentPeriod)
+                {
+                    Particle dp = _deadParticles.Dequeue();
+                    dp.Alive = true;
+                    dp.ForceUpdate();
+                    _currentPeriod = 0f;
                 }
             }
         }
@@ -193,6 +202,10 @@ public class ParticleSystem : InstancedSpriteRenderer
             for (int i = 0; i < toAdd; i++)
             {
                 Particle p = new Particle(this, (uint)i + _prevParticleCount);
+                if (Burst)
+                {
+                    p.Alive = true;
+                }
                 instances[i + (int)_prevParticleCount] = new InstanceData(p.Position, p.Rotation, Vector2.Zero, p.Color);
                 _particles.Add(p);
             }

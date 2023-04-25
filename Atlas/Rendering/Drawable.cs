@@ -75,7 +75,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 return 0;
             }
-            return this.transform.globalZ.CompareTo(x.transform.globalZ);
+            return this.transform.GlobalZ.CompareTo(x.transform.GlobalZ);
         }
     }
     public struct TransformStruct

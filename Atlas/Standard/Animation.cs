@@ -93,7 +93,7 @@ namespace SolidCode.Atlas.Animation
                 return;
             }
             Entity e = new Entity("ATLAS | Animation Manager");
-            e.AddComponent<AnimationManager>();
+            AnimationManager.instance = e.AddComponent<AnimationManager>();
         }
         public static TweenReference DoTween<T>(ValueRef<T> value, T end, float time, Action? onDone = null, Func<float, float>? timingFunction = null)
         {
@@ -231,7 +231,7 @@ namespace SolidCode.Atlas.Animation
                 instance = this;
             }
 
-            public void Tick()
+            public void Update()
             {
                 List<ITween> curTweens = new List<ITween>(Animation.tweens);
                 foreach (ITween tween in curTweens)

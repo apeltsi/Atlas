@@ -36,17 +36,17 @@ namespace SolidCode.Atlas.ECS
                         // parents position + (parents size * anchor) + (position / window size)
                         //                                                  converted size (pixels to screenspace) 
                         Vector2 win = Window.Size;
-                        return (t.globalPosition - t.globalScale) + (t.globalScale * anchor) + (position / new Vector2(win.X, win.Y));
+                        return (t.GlobalPosition - t.GlobalScale) + (t.GlobalScale * anchor) + (Position / new Vector2(win.X, win.Y));
                     }
                 }
-                return position;
+                return Position;
             }
             set
             {
                 throw new NotImplementedException("Yaah! This isnt implemented yet!");
                 if (entity == null)
                 {
-                    position = value;
+                    Position = value;
                     return;
                 }
                 if (entity.parent != null)
@@ -56,11 +56,11 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
-                        position = value - t.globalPosition;
+                        Position = value - t.GlobalPosition;
                     }
                 }
 
-                position = value;
+                Position = value;
             }
         }
         public Vector2 globalScale
@@ -79,10 +79,10 @@ namespace SolidCode.Atlas.ECS
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global scale and multiply it by ours
-                        return t.globalScale * scale;
+                        return t.GlobalScale * Scale;
                     }
                 }
-                return scale;
+                return Scale;
             }
         }
 
@@ -100,7 +100,7 @@ namespace SolidCode.Atlas.ECS
         {
             Vector2 win = GetParentBoundingBox();
 
-            Vector2 scale = this.scale;
+            Vector2 scale = this.Scale;
             if (!widthRelative)
             {
                 scale.X = scale.X / win.X;
@@ -117,7 +117,7 @@ namespace SolidCode.Atlas.ECS
         {
             if (positionMode == PositionMode.Absolute || entity.parent == null || entity.parent.GetComponent<RectTransform> == null)
             {
-                return this.position;
+                return this.Position;
             }
             return entity.parent.GetComponent<RectTransform>().GetAdjustedScale();
         }
@@ -128,23 +128,23 @@ namespace SolidCode.Atlas.ECS
             Vector2 pos = this.globalPosition;
             if (!widthRelative)
             {
-                scale.X = scale.X / parent.X;
+                Scale.X = Scale.X / parent.X;
             }
             if (!heightRelative)
             {
-                scale.Y = scale.Y / parent.Y;
+                Scale.Y = Scale.Y / parent.Y;
             }
 
-            float rot = this.globalRotation;
-            float z = this.globalZ;
-            return new Vector4(pos.X - scale.X / 2, pos.Y - scale.Y / 2, pos.X + scale.X / 2, pos.Y + scale.Y / 2);
+            float rot = this.GlobalRotation;
+            float z = this.GlobalZ;
+            return new Vector4(pos.X - Scale.X / 2, pos.Y - Scale.Y / 2, pos.X + Scale.X / 2, pos.Y + Scale.Y / 2);
         }
 
         public override Matrix4x4 GetTransformationMatrix()
         {
             Vector2 win = GetParentBoundingBox();
             Vector2 pos = this.globalPosition;
-            Vector2 scale = this.scale;
+            Vector2 scale = this.Scale;
             if (!widthRelative)
             {
                 scale.X = scale.X / win.X;
@@ -154,8 +154,8 @@ namespace SolidCode.Atlas.ECS
                 scale.Y = scale.Y / win.Y;
             }
 
-            float rot = this.globalRotation;
-            float trueZ = this.globalZ;
+            float rot = this.GlobalRotation;
+            float trueZ = this.GlobalZ;
             Matrix4x4 translationAndPosition = new Matrix4x4(
                 scale.X, 0, 0, pos.X,
                 0, scale.Y, 0, pos.Y,

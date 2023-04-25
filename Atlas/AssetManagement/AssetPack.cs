@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Reflection;
+using System.Resources;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Telescope;
@@ -15,6 +16,7 @@ namespace SolidCode.Atlas.AssetManagement
         internal List<string> assetsLoaded = new List<string>();
         public delegate string[] AssetHandler(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode);
         internal static Dictionary<string, AssetHandler> assetHandlers = new Dictionary<string, AssetHandler>();
+        private Assembly _assembly = Assembly.GetExecutingAssembly();
         public static void AddAssetHandler(string extension, AssetHandler handler)
         {
             assetHandlers.Add(extension, handler);
@@ -23,9 +25,18 @@ namespace SolidCode.Atlas.AssetManagement
         {
             assetHandlers.Remove(extension);
         }
-        public AssetPack(string relativePath)
+        /// <summary>
+        /// Specifies an AssetPack that can later be loaded. 
+        /// </summary>
+        /// <param name="relativePath">The path relative to the assets folder, eg. "assets/default" would be "default". If this starts with %ASSEMBLY% then it will be the name of the AssetPack resource excluding the extension. So atlas.assetpack would be "%ASSEMBLY%/atlas".</param>
+        /// <param name="assembly">(OPTIONAL! USE ONLY IF LOADING FROM ASSEMBLY) The assembly containing the AssetPack</param>
+        public AssetPack(string relativePath, Assembly? assembly = null)
         {
             this.relativePath = relativePath;
+            if (assembly != null)
+            {
+                _assembly = assembly;
+            }
             if (!assetHandlers.ContainsKey("ktx") || !assetHandlers.ContainsKey("frag"))
             {
                 AddDefaultHandlers();
@@ -57,32 +68,54 @@ namespace SolidCode.Atlas.AssetManagement
             }
         }
 
-        internal void LoadAtlasAssetpack()
+        private Stream? FromAssembly(string identifier)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("atlas.assetpack"))))
-
-            using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
-                LoadFromArchive(zip);
+            return _assembly.GetManifestResourceStream(_assembly.GetManifestResourceNames().Single(str => str.EndsWith(identifier)));
         }
+
+        public Stream GetStream()
+        {
+            if (relativePath.StartsWith("%ASSEMBLY%/"))
+            {
+                string name = relativePath.Substring("%ASSEMBLY%/".Length);
+                
+                Stream s = FromAssembly(name + ".assetpack");
+                if (s == null)
+                    throw new MissingManifestResourceException("The AssetPack '" + relativePath + "' could not be found in the assembly. The assetpack should be named: '" + name + ".assetpack'");
+                return s;
+                
+            }
+            else
+            {
+                return File.Open(Path.Join(Atlas.AssetPackDirectory, relativePath + ".assetpack"), FileMode.Open);
+            }
+        }
+        
         ///<summary>
-        /// Loads the assetpack into memory
+        /// Loads the AssetPack into memory
         ///</summary>
 
         public void Load()
         {
 
-            using (FileStream stream = File.Open(Path.Join(Atlas.AssetPackDirectory, relativePath + ".assetpack"), FileMode.Open))
+            using (Stream stream = GetStream())
             {
                 using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
                     LoadFromArchive(zip);
             }
         }
 
+        public static bool CheckIfLoaded(string relativePath)
+        {
+            lock (loadedAssetPacks)
+            {
+                return loadedAssetPacks.ContainsKey(relativePath);
+            }
+        }
+
         public Task LoadAsync()
         {
-            return Task.Run(() => Load()); ;
+            return Task.Run(() => Load());
         }
 
         internal List<string> LoadSpecificFiles(List<string> files)
@@ -116,7 +149,7 @@ namespace SolidCode.Atlas.AssetManagement
             {
                 if (loadFiles[this.relativePath].Count > 0 && loadFiles.ContainsKey(this.relativePath))
                 {
-                    using (FileStream stream = File.Open(Path.Join(Atlas.AssetPackDirectory, relativePath + ".assetpack"), FileMode.Open))
+                    using (Stream stream = GetStream())
                     {
                         using (ZipArchive zip = new ZipArchive(stream, ZipArchiveMode.Read))
                             LoadFromArchive(zip, loadFiles[this.relativePath].ToArray());
@@ -158,6 +191,8 @@ namespace SolidCode.Atlas.AssetManagement
                 // Lets add this AssetPack to the loaded list so that the same assets don't get loaded multiple times
                 lock (loadedAssetPacks)
                 {
+                    if (loadedAssetPacks.ContainsKey(this.relativePath))
+                        return;
                     loadedAssetPacks.Add(this.relativePath, this);
                 }
             }
