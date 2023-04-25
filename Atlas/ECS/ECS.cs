@@ -26,7 +26,8 @@ namespace SolidCode.Atlas.ECS
 
         public delegate void TickTask();
 
-        private static List<(int, TickTask)> _tickTasks = new List<(int, TickTask)>();
+        private static List<(int, Action)> _tickTasks = new List<(int, Action)>();
+        private static List<(float, Action)> _frameDelays = new List<(float, Action)>();
 
         private static ConcurrentDictionary<Component, ComponentMethod> _updateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
         private static ConcurrentDictionary<Component, ComponentMethod> _tickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
@@ -147,6 +148,20 @@ namespace SolidCode.Atlas.ECS
                 return;
             }
             UpdateECS();
+            lock(_frameDelays)
+                for (int i = _frameDelays.Count - 1; i >= 0; i--)
+                {
+                    (float, Action) task = _frameDelays[i];
+                    if (task.Item1 <= 0f)
+                    {
+                        task.Item2.Invoke();
+                        _frameDelays.RemoveAt(i);
+                    }
+                    else
+                    {
+                        _frameDelays[i] = (task.Item1 - (float)Time.deltaTime, task.Item2);
+                    }
+                }
             lock (_updateMethods)
             {
                 foreach (KeyValuePair<Component, ComponentMethod> pair in _updateMethods)
@@ -176,7 +191,7 @@ namespace SolidCode.Atlas.ECS
                 lock(_tickTasks)
                     for (int i = _tickTasks.Count - 1; i >= 0; i--)
                     {
-                        (int, TickTask) task = _tickTasks[i];
+                        (int, Action) task = _tickTasks[i];
                         if (task.Item1 <= 0)
                         {
                             task.Item2.Invoke();
@@ -208,10 +223,16 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
-        public static void ScheduleTickTaskIn(int ticks, TickTask task)
+        public static void ScheduleTickTaskIn(int ticks, Action task)
         {
             lock(_tickTasks)
                 _tickTasks.Add((ticks, task));
+        }
+
+        public static void ScheduleFrameTaskAfter(float time, Action task)
+        {
+            lock(_frameDelays)
+                _frameDelays.Add((time, task));
         }
 
         public static void Dispose()

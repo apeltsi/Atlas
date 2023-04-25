@@ -327,7 +327,7 @@ namespace SolidCode.Atlas.Rendering
 
                 EntityComponentSystem.Update();
                 // Update time
-                Time.deltaTime = watch.Elapsed.TotalSeconds;
+                Time.deltaTime = frame < 3 ? 0f : watch.Elapsed.TotalSeconds;
                 Time.time = Atlas.ecsStopwatch.Elapsed.TotalSeconds;
 
                 _frameTimes += (float)Time.deltaTime;
