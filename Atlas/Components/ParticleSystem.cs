@@ -83,6 +83,7 @@ public class ParticleSystem : InstancedSpriteRenderer
             this.Position = _system.InitialPosition();
             this.Velocity = _system.InitialVelocity();
             this.Lifetime = _system.InitialLifetime();
+            this.Rotation = _system.InitialRotation();
         }
 
         public void ForceUpdate()
@@ -124,7 +125,7 @@ public class ParticleSystem : InstancedSpriteRenderer
         },
         (ref Particle particle) =>
         {
-            particle.Color = new Vector4(1f - particle.Age / particle.Lifetime);
+            particle.Color = new Vector4(particle.Color.X, particle.Color.Y, particle.Color.Z, 1f - particle.Age / particle.Lifetime);
             particle.Scale += new Vector2(0.5f, 0.5f) * (float)Time.deltaTime;
         } 
     };
@@ -133,7 +134,9 @@ public class ParticleSystem : InstancedSpriteRenderer
     public Vector2Generator InitialScale = () => new Vector2(0.1f, 0.1f);
     public Vector2Generator InitialPosition = () => ARandom.Vector2();
     public FloatGenerator InitialLifetime = () => 1f;
+    public FloatGenerator InitialRotation = () => 0f;
 
+    
     private float _currentPeriod = 0f;
     public void Start()
     {
