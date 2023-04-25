@@ -141,6 +141,7 @@ public class ParticleSystem : InstancedSpriteRenderer
         _hasStarted = true;
     }
     Queue<Particle> _deadParticles = new();
+    public bool Burst = false;
     public void Update()
     {
         _currentPeriod += (float)Time.deltaTime;
@@ -165,7 +166,7 @@ public class ParticleSystem : InstancedSpriteRenderer
                     pu(ref p);
                 }
             }
-            else
+            else if(!Burst)
             {
                 if (!_deadParticles.Contains(p))
                 {
@@ -198,6 +199,10 @@ public class ParticleSystem : InstancedSpriteRenderer
             for (int i = 0; i < toAdd; i++)
             {
                 Particle p = new Particle(this, (uint)i + _prevParticleCount);
+                if (Burst)
+                {
+                    p.Alive = true;
+                }
                 instances[i + (int)_prevParticleCount] = new InstanceData(p.Position, p.Rotation, Vector2.Zero, p.Color);
                 _particles.Add(p);
             }
