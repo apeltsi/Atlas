@@ -133,6 +133,7 @@ namespace SolidCode.Atlas.Audio
             private Stopwatch stopwatch;
             private int source;
             public double Duration { get; protected set; }
+            public double TimePlayed => stopwatch.Elapsed.TotalSeconds;
             internal PlayingAudio(AudioTrack t, int source)
             {
                 this.Duration = t.Duration;
