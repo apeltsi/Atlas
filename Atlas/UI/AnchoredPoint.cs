@@ -30,7 +30,7 @@ public class AnchoredPoint
         Vector2 ret = Position.Evaluate();
         if (Parent == null)
         {
-            ret += AnchorPoint * Renderer.UnitScale;
+            ret += (AnchorPoint * 2f - new Vector2(1f)) * Renderer.UnitScale;
         }
         else
         {
