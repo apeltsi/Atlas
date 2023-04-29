@@ -61,17 +61,17 @@ public class ShaderPass<TUniform> : ShaderPass
     // Called by the PostProcessEffect class with the target framebuffer
     public override void CreateResources(Framebuffer? targetBuffer, TextureView[] textureViews)
     {
-        if (Window.GraphicsDevice == null)
+        if (Renderer.GraphicsDevice == null)
         {
             throw new NullReferenceException(
                 "GraphicsDevice is null! PostProcess requires a GraphicsDevice to be initialized.");
         }
-        GraphicsDevice graphicsDevice = Window.GraphicsDevice;
+        GraphicsDevice graphicsDevice = Renderer.GraphicsDevice;
         
         // Get the shader
         Shader shader = ShaderManager.GetShader(_shaderName);
         // Get the resource factory
-        ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
+        ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
 
         // Initialize buffers
         _vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf(new VertexPositionUV()), BufferUsage.VertexBuffer));
@@ -141,7 +141,7 @@ public class ShaderPass<TUniform> : ShaderPass
         }
 
 
-        targetBuffer ??= Window.PrimaryFramebuffer;
+        targetBuffer ??= Renderer.PrimaryFramebuffer;
             
         pipelineDescription.Outputs = targetBuffer.OutputDescription;
         
@@ -196,7 +196,7 @@ public class ShaderPass<TUniform> : ShaderPass
     public void UpdateUniform(TUniform uniform)
     {
         _uniform = uniform;
-        Window.GraphicsDevice.UpdateBuffer<TUniform>(_uniformBuffer, 0, uniform);
+        Renderer.GraphicsDevice.UpdateBuffer<TUniform>(_uniformBuffer, 0, uniform);
     }
 
     public override void Dispose()

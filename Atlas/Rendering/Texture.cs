@@ -23,7 +23,7 @@ namespace SolidCode.Atlas.Rendering
             this.name = name;
             try
             {
-                this.texture = KtxFile.LoadTexture(Window.GraphicsDevice, Window.GraphicsDevice.ResourceFactory, Path.Join(Atlas.AssetsDirectory, this.path), PixelFormat.R8_G8_B8_A8_UNorm);
+                this.texture = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, Path.Join(Atlas.AssetsDirectory, this.path), PixelFormat.R8_G8_B8_A8_UNorm);
                 this.IsValid = true;
             }
             catch (Exception e)
@@ -37,7 +37,7 @@ namespace SolidCode.Atlas.Rendering
             this.name = name;
             try
             {
-                this.texture = KtxFile.LoadTexture(Window.GraphicsDevice, Window.GraphicsDevice.ResourceFactory, streams[0], PixelFormat.R8_G8_B8_A8_UNorm);
+                this.texture = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, streams[0], PixelFormat.R8_G8_B8_A8_UNorm);
                 this.IsValid = true;
             }
             catch (Exception e)

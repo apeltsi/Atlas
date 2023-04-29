@@ -39,7 +39,7 @@ namespace SolidCode.Atlas.Rendering
                 "main");
             try
             {
-                shaders = Window.GraphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+                shaders = Renderer.GraphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
                 this.IsValid = true;
             }
             catch (Exception ex)

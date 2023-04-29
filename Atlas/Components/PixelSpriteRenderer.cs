@@ -10,6 +10,6 @@ public class PixelSpriteRenderer : SpriteRenderer
 {
     public PixelSpriteRenderer()
     {
-        sampler = Window.GraphicsDevice.PointSampler;
+        sampler = Renderer.GraphicsDevice.PointSampler;
     }
 }

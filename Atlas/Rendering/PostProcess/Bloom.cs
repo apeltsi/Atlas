@@ -7,7 +7,7 @@ namespace SolidCode.Atlas.Rendering.PostProcess;
 
 public class BloomEffect : PostProcessEffect
 {
-    List<ShaderPass> Passes = new List<ShaderPass>();
+    List<ShaderPass> _passes = new List<ShaderPass>();
     List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();
     List<TextureView> _textureViews = new List<TextureView>();
     List<Framebuffer> _frameBuffers = new List<Framebuffer>();
@@ -44,10 +44,6 @@ public class BloomEffect : PostProcessEffect
         set { _threshold = Math.Clamp(value, 0f, 1f); RequestRecreation(); }
     }
 
-    public BloomEffect()
-    {
-    }
-
     struct EmptyUniform
     {
         
@@ -65,6 +61,7 @@ public class BloomEffect : PostProcessEffect
 
     public override TextureView CreateResources(TextureView textureView)
     {
+        if (Renderer.GraphicsDevice == null) throw new NullReferenceException("Graphics device is null! Bloom cannot be created.");
         if (!AssetPack.CheckIfLoaded("%ASSEMBLY%/atlas-post"))
         {
             Debug.Log(LogCategory.Rendering, "Necessary assets for bloom effect loading...");
@@ -72,9 +69,9 @@ public class BloomEffect : PostProcessEffect
         }
         
 #region Bright Pixels
-        ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
+        ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
 
-        Veldrid.Texture brightTexture = factory.CreateTexture(Window.PostProcessingDescription);
+        Veldrid.Texture brightTexture = factory.CreateTexture(Renderer.PostProcessingDescription);
         brightTexture.Name = "Brightness Texture";
         _textures.Add(brightTexture);
         TextureView brightView = factory.CreateTextureView(brightTexture);
@@ -85,15 +82,15 @@ public class BloomEffect : PostProcessEffect
         _frameBuffers.Add(brightBuffer);
         ShaderPass<BloomUniform> brightPass = new ShaderPass<BloomUniform>("post/bright/shader", new BloomUniform(Intensity, Threshold));
         brightPass.CreateResources(brightBuffer, new []{textureView});
-        Passes.Add(brightPass);
+        _passes.Add(brightPass);
 
 #endregion
 #region Kawase Blur
 
-        int blurIterations = AMath.RoundToInt(Math.Sqrt((Window.PostScalingIndex * Quality) * 20));
+        int blurIterations = AMath.RoundToInt(Math.Sqrt((Renderer.PostScalingIndex * Quality) * 20));
         for (int i = 0; i < blurIterations; i++)
         {
-            TextureDescription desc = Window.PostProcessingDescription;
+            TextureDescription desc = Renderer.PostProcessingDescription;
             desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
             desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
 
@@ -107,7 +104,7 @@ public class BloomEffect : PostProcessEffect
             _frameBuffers.Add(kawaseFramebuffer);
             ShaderPass kawasePass = new ShaderPass<EmptyUniform>("post/kawase/shader", null);
             kawasePass.CreateResources(kawaseFramebuffer, new []{_textureViews[^2]} );
-            Passes.Add(kawasePass);
+            _passes.Add(kawasePass);
         }
         
 #endregion
@@ -116,7 +113,7 @@ public class BloomEffect : PostProcessEffect
         for (int i = blurIterations - 2; i >= 0; i--)
         {
             ShaderPass kawasePass = new ShaderPass<EmptyUniform>("post/combine/shader", null);
-            TextureDescription desc = Window.PostProcessingDescription;
+            TextureDescription desc = Renderer.PostProcessingDescription;
             desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
             desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
             Veldrid.Texture upscaleTexture = factory.CreateTexture(desc);
@@ -126,12 +123,12 @@ public class BloomEffect : PostProcessEffect
             FramebufferDescription fbDesc = new FramebufferDescription(null, upscaleTexture);
             _frameBuffers.Add(factory.CreateFramebuffer(fbDesc));
             kawasePass.CreateResources(_frameBuffers[^1], new []{_textureViews[i + 1], _textureViews[^2]} );
-            Passes.Add(kawasePass);
+            _passes.Add(kawasePass);
         }
 #endregion
         ShaderPass combinePass = new ShaderPass<EmptyUniform>("post/finalcombine/shader", null);
         combinePass.CreateResources(_frameBuffers[0], new []{textureView, _textureViews[^1]});
-        Passes.Add(combinePass);
+        _passes.Add(combinePass);
         return _textureViews[0];
     }
         
@@ -142,7 +139,7 @@ public class BloomEffect : PostProcessEffect
             cl.SetFramebuffer(buffer);
             cl.ClearColorTarget(0, RgbaFloat.Clear);
         }
-        foreach (var pass in Passes)
+        foreach (var pass in _passes)
         {
             pass.Draw(cl);
         }
@@ -166,11 +163,11 @@ public class BloomEffect : PostProcessEffect
         }
         _frameBuffers.Clear();
         
-        foreach (var pass in Passes)
+        foreach (var pass in _passes)
         {
             pass.Dispose();
         }
-        Passes.Clear();
+        _passes.Clear();
     }
         
     /// <summary>
@@ -178,19 +175,19 @@ public class BloomEffect : PostProcessEffect
     /// </summary>
     void RequestFullRecreation()
     {
-        lock (Passes)
+        lock (_passes)
         {
-            if(Passes.Count > 0)
-                Window.RequestResourceCreation();
+            if(_passes.Count > 0)
+                Renderer.RequestResourceCreation();
         }
     }
 
     void RequestRecreation()
     {
-        lock (Passes)
+        lock (_passes)
         {
-            if(Passes.Count > 0)
-                ((ShaderPass<BloomUniform>)Passes[0]).UpdateUniform(new BloomUniform(Intensity, Threshold));
+            if(_passes.Count > 0)
+                ((ShaderPass<BloomUniform>)_passes[0]).UpdateUniform(new BloomUniform(Intensity, Threshold));
         }
     }
 }

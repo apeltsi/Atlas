@@ -9,7 +9,7 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static Shader GetShader(string path)
         {
-            if (Window.GraphicsDevice == null)
+            if (Renderer.GraphicsDevice == null)
             {
                 throw new NullReferenceException("No graphics device available yet!");
             }

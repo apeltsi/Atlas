@@ -36,7 +36,7 @@ public class SpriteRenderer : RenderComponent
             _color = value;
             if (drawable != null)
             {
-                drawable.SetUniformBufferValue(Window.GraphicsDevice, new ColorUniform(value));
+                drawable.SetUniformBufferValue(Renderer.GraphicsDevice, new ColorUniform(value));
             }
         }
     }

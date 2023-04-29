@@ -19,27 +19,40 @@ namespace SolidCode.Atlas.ECS
         /// <summary>
         /// Local rotation of entity, measured in degrees
         /// </summary>
-
         public float Rotation = 0f;
+
+        private int _layer = 0;
+
+        public int Layer
+        {
+            get => _layer;
+            set
+            {
+                _layer = value;
+                _drawables.Update();
+                foreach (Drawable d in _drawables)
+                {
+                    Renderer.ResortDrawable(d);
+                }
+            }
+        }
+        
         private float _z = 1f;
+
+        private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
         /// <summary>
         /// Local z of entity
         /// </summary>
-
-        private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
         public float Z
         {
-            get
-            {
-                return _z;
-            }
+            get => _z;
             set
             {
                 _z = value;
                 _drawables.Update();
                 foreach (Drawable d in _drawables)
                 {
-                    Window.ResortDrawable(d);
+                    Renderer.ResortDrawable(d);
                 }
             }
         }

@@ -216,7 +216,7 @@ namespace SolidCode.Atlas.Rendering
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
 
-            pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[2 + _textures.Count];
             buffers[0] = transformBuffer;
@@ -250,15 +250,15 @@ namespace SolidCode.Atlas.Rendering
             if (vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>())
             {
                 vertexBuffer.Dispose();
-                vertexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
+                vertexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             }
             if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
             {
                 indexBuffer.Dispose();
-                indexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+                indexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             }
-            Window.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            Window.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            Renderer.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
         }
 
 
@@ -266,7 +266,7 @@ namespace SolidCode.Atlas.Rendering
         {
             _textureAssets[index] = texture;
             SoftDispose();
-            CreateResources(Window.GraphicsDevice);
+            CreateResources(Renderer.GraphicsDevice);
         }
 
         public override void Draw(CommandList cl)
@@ -312,7 +312,7 @@ namespace SolidCode.Atlas.Rendering
         public void SoftDispose()
         {
             // Mby this will help with our problem above
-            Window.GraphicsDevice.WaitForIdle();
+            Renderer.GraphicsDevice.WaitForIdle();
             pipeline.Dispose();
 
             vertexBuffer.Dispose();

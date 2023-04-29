@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Rendering.PostProcess;
+using SolidCode.Atlas.Standard;
 using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.Rendering
@@ -15,40 +16,11 @@ namespace SolidCode.Atlas.Rendering
 
     public class Window
     {
-
-        public static GraphicsDevice? GraphicsDevice;
-        private static CommandList _commandList = null!;
-        private static List<Drawable> _drawables = new();
         private static Sdl2Window? _window;
-        private Matrix4x4 _windowScalingMatrix;
         public static int MaxFramerate { get; set; }
-        public static Framebuffer PrimaryFramebuffer { get; protected set; }
-        private Veldrid.Texture _mainColorTexture;
-        private static TextureView? _mainColorView;
-        private static ShaderPass? _resolvePass;
-        private static TextureView? _finalTextureView;
 
         public static RgbaFloat ClearColor = RgbaFloat.Black;
-        
-        // Post Process
-        public static bool DoPostProcess = true;
-        private static readonly TextureSampleCount SampleCount = TextureSampleCount.Count1;
-        public static List<PostProcessEffect> PostProcessEffects { get; protected set; } = new();
-        
-        public static TextureDescription MainTextureDescription { get; protected set; }
 
-        
-        /// <summary>
-        /// Describes the scale of one unit. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.  
-        /// </summary>
-        public static float ScalingIndex { get; protected set; } = 1;
-        
-        /// <summary>
-        /// Describes the scale of one unit in the Post-Processing step. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.
-        /// </summary>
-        public static float PostScalingIndex { get; protected set; } = 1;
-
-        
         /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
@@ -57,11 +29,6 @@ namespace SolidCode.Atlas.Rendering
         private int _frames = 0;
         private float _frameTimes = 0f;
         private static bool _reloadShaders = false;
-        private static ConcurrentBag<Drawable> _drawablesToAdd = new();
-        private static ConcurrentBag<Drawable> _drawablesToRemove = new();
-        private static TextureView? _downSampledTextureView;
-        private static bool _resourcesDirty = false;
-        private static object _resourcesLock = new();
         private static string _title = "";
         /// <summary>
         /// Returns or sets the window Title.
@@ -172,60 +139,18 @@ namespace SolidCode.Atlas.Rendering
         /// The size of the window in pixels.
         /// <para />
         /// Note that this isn't always the resolution everything is rendered at.
-        /// See <see cref="ResolutionScale"/> and <see cref="RenderResolution"/>.
+        /// See <see cref="Renderer.ResolutionScale"/> and <see cref="Renderer.RenderResolution"/>.
         /// </summary>
         public static Vector2 Size
         {
-            get => _window == null ? Vector2.Zero : _size;
+            get => _window == null ? _size : new Vector2(_window.Width, _window.Height);
             set
             {
                 _size = value;
                 _sizeDirty = true;
             }
         }
-        private static float _resolutionScale = 1f;
-        /// <summary>
-        /// Scales the resolution that non-post processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
-        /// </summary>
-        public static float ResolutionScale
-        {
-            get => _resolutionScale;
-            set
-            {
-                _resolutionScale = value;
-                _resourcesDirty = true;
-            }
-        }
 
-        /// <summary>
-        /// The actual resolution that non-post processed rendering steps are done at
-        /// To change this please use <see cref="ResolutionScale"/> instead.
-        /// </summary>
-        public static Vector2 RenderResolution => _window == null ? Vector2.Zero : new Vector2(_window.Width, _window.Height) * ResolutionScale;
-    
-        private static float _postResolutionScale = 1f;
-        /// <summary>
-        /// Scales the resolution that post-processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
-        /// </summary>
-        public static float PostResolutionScale
-        {
-            get => _postResolutionScale;
-            set
-            {
-                _postResolutionScale = value;
-                _resourcesDirty = true;
-            }
-        }
-
-        /// <summary>
-        /// The actual resolution that post-processed rendering steps are done at
-        /// To change this please use <see cref="PostResolutionScale"/> instead.
-        /// </summary>
-        public static Vector2 PostRenderResolution => _window == null ? Vector2.Zero : new Vector2(_window.Width, _window.Height) * PostResolutionScale;
-
-        public static TextureDescription PostProcessingDescription => new TextureDescription() { Width = (uint)AMath.RoundToInt(PostRenderResolution.X), Height = (uint)AMath.RoundToInt(PostRenderResolution.Y), Depth = 1, ArrayLayers = 1, MipLevels = 1, SampleCount = TextureSampleCount.Count1, Format = PixelFormat.R16_G16_B16_A16_Float, Usage = TextureUsage.RenderTarget | TextureUsage.Sampled, Type = TextureType.Texture2D };
-        
-        
         /// <summary>
         /// Toggles the visibility of the cursor.
         /// </summary>
@@ -281,71 +206,40 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
             options.Debug = true;
 #endif
-            _windowScalingMatrix = GetScalingMatrix(_window.Width, _window.Height);
             GraphicsBackend? preferred = null;
             if (Atlas.StartupArgumentExists("--use-dx"))
                 preferred = GraphicsBackend.Direct3D11;
             if (Atlas.StartupArgumentExists("--use-vk"))
                 preferred = GraphicsBackend.Vulkan;
             if(preferred != null)
-                GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, preferred!.Value);
+                Renderer.GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, preferred!.Value);
             else 
-                GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
+                Renderer.GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
             
-            Debug.Log(LogCategory.Rendering, "Current graphics backend: " + GraphicsDevice.BackendType.ToString());
+            Debug.Log(LogCategory.Rendering, "Current graphics backend: " + Renderer.GraphicsDevice.BackendType.ToString());
 #if DEBUG
             _window.Title = GetAdjustedWindowTitle(_title);
 #endif
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("%ASSEMBLY%/atlas");
             builtinAssets.Load();
+            Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
 
             _window.Resized += () =>
             {
-                GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
-                _windowScalingMatrix = GetScalingMatrix(RenderResolution.X, RenderResolution.Y);
-                CreateResources();
+                Renderer.GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
+                Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
+                Renderer.CreateResources();
             };
 
-            CreateResources();
+            Renderer.CreateResources();
         }
 
         public static void Close()
         {
             _window?.Close();
         }
-        /// <summary>
-        /// Adds a post process effect to the list of effects to be applied to the scene
-        /// </summary>
-        /// <param name="effect">The effect to be applied</param>
-        public static void AddPostProcessEffect(PostProcessEffect effect)
-        {
-            PostProcessEffects.Add(effect);
-            lock(_resourcesLock)
-                _resourcesDirty = true;
-        }
-        /// <summary>
-        /// Removes a post process effect from the list of effects to be applied to the scene
-        /// </summary>
-        /// <param name="effect">The effect to be removed</param>
-        public static void RemovePostProcessEffect(PostProcessEffect effect)
-        {
-            PostProcessEffects.Remove(effect);
-            lock(_resourcesLock)
-                _resourcesDirty = true;
-        }
 
-        public static void AddDrawables(List<Drawable> drawables)
-        {
-            foreach (Drawable d in drawables)
-            {
-                _drawablesToAdd.Add(d);
-            }
-        }
-        public static void RemoveDrawable(Drawable drawable)
-        {
-            _drawablesToRemove.Add(drawable);
-        }
 
         private System.Diagnostics.Stopwatch _renderTimeStopwatch = new System.Diagnostics.Stopwatch();
 
@@ -373,7 +267,7 @@ namespace SolidCode.Atlas.Rendering
                 if (_reloadShaders)
                 {
                     _reloadShaders = false;
-                    ReloadAllShaders();
+                    Renderer.ReloadAllShaders();
                 }
                 Input.Input.UpdateInputs(inputSnapshot);
                 frame++;
@@ -418,7 +312,7 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
                 Profiler.EndTimer();
 #endif
-                Draw();
+                Renderer.Draw();
 
                 _renderTimeStopwatch.Stop();
                 if (MaxFramerate != 0)
@@ -427,7 +321,7 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
 
-            DisposeResources();
+            Renderer.Dispose();
         }
 
         public static void MoveToFront()
@@ -440,301 +334,18 @@ namespace SolidCode.Atlas.Rendering
         }
 
 
-        public void ReloadAllShaders()
-        {
-            if (GraphicsDevice == null) return;
-            TickScheduler.RequestTick().Wait();
-            Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
-            // First, lets recompile all our shaders
-            ShaderManager.ClearAllShaders();
-            // Next, lets dispose all drawables
-            foreach (Drawable drawable in _drawables)
-            {
-                drawable.Dispose();
-                drawable.CreateResources(GraphicsDevice);
-            }
-            CreateResources();
-            Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
-            TickScheduler.FreeThreads();
-        }
-
-        public static void ResortDrawable(Drawable d)
-        {
-            // Lets just grab out the drawable out of our sorted List and add it back
-            Drawable[] curDrawables = _drawables.ToArray();
-            foreach (Drawable dr in curDrawables)
-            {
-                if (dr == d)
-                {
-                    _drawables.Remove(d);
-                }
-            }
-            _drawables.AddSorted<Drawable>(d);
-        }
-
-        public static void RequestResourceCreation()
-        {
-            lock(_resourcesLock)
-                _resourcesDirty = true;
-        }
         
-        private void Draw()
-        {
-            
-            if (GraphicsDevice == null) return;
-#if DEBUG
-            Profiler.StartTimer(Profiler.FrameTimeType.PreRender);
-#endif
-            if (_resourcesDirty)
-            {
-                CreateResources();
-            }
-            // We should begin by removing any stray drawables
-            foreach (Drawable d in _drawablesToRemove)
-            {
-                _drawables.Remove(d);
-            }
-            _drawablesToRemove.Clear();
-
-            foreach (Drawable d in _drawablesToAdd)
-            {
-                _drawables.AddSorted<Drawable>(d);
-            }
-            _drawablesToAdd.Clear();
-
-            // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
-            ResourceFactory factory = GraphicsDevice.ResourceFactory;
-            _commandList.Begin();
-
-            // Before we can issue a Draw command, we need to set a Framebuffer.
-            _commandList.SetFramebuffer(PrimaryFramebuffer);
-
-            // At the beginning of every frame, we clear the screen to black. 
-            _commandList.ClearColorTarget(0, ClearColor);
-
-            // First we have to sort our drawables in order to perform the back-to-front render pass
-            Drawable[] drawables = _drawables.ToArray();
-            foreach (Drawable drawable in drawables)
-            {
-                if (drawable == null || drawable.transform == null)
-                {
-                    continue;
-                }
-                drawable.SetGlobalMatrix(GraphicsDevice, _windowScalingMatrix);
-                drawable.SetScreenSize(GraphicsDevice, new Vector2(_window?.Width ?? 0, _window?.Height ?? 0));
-                drawable.Draw(_commandList);
-            }
-            _commandList.InsertDebugMarker("Begin Post-Process");
-            if (DoPostProcess)
-            {
-                foreach (var effect in PostProcessEffects)
-                {
-                    effect.Draw(_commandList);
-                }
-            }
-            _commandList.InsertDebugMarker("Final Resolve shader");
-            // If we're using multi-sampling we need to resolve the texture first
-            if (SampleCount != TextureSampleCount.Count1)
-            {
-                _commandList.ResolveTexture(_finalTextureView.Target, _downSampledTextureView.Target);
-            }
-            _resolvePass.Draw(_commandList);
-            _commandList.End();
-            TickScheduler.FreeThreads(); // Everything we need should now be free for use!
-
-            // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
-#if DEBUG
-            Profiler.EndTimer();
-            Profiler.StartTimer(Profiler.FrameTimeType.Rendering);
-#endif
-
-            GraphicsDevice.SubmitCommands(_commandList);
-            GraphicsDevice.WaitForIdle();
-            GraphicsDevice.SwapBuffers();
-#if DEBUG
-            Profiler.EndTimer();
-            Profiler.SubmitTimes();
-#endif
-        }
 
         private static string GetAdjustedWindowTitle(string preferred)
         {
 #if DEBUG
-            return preferred + " | Atlas/" + Atlas.Version + " | " + GraphicsDevice?.BackendType.ToString() +
+            return preferred + " | Atlas/" + Atlas.Version + " | " + Renderer.GraphicsDevice?.BackendType.ToString() +
                    " | Telescope Active" + (Atlas.StartupArgumentExists("--disable-multi-process-debugging")
                        ? " | Multi-Process Debugging Disabled"
                        : "");
 #endif
             return preferred;
         }
-
-
-        void CreateResources()
-        {
-            lock (_resourcesLock)
-            {
-
-
-                if (GraphicsDevice == null) return;
-                ResourceFactory factory = GraphicsDevice.ResourceFactory;
-                if (_commandList is { IsDisposed: false })
-                {
-                    _commandList.Dispose();
-                }
-
-                _commandList = factory.CreateCommandList();
-                if (_mainColorTexture is { IsDisposed: false })
-                {
-                    _mainColorTexture.Dispose();
-                }
-
-                if (PrimaryFramebuffer is { IsDisposed: false })
-                {
-                    PrimaryFramebuffer.Dispose();
-                }
-
-
-                if (_mainColorView is { IsDisposed: false })
-                {
-                    _mainColorView.Dispose();
-                }
-
-                if (_downSampledTextureView != null && _downSampledTextureView.Target is { IsDisposed: false })
-                {
-                    _downSampledTextureView.Target.Dispose();
-                }
-
-                if (_downSampledTextureView is { IsDisposed: false })
-                {
-                    _downSampledTextureView.Dispose();
-                }
-
-                _resolvePass?.Dispose();
-                
-                MainTextureDescription = TextureDescription.Texture2D(
-                    (uint)AMath.RoundToInt(RenderResolution.X),
-                    (uint)AMath.RoundToInt(RenderResolution.Y),
-                    1,
-                    1,
-                    PixelFormat.R16_G16_B16_A16_Float,
-                    TextureUsage.RenderTarget | TextureUsage.Sampled, SampleCount);
-
-                _mainColorTexture = factory.CreateTexture(MainTextureDescription);
-                _mainColorTexture.Name = "Primary Color Texture";
-                _mainColorView = factory.CreateTextureView(_mainColorTexture);
-                _mainColorView.Name = "Primary Color Texture View";
-                FramebufferDescription fbDesc = new FramebufferDescription(null, _mainColorTexture);
-                PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
-                PrimaryFramebuffer.Name = "Primary Framebuffer";
-
-                TextureView previousView = _mainColorView;
-
-                if (DoPostProcess)
-                {
-                    foreach (var effect in PostProcessEffects)
-                    {
-                        effect.Dispose();
-                        previousView = effect.CreateResources(previousView);
-                    }
-                }
-
-                _finalTextureView = previousView;
-                _resolvePass = new ShaderPass<EmptyStruct>("resolve/shader", null);
-
-                if (SampleCount != TextureSampleCount.Count1)
-                {
-                    TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
-                        GraphicsDevice.SwapchainFramebuffer.Width,
-                        GraphicsDevice.SwapchainFramebuffer.Height,
-                        1,
-                        1,
-                        GraphicsDevice.SwapchainFramebuffer.ColorTargets[0].Target.Format,
-                        TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
-
-                    _downSampledTextureView =
-                        factory.CreateTextureView(factory.CreateTexture(downSampledTextureDescription));
-                    _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer,
-                        new[] { _downSampledTextureView });
-                }
-                else
-                {
-                    _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new[] { _finalTextureView });
-                }
-
-                if (_resourcesDirty)
-                {
-                    _resourcesDirty = false;
-                }
-            }
-        }
-
-        struct EmptyStruct
-        {
-            
-        }
-
-        private void DisposeResources()
-        {
-            if (GraphicsDevice == null) return;
-            Debug.Log(LogCategory.Rendering, "Disposing all rendering resources");
-            foreach (Drawable drawable in _drawables)
-            {
-                drawable.Dispose();
-            }
-            _mainColorTexture.Dispose();
-            _mainColorView?.Dispose();
-            _commandList.Dispose();
-            _resolvePass?.Dispose();
-            GraphicsDevice.Dispose();
-            _downSampledTextureView?.Target.Dispose();
-            _downSampledTextureView?.Dispose();
-            foreach (var effect in PostProcessEffects)
-            {
-                effect.Dispose();
-            }
-
-
-            Debug.Log(LogCategory.Rendering, "Disposed all resources");
-        }
-
-        public static Matrix4x4 GetScalingMatrix(float width, float height)
-        {
-            float max = Math.Max(width, height);
-            ScalingIndex = max / 1000f;
-            PostScalingIndex = Math.Max(PostRenderResolution.X, PostRenderResolution.Y) / 1000f;
-            return new Matrix4x4(
-                height / max, 0, 0, 0,
-                0, width / max, 0, 0,
-                0, 0, 1, 0,
-                0, 0, 0, 1);
-        }
-
+        
     }
-    public static class ListExt
-    {
-        public static void AddSorted<T>(this List<T> @this, T item) where T : IComparable<T>
-        {
-            if (@this.Count == 0)
-            {
-                @this.Add(item);
-                return;
-            }
-            if (@this[^1].CompareTo(item) <= 0)
-            {
-                @this.Add(item);
-                return;
-            }
-            if (@this[0].CompareTo(item) >= 0)
-            {
-                @this.Insert(0, item);
-                return;
-            }
-            int index = @this.BinarySearch(item);
-            if (index < 0)
-                index = ~index;
-            @this.Insert(index, item);
-        }
-
-    }
-
 }

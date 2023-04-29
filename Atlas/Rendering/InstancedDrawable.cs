@@ -52,14 +52,14 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
         if (sampler == null)
         {
-            sampler = Window.GraphicsDevice.LinearSampler;
+            sampler = Renderer.GraphicsDevice.LinearSampler;
         }
 
         this._textureAssets = textures;
         this.sampler = sampler;
         this._instanceCount = (uint)instanceData.Length;
         if (mesh != null)
-            CreateResources(Window.GraphicsDevice, shaderPath);
+            CreateResources(Renderer.GraphicsDevice, shaderPath);
 
     }
 
@@ -146,7 +146,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         
         
         _instanceVB = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TInstanceData>() * _instanceCount, BufferUsage.VertexBuffer));
-        Window.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
+        Renderer.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
         instanceLayoutDescription.InstanceStepRate = 1;
         
         // End of instancing stuff :( (it was fun while it lasted)
@@ -171,7 +171,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
 
 
-        pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
+        pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
         pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
         BindableResource[] buffers = new BindableResource[2 + _textures.Count];
         buffers[0] = transformBuffer;
@@ -205,7 +205,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         if (vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>())
         {
             vertexBuffer.Dispose();
-            vertexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(
+            vertexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(
                 new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(),
                     BufferUsage.VertexBuffer));
         }
@@ -213,12 +213,12 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
         {
             indexBuffer.Dispose();
-            indexBuffer = Window.GraphicsDevice.ResourceFactory.CreateBuffer(
+            indexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(
                 new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
         }
 
-        Window.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-        Window.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+        Renderer.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+        Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
     }
 
 
@@ -226,7 +226,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     {
         _textureAssets[index] = texture;
         SoftDispose();
-        CreateResources(Window.GraphicsDevice);
+        CreateResources(Renderer.GraphicsDevice);
     }
 
     private bool _instancesDirty = false;
@@ -239,9 +239,9 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             {
                 _instanceCount = (uint)_instanceData.Length;
                 _instanceVB.Dispose();
-                _instanceVB = Window.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TInstanceData>() * _instanceCount, BufferUsage.VertexBuffer));
+                _instanceVB = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TInstanceData>() * _instanceCount, BufferUsage.VertexBuffer));
             }
-            Window.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
+            Renderer.GraphicsDevice.UpdateBuffer(_instanceVB, 0, _instanceData);
             _instancesDirty = false;
         }
         cl.SetPipeline(pipeline);
@@ -293,7 +293,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     public void SoftDispose()
     {
         // Mby this will help with our problem above
-        Window.GraphicsDevice.WaitForIdle();
+        Renderer.GraphicsDevice.WaitForIdle();
         pipeline.Dispose();
 
         vertexBuffer.Dispose();

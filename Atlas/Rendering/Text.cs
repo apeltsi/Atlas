@@ -46,7 +46,7 @@ namespace SolidCode.Atlas.Rendering
             this.size = size;
             this.centered = centered;
             this.color = Color;
-            CreateResources(Window.GraphicsDevice);
+            CreateResources(Renderer.GraphicsDevice);
         }
 
         public void UpdateText(string text, int size)
@@ -66,7 +66,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 this.font.AddFont(this.fonts[i].Data);
             }
-            renderer = new FontRenderer(Window.GraphicsDevice, this.color, transform, new TextUniform(), ShaderStages.Vertex | ShaderStages.Fragment);
+            renderer = new FontRenderer(Renderer.GraphicsDevice, this.color, transform, new TextUniform(), ShaderStages.Vertex | ShaderStages.Fragment);
             if (centered)
                 renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
             this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
@@ -79,7 +79,7 @@ namespace SolidCode.Atlas.Rendering
                 if (centered)
                     renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
                 this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
-                SetGlobalMatrix(Window.GraphicsDevice, lastMatrix);
+                SetGlobalMatrix(Renderer.GraphicsDevice, lastMatrix);
                 dirty = false;
             }
             renderer.Draw(cl);
@@ -93,10 +93,10 @@ namespace SolidCode.Atlas.Rendering
 
         public void UpdateFonts(Font[] fonts)
         {
-            Window.GraphicsDevice.WaitForIdle();
+            Renderer.GraphicsDevice.WaitForIdle();
             Dispose();
             this.fonts = fonts;
-            CreateResources(Window.GraphicsDevice);
+            CreateResources(Renderer.GraphicsDevice);
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
@@ -140,7 +140,7 @@ namespace SolidCode.Atlas.Rendering
 
         public object CreateTexture(int width, int height)
         {
-            ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
+            ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
             Veldrid.Texture t = factory.CreateTexture(new TextureDescription((uint)width, (uint)height, 1, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled, TextureType.Texture2D));
             return t;
         }
@@ -155,7 +155,7 @@ namespace SolidCode.Atlas.Rendering
             Veldrid.Texture t = (Veldrid.Texture)texture;
             fixed (byte* ptr = data)
             {
-                Window.GraphicsDevice.UpdateTexture(t, new IntPtr(ptr), (uint)data.Length, (uint)bounds.X, (uint)bounds.Y, 0, (uint)bounds.Width, (uint)bounds.Height, 1, 0, 0);
+                Renderer.GraphicsDevice.UpdateTexture(t, new IntPtr(ptr), (uint)data.Length, (uint)bounds.X, (uint)bounds.Y, 0, (uint)bounds.Width, (uint)bounds.Height, 1, 0, 0);
             }
         }
     }
@@ -267,7 +267,7 @@ namespace SolidCode.Atlas.Rendering
                 shaders: _shaders);
             pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
 
-            pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
@@ -289,7 +289,7 @@ namespace SolidCode.Atlas.Rendering
         public void UpdateColor(Vector4 color)
         {
             if (colorBuffer != null)
-                Window.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
+                Renderer.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
@@ -312,7 +312,7 @@ namespace SolidCode.Atlas.Rendering
             if (!resourcesCreated && buffersDirty && texture != null && virtualMesh.Vertices.Length > 0)
             {
                 _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
-                CreateResources(Window.GraphicsDevice, this.texture);
+                CreateResources(Renderer.GraphicsDevice, this.texture);
                 resourcesCreated = true;
             }
 
