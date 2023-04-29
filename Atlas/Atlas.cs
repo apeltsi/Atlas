@@ -34,8 +34,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public static string AppName = "Atlas";
-        public const string Version = "marble-soda@2.1";
+        public const string Version = "iced-coffee@1.0";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
@@ -76,7 +75,6 @@ namespace SolidCode.Atlas
 
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
-            AppName = windowTitle;
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
