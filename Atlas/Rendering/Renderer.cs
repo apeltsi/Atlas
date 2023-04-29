@@ -63,6 +63,8 @@ public static class Renderer
     /// </summary>
     public static Vector2 RenderResolution => Window.Size * ResolutionScale;
 
+    public static int PostProcessLayer = 1;
+    
     private static float _postResolutionScale = 1f;
 
     /// <summary>
@@ -115,9 +117,15 @@ public static class Renderer
 
         // At the beginning of every frame, we clear the screen to black. 
         _commandList.ClearColorTarget(0, Window.ClearColor);
-
-        if(_layers.Count > 0)
-            RenderDrawables(_windowScalingMatrix, _layers[0]);
+        int ppLayer = PostProcessLayer;
+        for (int i = 0; i < ppLayer; i++)
+        {
+            if (_layers.TryGetValue(i, out var layer))
+            {
+                _commandList.InsertDebugMarker("Begin Layer " + i);
+                RenderDrawables(_windowScalingMatrix, layer);
+            }
+        }
 
         _commandList.InsertDebugMarker("Begin Post-Process");
         if (DoPostProcess)
@@ -128,6 +136,17 @@ public static class Renderer
             }
         }
 
+        int curLayer = ppLayer;
+        if (!_layers.ContainsKey(curLayer))
+        {
+            curLayer++;
+        }
+        while (_layers.ContainsKey(curLayer))
+        {
+            _commandList.InsertDebugMarker("Begin Layer " + curLayer);
+            RenderDrawables(_windowScalingMatrix, _layers[curLayer]);
+            curLayer++;
+        }
         _commandList.InsertDebugMarker("Final Resolve shader");
         // If we're using multi-sampling we need to resolve the texture first
         if (SampleCount != TextureSampleCount.Count1)
@@ -188,7 +207,7 @@ public static class Renderer
     {
         foreach (var d in drawables)
         {
-            int layer = d.transform.Layer;
+            int layer = (int)d.transform.Layer;
             if (_layers.TryGetValue(layer, out var layer1))
             {
                 layer1.AddSorted(d);
@@ -204,16 +223,14 @@ public static class Renderer
 
     public static void RemoveDrawable(Drawable drawable)
     {
-        bool removed = _layers[drawable.transform.Layer].Remove(drawable);
+        bool removed = _layers[(int)drawable.transform.Layer].Remove(drawable);
         if (!removed)
         {
-            Debug.Warning(LogCategory.Framework,
-                "Tried to remove drawable that doesn't exist in layer " + drawable.transform.Layer);
             foreach (var layer in _layers)
             {
                 if (layer.Value.Remove(drawable))
                 {
-                    Debug.Warning(LogCategory.Framework, "Drawable was removed manually.");
+                    return;
                 }
             }
         }

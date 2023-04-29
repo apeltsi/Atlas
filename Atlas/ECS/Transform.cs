@@ -21,9 +21,9 @@ namespace SolidCode.Atlas.ECS
         /// </summary>
         public float Rotation = 0f;
 
-        private int _layer = 0;
+        private uint _layer = 0;
 
-        public int Layer
+        public uint Layer
         {
             get => _layer;
             set
