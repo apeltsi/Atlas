@@ -157,9 +157,7 @@
         /// <summary>
         /// Assigns children to Entity
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
+        /// <returns>Self</returns>
         public Entity AddChildren(params Entity[] childrenToAdd)
         {
             foreach (Entity e in childrenToAdd)
@@ -173,9 +171,7 @@
         /// <summary>
         /// Removes children from Entity
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
+        /// <returns>Self</returns>
         public Entity RemoveChildren(params Entity[] childrenToRemove)
         {
             foreach (Entity e in childrenToRemove)
@@ -186,12 +182,9 @@
             return this;
         }
         /// <summary>
-        /// Destroys children
+        /// Destroys children provided
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
-
+        /// <returns>Self</returns>
         public Entity DestroyChildren(params Entity[] childrenToDestroy)
         {
             foreach (Entity e in childrenToDestroy)
@@ -215,6 +208,11 @@
                     {
                         e.parent.children.Remove(e);
                         e.parent = this;
+                        Transform? tr = e.GetComponent<Transform>(true);
+                        if (tr != null)
+                        {
+                            tr.Layer = GetComponent<Transform>(true)?.Layer ?? 0;
+                        }
                         this.children.Add(e);
                     }
                     else
@@ -298,6 +296,9 @@
 
         }
 
+        /// <summary>
+        /// Returns all children of this entity, their children and so on
+        /// </summary>
         public Entity[] GetAllChildrenRecursively()
         {
             List<Entity> allchildren = new List<Entity>();
@@ -313,20 +314,6 @@
         public void Destroy()
         {
             EntityComponentSystem.RemoveEntity(this);
-            /*foreach (Component c in components)
-            {
-                c.OnDisable();
-                c.OnRemove();
-                LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
-                if (attr != null)
-                {
-                    Func<Type, int> add = type => 0;
-                    Func<Type, int, int> update = (type, amount) => Interlocked.Add(ref amount, -1);
-                    EntityComponentSystem.InstanceCount.AddOrUpdate(c.GetType(), add, update);
-                    // We have to remove the component from the instance count limit
-                }
-            }
-            components.Clear();*/
         }
         public override string ToString()
         {

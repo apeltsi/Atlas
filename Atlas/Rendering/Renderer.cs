@@ -22,6 +22,11 @@ public static class Renderer
     private static bool _resourcesDirty = false;
     private static object _resourcesLock = new();
     private static Matrix4x4 _windowScalingMatrix;
+    
+    /// <summary>
+    /// The scale of the screen in units.
+    /// </summary>
+    public static Vector2 UnitScale = Vector2.One;
 
     public static List<PostProcessEffect> PostProcessEffects { get; set; } = new();
 
@@ -194,6 +199,7 @@ public static class Renderer
         float width = dimensions.X;
         float height = dimensions.Y;
         float max = Math.Max(width, height);
+        UnitScale = new Vector2(max / height, max / width);
         ScalingIndex = max / 1000f;
         PostScalingIndex = Math.Max(PostRenderResolution.X, PostRenderResolution.Y) / 1000f;
         _windowScalingMatrix =  new Matrix4x4(
