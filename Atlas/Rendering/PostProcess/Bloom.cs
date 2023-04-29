@@ -73,7 +73,8 @@ public class BloomEffect : PostProcessEffect
         
 #region Bright Pixels
         ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
-        Veldrid.Texture brightTexture = factory.CreateTexture(Window.MainTextureDescription);
+
+        Veldrid.Texture brightTexture = factory.CreateTexture(Window.PostProcessingDescription);
         brightTexture.Name = "Brightness Texture";
         _textures.Add(brightTexture);
         TextureView brightView = factory.CreateTextureView(brightTexture);
@@ -89,10 +90,10 @@ public class BloomEffect : PostProcessEffect
 #endregion
 #region Kawase Blur
 
-        int blurIterations = AMath.RoundToInt(Math.Sqrt((Window.ScalingIndex * Quality) * 20));
+        int blurIterations = AMath.RoundToInt(Math.Sqrt((Window.PostScalingIndex * Quality) * 20));
         for (int i = 0; i < blurIterations; i++)
         {
-            TextureDescription desc = Window.MainTextureDescription;
+            TextureDescription desc = Window.PostProcessingDescription;
             desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
             desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
 
@@ -115,7 +116,7 @@ public class BloomEffect : PostProcessEffect
         for (int i = blurIterations - 2; i >= 0; i--)
         {
             ShaderPass kawasePass = new ShaderPass<EmptyUniform>("post/combine/shader", null);
-            TextureDescription desc = Window.MainTextureDescription;
+            TextureDescription desc = Window.PostProcessingDescription;
             desc.Width = (uint)Math.Clamp(desc.Width * Quality / Math.Pow(2, i), 1, uint.MaxValue);
             desc.Height = (uint)Math.Clamp(desc.Height * Quality / Math.Pow(2, i), 1,uint.MaxValue);
             Veldrid.Texture upscaleTexture = factory.CreateTexture(desc);

@@ -44,6 +44,12 @@ namespace SolidCode.Atlas.Rendering
         public static float ScalingIndex { get; protected set; } = 1;
         
         /// <summary>
+        /// Describes the scale of one unit in the Post-Processing step. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.
+        /// </summary>
+        public static float PostScalingIndex { get; protected set; } = 1;
+
+        
+        /// <summary>
         /// What framerate the previous 60 frames were rendered in
         /// </summary>
         public static float AverageFramerate = 0f;
@@ -57,6 +63,11 @@ namespace SolidCode.Atlas.Rendering
         private static bool _resourcesDirty = false;
         private static object _resourcesLock = new();
         private static string _title = "";
+        /// <summary>
+        /// Returns or sets the window Title.
+        /// <para/>
+        /// Note that debug builds will include extra information in the title.
+        /// </summary>
         public static string Title
         {
             get
@@ -70,6 +81,10 @@ namespace SolidCode.Atlas.Rendering
                     _window.Title = GetAdjustedWindowTitle(value);
             }
         }
+
+        /// <summary>
+        /// Returns or sets the current <c>WindowState</c>.
+        /// </summary>
 
         public static WindowState State
         {
@@ -88,6 +103,9 @@ namespace SolidCode.Atlas.Rendering
             }
         }
 
+        /// <summary>
+        /// Is the window currently focused.
+        /// </summary>
         public static bool Focused
         {
             get
@@ -99,7 +117,10 @@ namespace SolidCode.Atlas.Rendering
                 return _window.Focused;
             }
         }
-
+        
+        /// <summary>
+        /// Toggles the ability for the user to resize the window.
+        /// </summary>
         public static bool Resizable
         {
             get
@@ -120,6 +141,9 @@ namespace SolidCode.Atlas.Rendering
         }
         private static bool _positionDirty = false;
         private static Vector2 _position = new Vector2(50, 50);
+        /// <summary>
+        /// The position of the window relative to the upper left corner of the screen.
+        /// </summary>
         public static Vector2 Position
         {
             get
@@ -142,18 +166,69 @@ namespace SolidCode.Atlas.Rendering
                 _positionDirty = true;
             }
         }
-        private static bool sizeDirty = false;
+        private static bool _sizeDirty = false;
         private static Vector2 _size = new Vector2(800, 500);
+        /// <summary>
+        /// The size of the window in pixels.
+        /// <para />
+        /// Note that this isn't always the resolution everything is rendered at.
+        /// See <see cref="ResolutionScale"/> and <see cref="RenderResolution"/>.
+        /// </summary>
         public static Vector2 Size
         {
             get => _window == null ? Vector2.Zero : _size;
             set
             {
                 _size = value;
-                sizeDirty = true;
+                _sizeDirty = true;
+            }
+        }
+        private static float _resolutionScale = 1f;
+        /// <summary>
+        /// Scales the resolution that non-post processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
+        /// </summary>
+        public static float ResolutionScale
+        {
+            get => _resolutionScale;
+            set
+            {
+                _resolutionScale = value;
+                _resourcesDirty = true;
             }
         }
 
+        /// <summary>
+        /// The actual resolution that non-post processed rendering steps are done at
+        /// To change this please use <see cref="ResolutionScale"/> instead.
+        /// </summary>
+        public static Vector2 RenderResolution => _window == null ? Vector2.Zero : new Vector2(_window.Width, _window.Height) * ResolutionScale;
+    
+        private static float _postResolutionScale = 1f;
+        /// <summary>
+        /// Scales the resolution that post-processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
+        /// </summary>
+        public static float PostResolutionScale
+        {
+            get => _postResolutionScale;
+            set
+            {
+                _postResolutionScale = value;
+                _resourcesDirty = true;
+            }
+        }
+
+        /// <summary>
+        /// The actual resolution that post-processed rendering steps are done at
+        /// To change this please use <see cref="PostResolutionScale"/> instead.
+        /// </summary>
+        public static Vector2 PostRenderResolution => _window == null ? Vector2.Zero : new Vector2(_window.Width, _window.Height) * PostResolutionScale;
+
+        public static TextureDescription PostProcessingDescription => new TextureDescription() { Width = (uint)AMath.RoundToInt(PostRenderResolution.X), Height = (uint)AMath.RoundToInt(PostRenderResolution.Y), Depth = 1, ArrayLayers = 1, MipLevels = 1, SampleCount = TextureSampleCount.Count1, Format = PixelFormat.R16_G16_B16_A16_Float, Usage = TextureUsage.RenderTarget | TextureUsage.Sampled, Type = TextureType.Texture2D };
+        
+        
+        /// <summary>
+        /// Toggles the visibility of the cursor.
+        /// </summary>
         public static bool CursorVisible
         {
             get
@@ -228,7 +303,7 @@ namespace SolidCode.Atlas.Rendering
             _window.Resized += () =>
             {
                 GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
-                _windowScalingMatrix = GetScalingMatrix(_window.Width, _window.Height);
+                _windowScalingMatrix = GetScalingMatrix(RenderResolution.X, RenderResolution.Y);
                 CreateResources();
             };
 
@@ -317,11 +392,11 @@ namespace SolidCode.Atlas.Rendering
                     Sdl2Native.SDL_SetWindowPosition(_window.SdlWindowHandle, AMath.RoundToInt(_position.X), AMath.RoundToInt(_position.Y));
                     _positionDirty = false;
                 }
-                if (sizeDirty)
+                if (_sizeDirty)
                 {
                     _window.Width = AMath.RoundToInt(_size.X);
                     _window.Height = AMath.RoundToInt(_size.Y);
-                    sizeDirty = false;
+                    _sizeDirty = false;
                 }
 
 
@@ -535,10 +610,10 @@ namespace SolidCode.Atlas.Rendering
                 }
 
                 _resolvePass?.Dispose();
-
+                
                 MainTextureDescription = TextureDescription.Texture2D(
-                    GraphicsDevice.SwapchainFramebuffer.Width,
-                    GraphicsDevice.SwapchainFramebuffer.Height,
+                    (uint)AMath.RoundToInt(RenderResolution.X),
+                    (uint)AMath.RoundToInt(RenderResolution.Y),
                     1,
                     1,
                     PixelFormat.R16_G16_B16_A16_Float,
@@ -626,7 +701,7 @@ namespace SolidCode.Atlas.Rendering
         {
             float max = Math.Max(width, height);
             ScalingIndex = max / 1000f;
-
+            PostScalingIndex = Math.Max(PostRenderResolution.X, PostRenderResolution.Y) / 1000f;
             return new Matrix4x4(
                 height / max, 0, 0, 0,
                 0, width / max, 0, 0,
