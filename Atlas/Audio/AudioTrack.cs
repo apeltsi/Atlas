@@ -56,7 +56,7 @@ namespace SolidCode.Atlas.Audio
         {
             try
             {
-                WAVParser parser = new WAVParser(Path.Join(Atlas.AssetsDirectory, path));
+                WAVParser parser = new WAVParser(Path.Join(Atlas.AssetsDirectory, path + ".wav"));
                 SetAudioData(parser);
                 this.IsValid = true;
             }
