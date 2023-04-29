@@ -30,7 +30,7 @@ namespace SolidCode.Atlas.AssetManagement
         /// <param name="path">The path (excluding the extension) of the asset</param>
         /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
         /// <returns>The <c>Texture</c></returns>
-        public static Texture GetTexture(string path, bool tryLoad = true)
+        public static Texture? GetTexture(string path, bool tryLoad = true)
         {
             return GetAsset<Texture>(path, tryLoad);
         }
@@ -40,7 +40,7 @@ namespace SolidCode.Atlas.AssetManagement
         /// <param name="path">The path (excluding the extension) of the asset</param>
         /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
         /// <returns>The <c>AudioTrack</c></returns>
-        public static AudioTrack GetAudio(string path, bool tryLoad = true)
+        public static AudioTrack? GetAudio(string path, bool tryLoad = true)
         {
             return GetAsset<AudioTrack>(path, tryLoad);
         }

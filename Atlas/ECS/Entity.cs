@@ -119,6 +119,15 @@
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
+
+        public Entity RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
+        {
+            Component? c = GetComponent<T>(allowInheritedClasses);
+            if(c != null)
+                RemoveComponent(c);
+            return this;
+        }
+        
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             Component[] queuedComponents = _componentsToAdd.ToArray();
