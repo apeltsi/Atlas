@@ -192,7 +192,7 @@ namespace SolidCode.Atlas.AssetManagement
         }
 
         /// <summary>
-        /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is adivsed to let the garbage collector decide when the time is ripe.
+        /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is advised to let the garbage collector decide when the time is ripe.
         /// </summary>
         static void ForceUnloadAssets()
         {
@@ -202,6 +202,20 @@ namespace SolidCode.Atlas.AssetManagement
 
         internal static void Dispose()
         {
+            foreach (var asset in loadedAssets)
+            {
+                Asset? a = null;
+                asset.Value.TryGetTarget(out a);
+                if (a != null)
+                {
+                    a.Dispose();
+                }
+            }
+            foreach (var asset in keepAliveAssets)
+            {
+                Asset a = asset.Value;
+                a.Dispose();
+            }
             loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
             keepAliveAssets = new ConcurrentDictionary<string, Asset>();
             assetMap = new Dictionary<string, List<string>>();

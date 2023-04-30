@@ -118,7 +118,6 @@ namespace SolidCode.Atlas
             _doTick = false;
             Audio.Audio.Dispose();
             EntityComponentSystem.Dispose();
-            AssetManager.Dispose();
             Input.Input.Dispose();
             primaryStopwatch?.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((primaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");

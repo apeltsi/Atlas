@@ -26,6 +26,9 @@ public class ShaderPass<TUniform> : ShaderPass
     private TUniform? _uniform;
     private ResourceSet? _uniformResourceSet;
     private DeviceBuffer? _uniformBuffer;
+    private ResourceLayout? _uniformResourceLayout;
+    private ResourceLayout _primaryResourceLayout;
+    private Sampler _sampler;
 
     private struct VertexPositionUV
     {
@@ -95,10 +98,10 @@ public class ShaderPass<TUniform> : ShaderPass
         elementDescriptions[textureViews.Length] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
         
         // Lets generate the uniform resource layout
-        ResourceLayout primaryResourceLayout = factory.CreateResourceLayout(
+        _primaryResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
 
-        ResourceLayout? uniformResourceLayout = null;
+        _uniformResourceLayout = null;
         // Lets generate our uniform if present
         if (_uniform != null)
         {
@@ -108,7 +111,7 @@ public class ShaderPass<TUniform> : ShaderPass
 
             ResourceLayoutElementDescription[] uniformElementDescriptions = new ResourceLayoutElementDescription[1];
             uniformElementDescriptions[0] = new ResourceLayoutElementDescription("Uniform", ResourceKind.UniformBuffer, ShaderStages.Fragment | ShaderStages.Vertex);
-            uniformResourceLayout = factory.CreateResourceLayout(
+            _uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(uniformElementDescriptions));
         }
         
@@ -131,13 +134,13 @@ public class ShaderPass<TUniform> : ShaderPass
         pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { _mesh.VertexLayout },
                 shaders: shader.shaders);
-        if (uniformResourceLayout != null)
+        if (_uniformResourceLayout != null)
         {
-            pipelineDescription.ResourceLayouts = new[] { primaryResourceLayout, uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _primaryResourceLayout, _uniformResourceLayout };
         }
         else
         {
-            pipelineDescription.ResourceLayouts = new[] { primaryResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _primaryResourceLayout };
         }
 
 
@@ -154,16 +157,16 @@ public class ShaderPass<TUniform> : ShaderPass
         }
         
         SamplerDescription sdesc = new SamplerDescription(SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerFilter.MinLinear_MagLinear_MipLinear, null, 4, 0, uint.MaxValue, 0, SamplerBorderColor.TransparentBlack);
-        Sampler s = factory.CreateSampler(sdesc);
-        buffers[textureViews.Length] = s;
+        _sampler = factory.CreateSampler(sdesc);
+        buffers[textureViews.Length] = _sampler;
         _primaryResourceSet = factory.CreateResourceSet(new ResourceSetDescription(
-            primaryResourceLayout,
+            _primaryResourceLayout,
             buffers));
 
-        if (uniformResourceLayout != null)
+        if (_uniformResourceLayout != null)
         {
             _uniformResourceSet = factory.CreateResourceSet(new ResourceSetDescription(
-                uniformResourceLayout,
+                _uniformResourceLayout,
                 _uniformBuffer));
         }
         else
@@ -203,7 +206,11 @@ public class ShaderPass<TUniform> : ShaderPass
     {
         _vertexBuffer?.Dispose();
         _indexBuffer?.Dispose();
-        _pipeline?.Dispose();
-        _primaryResourceSet?.Dispose();
+        _uniformBuffer?.Dispose();
+        _pipeline.Dispose();
+        _uniformResourceLayout?.Dispose();
+        _primaryResourceLayout.Dispose();
+        _primaryResourceSet.Dispose();
+        _sampler.Dispose();
     }
 }

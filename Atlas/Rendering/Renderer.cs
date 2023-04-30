@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.Rendering.PostProcess;
 using SolidCode.Atlas.Standard;
@@ -22,7 +23,7 @@ public static class Renderer
     private static bool _resourcesDirty = false;
     private static object _resourcesLock = new();
     private static Matrix4x4 _windowScalingMatrix;
-    
+
     /// <summary>
     /// The scale of the screen in units.
     /// </summary>
@@ -69,7 +70,7 @@ public static class Renderer
     public static Vector2 RenderResolution => Window.Size * ResolutionScale;
 
     public static int PostProcessLayer = 1;
-    
+
     private static float _postResolutionScale = 1f;
 
     /// <summary>
@@ -146,12 +147,14 @@ public static class Renderer
         {
             curLayer++;
         }
+
         while (_layers.ContainsKey(curLayer))
         {
             _commandList.InsertDebugMarker("Begin Layer " + curLayer);
             RenderDrawables(_windowScalingMatrix, _layers[curLayer]);
             curLayer++;
         }
+
         _commandList.InsertDebugMarker("Final Resolve shader");
         // If we're using multi-sampling we need to resolve the texture first
         if (SampleCount != TextureSampleCount.Count1)
@@ -171,7 +174,14 @@ public static class Renderer
 
         GraphicsDevice.SubmitCommands(_commandList);
         GraphicsDevice.WaitForIdle();
-        GraphicsDevice.SwapBuffers();
+        try
+        {
+            GraphicsDevice.SwapBuffers();
+        }
+        catch(VeldridException e)
+        {
+            
+        }
 #if DEBUG
         Profiler.EndTimer();
         Profiler.SubmitTimes();
@@ -202,7 +212,7 @@ public static class Renderer
         UnitScale = new Vector2(max / height, max / width);
         ScalingIndex = max / 1000f;
         PostScalingIndex = Math.Max(PostRenderResolution.X, PostRenderResolution.Y) / 1000f;
-        _windowScalingMatrix =  new Matrix4x4(
+        _windowScalingMatrix = new Matrix4x4(
             height / max, 0, 0, 0,
             0, width / max, 0, 0,
             0, 0, 1, 0,
@@ -268,7 +278,6 @@ public static class Renderer
     {
         lock (_resourcesLock)
         {
-            
             if (GraphicsDevice == null) return;
 
             ResourceFactory factory = GraphicsDevice.ResourceFactory;
@@ -384,25 +393,24 @@ public static class Renderer
         lock (_resourcesLock)
             _resourcesDirty = true;
     }
-    
+
     struct EmptyStruct
     {
-            
     }
-    
+
     public static void ResortDrawable(Drawable d)
     {
         // Lets just grab out the drawable out of our sorted List and add it back
         lock (_layers)
         {
             RemoveDrawable(d);
-            AddDrawables(new List<Drawable>() {d});
+            AddDrawables(new List<Drawable>() { d });
         }
     }
 
     public static void RequestResourceCreation()
     {
-        lock(_resourcesLock)
+        lock (_resourcesLock)
             _resourcesDirty = true;
     }
 
@@ -410,28 +418,35 @@ public static class Renderer
     internal static void Dispose()
     {
         if (GraphicsDevice == null) return;
-        Debug.Log(LogCategory.Rendering, "Disposing all rendering resources");
-
-        _mainColorTexture.Dispose();
-        _mainColorView?.Dispose();
-        _commandList.Dispose();
-        _resolvePass?.Dispose();
-        foreach (var layer in _layers)
+        lock (GraphicsDevice)
         {
-            foreach (Drawable drawable in layer.Value)
+            Debug.Log(LogCategory.Rendering, "Disposing all rendering resources");
+            GraphicsDevice.WaitForIdle();
+            _mainColorTexture.Dispose();
+            _mainColorView?.Dispose();
+            _commandList.Dispose();
+            _resolvePass?.Dispose();
+            PrimaryFramebuffer.Dispose();
+            
+            foreach (var layer in _layers)
             {
-                drawable.Dispose();
+                foreach (Drawable drawable in layer.Value)
+                {
+                    drawable.Dispose();
+                }
             }
-        }
-        GraphicsDevice.Dispose();
-        _downSampledTextureView?.Target.Dispose();
-        _downSampledTextureView?.Dispose();
-        foreach (var effect in PostProcessEffects)
-        {
-            effect.Dispose();
-        }
-        Debug.Log(LogCategory.Rendering, "Disposed all rendering resources");
 
+            _downSampledTextureView?.Target.Dispose();
+            _downSampledTextureView?.Dispose();
+            foreach (var effect in PostProcessEffects)
+            {
+                effect.Dispose();
+            }
+            // Dispose any remaining shaders or textures owned by the asset manager
+            AssetManager.Dispose();
+            GraphicsDevice.Dispose();
+
+            Debug.Log(LogCategory.Rendering, "Disposed all rendering resources");
+        }
     }
-    
 }

@@ -107,6 +107,9 @@ namespace SolidCode.Atlas.Rendering
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
         protected Sampler sampler;
+        private ResourceLayout _transformTextureResourceLayout;
+        private ResourceLayout _uniformResourceLayout;
+
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
             this._shader = shaderPath;
@@ -188,13 +191,13 @@ namespace SolidCode.Atlas.Rendering
             }
             elementDescriptions[^1] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
 
-            ResourceLayout transformTextureResourceLayout = factory.CreateResourceLayout(
+            _transformTextureResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
 
             // Next up we have to create the layout for our uniform
             ResourceLayoutElementDescription[] uniformElementDescriptions = new ResourceLayoutElementDescription[_uniformBuffers.Count];
             uniformElementDescriptions[0] = new ResourceLayoutElementDescription(_uniformBuffers["Default Uniform"].Name, ResourceKind.UniformBuffer, this.uniformShaderStages);
-            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+            _uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(uniformElementDescriptions));
 
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
@@ -214,7 +217,7 @@ namespace SolidCode.Atlas.Rendering
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                 shaders: _shaders);
-            pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _transformTextureResourceLayout, _uniformResourceLayout };
 
             pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
@@ -229,7 +232,7 @@ namespace SolidCode.Atlas.Rendering
             }
             buffers[^1] = this.sampler;
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
-                transformTextureResourceLayout,
+                _transformTextureResourceLayout,
                 buffers));
             i = 0;
             buffers = new BindableResource[_uniformBuffers.Count];
@@ -240,7 +243,7 @@ namespace SolidCode.Atlas.Rendering
             }
 
             _uniformSet = factory.CreateResourceSet(new ResourceSetDescription(
-                uniformResourceLayout,
+                _uniformResourceLayout,
                 buffers));
 
         }
@@ -319,6 +322,9 @@ namespace SolidCode.Atlas.Rendering
             indexBuffer.Dispose();
             transformBuffer.Dispose();
             _transformSet.Dispose();
+            _transformTextureResourceLayout.Dispose();
+            _uniformResourceLayout.Dispose();
+            sampler.Dispose();
             if (_uniformSet != null)
                 _uniformSet.Dispose();
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
