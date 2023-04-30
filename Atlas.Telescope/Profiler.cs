@@ -1,15 +1,18 @@
 #if DEBUG
 using System.Diagnostics;
 using System.Collections.Concurrent;
+
 namespace SolidCode.Atlas.Telescope;
+
 public static class Profiler
 {
- 
-    
-
     public class TickType
     {
-        private TickType(string value) { Value = value; }
+        private TickType(string value)
+        {
+            Value = value;
+        }
+
         public string Value { get; private set; }
         public static readonly TickType Update = new TickType("Update");
         public static readonly TickType Tick = new TickType("Tick");
@@ -22,81 +25,113 @@ public static class Profiler
 
     private static ConcurrentDictionary<TickType, Dictionary<string, float>> curTimes = new();
     private static ConcurrentDictionary<TickType, Dictionary<string, float>> allTimes = new();
-    private static ConcurrentDictionary<TickType,int> frames = new ();
+    private static ConcurrentDictionary<TickType, int> frames = new();
     private static ConcurrentDictionary<TickType, Stopwatch> watches = new();
 
     public static void StartTimer(TickType tickType)
     {
-        if(DebugServer.Connections == 0) return;
-        if (!watches.ContainsKey(tickType))
+        if (DebugServer.Connections == 0) return;
+        try
         {
-            watches.TryAdd(tickType, new Stopwatch());
+            if (!watches.ContainsKey(tickType))
+            {
+                watches.TryAdd(tickType, new Stopwatch());
+            }
+
+            watches[tickType].Restart();
         }
-        watches[tickType].Restart();
+        catch (Exception e)
+        {
+            // ignored
+        }
     }
+
     public static void EndTimer(TickType tickType, string p)
     {
-        if(DebugServer.Connections == 0 || !watches.ContainsKey(tickType)) return;
-        Stopwatch sw = watches[tickType];
-        sw.Stop();
-        if (!curTimes.ContainsKey(tickType))
+        if (DebugServer.Connections == 0 || !watches.ContainsKey(tickType)) return;
+        try
         {
-            curTimes.TryAdd(tickType, new ());
-        }
+            Stopwatch sw = watches[tickType];
+            sw.Stop();
+            if (!curTimes.ContainsKey(tickType))
+            {
+                curTimes.TryAdd(tickType, new());
+            }
 
-        if (!curTimes[tickType].ContainsKey(p))
-        {
-            curTimes[tickType][p] = (float)sw.Elapsed.TotalMilliseconds;
+            if (!curTimes[tickType].ContainsKey(p))
+            {
+                curTimes[tickType][p] = (float)sw.Elapsed.TotalMilliseconds;
+            }
+            else
+            {
+                curTimes[tickType][p] += (float)sw.Elapsed.TotalMilliseconds;
+            }
         }
-        else
+        catch (Exception e)
         {
-            curTimes[tickType][p] += (float)sw.Elapsed.TotalMilliseconds;
+            // ignored
         }
     }
 
     public static void SubmitTimes(TickType tickType)
     {
-        if(DebugServer.Connections == 0) return;
-        if (!allTimes.ContainsKey(tickType))
+        if (DebugServer.Connections == 0) return;
+        try
         {
-            allTimes[tickType] = new Dictionary<string, float>();
-        }
+            if (!allTimes.ContainsKey(tickType))
+            {
+                allTimes[tickType] = new Dictionary<string, float>();
+            }
 
-        if (!curTimes.ContainsKey(tickType)) return;
-        
-        
-        foreach (var time in curTimes[tickType])
+            if (!curTimes.ContainsKey(tickType)) return;
+
+
+            foreach (var time in curTimes[tickType])
+            {
+                if (!allTimes.ContainsKey(tickType)) break;
+                if (!allTimes[tickType].ContainsKey(time.Key))
+                    allTimes[tickType][time.Key] = time.Value;
+                else
+                    allTimes[tickType][time.Key] += time.Value;
+            }
+
+            curTimes[tickType].Clear();
+            ;
+
+            frames.TryAdd(tickType, 0);
+            frames[tickType]++;
+        }
+        catch (Exception e)
         {
-            if (!allTimes.ContainsKey(tickType)) break;
-            if(!allTimes[tickType].ContainsKey(time.Key))
-                allTimes[tickType][time.Key] = time.Value;
-            else
-                allTimes[tickType][time.Key] += time.Value;
+            // ignored
         }
-
-        curTimes[tickType].Clear();;
-
-        frames.TryAdd(tickType, 0);
-        frames[tickType]++;
     }
 
     public static Dictionary<string, Dictionary<string, float>> GetAverageTimes()
     {
-        Dictionary<string, Dictionary<string, float>> allAverages = new();
-        foreach (var tickTimes in allTimes)
+        try
         {
-            Dictionary<string, float> avgTimes = new();
-            foreach (var times in tickTimes.Value)
+            Dictionary<string, Dictionary<string, float>> allAverages = new();
+            foreach (var tickTimes in allTimes)
             {
-                avgTimes[times.Key] = times.Value / frames[tickTimes.Key];
+                Dictionary<string, float> avgTimes = new();
+                foreach (var times in tickTimes.Value)
+                {
+                    avgTimes[times.Key] = times.Value / frames[tickTimes.Key];
+                }
+
+                allAverages[tickTimes.Key.ToString()] = avgTimes;
             }
 
-            allAverages[tickTimes.Key.ToString()] = avgTimes;
+            allTimes.Clear();
+            frames.Clear();
+            return allAverages;
         }
-
-        allTimes.Clear();
-        frames.Clear();
-        return allAverages;
+        catch (Exception e)
+        {
+            // ignored
+            return new Dictionary<string, Dictionary<string, float>>();
+        }
     }
 }
 

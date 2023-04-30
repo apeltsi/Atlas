@@ -10,10 +10,10 @@ using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Rendering.PostProcess;
 using SolidCode.Atlas.Standard;
 using SolidCode.Atlas.Telescope;
+using Action = System.Action;
 
 namespace SolidCode.Atlas.Rendering
 {
-
     public class Window
     {
         private static Sdl2Window? _window;
@@ -30,6 +30,7 @@ namespace SolidCode.Atlas.Rendering
         private float _frameTimes = 0f;
         private static bool _reloadShaders = false;
         private static string _title = "";
+
         /// <summary>
         /// Returns or sets the window Title.
         /// <para/>
@@ -37,10 +38,7 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static string Title
         {
-            get
-            {
-                return _title;
-            }
+            get => _title;
             set
             {
                 _title = value;
@@ -61,6 +59,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     return WindowState.Hidden;
                 }
+
                 return _window.WindowState;
             }
             set
@@ -81,10 +80,11 @@ namespace SolidCode.Atlas.Rendering
                 {
                     return false;
                 }
+
                 return _window.Focused;
             }
         }
-        
+
         /// <summary>
         /// Toggles the ability for the user to resize the window.
         /// </summary>
@@ -96,6 +96,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     return false;
                 }
+
                 return _window.Resizable;
             }
             set
@@ -106,8 +107,10 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
+
         private static bool _positionDirty = false;
         private static Vector2 _position = new Vector2(50, 50);
+
         /// <summary>
         /// The position of the window relative to the upper left corner of the screen.
         /// </summary>
@@ -119,6 +122,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     return Vector2.Zero;
                 }
+
                 unsafe
                 {
                     int x = 0;
@@ -133,8 +137,10 @@ namespace SolidCode.Atlas.Rendering
                 _positionDirty = true;
             }
         }
+
         private static bool _sizeDirty = false;
         private static Vector2 _size = new Vector2(800, 500);
+
         /// <summary>
         /// The size of the window in pixels.
         /// <para />
@@ -158,21 +164,33 @@ namespace SolidCode.Atlas.Rendering
         {
             get
             {
-                if(_window == null)
+                if (_window == null)
                 {
                     return false;
                 }
+
                 return _window.CursorVisible;
             }
             set
             {
-                if(_window == null)
+                if (_window == null)
                 {
                     return;
                 }
+
                 _window.CursorVisible = value;
             }
         }
+
+        /// <summary>
+        /// Invoked when the window is resized but before the renderer's resources have been updated.
+        /// </summary>
+        public event Action PreResize;
+
+        /// <summary>
+        /// Invoked after the window has been resized.
+        /// </summary>
+        public event Action OnResize;
 
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
@@ -191,7 +209,7 @@ namespace SolidCode.Atlas.Rendering
                 WindowTitle = modifiedTitle,
                 WindowInitialState = WindowState.Hidden
             };
-            
+
             _window = CreateWindow.CreateWindowWithFlags(ref windowCI, flags);
             // Setup graphics device
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
@@ -211,12 +229,13 @@ namespace SolidCode.Atlas.Rendering
                 preferred = GraphicsBackend.Direct3D11;
             if (Atlas.StartupArgumentExists("--use-vk"))
                 preferred = GraphicsBackend.Vulkan;
-            if(preferred != null)
+            if (preferred != null)
                 Renderer.GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options, preferred!.Value);
-            else 
+            else
                 Renderer.GraphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, options);
-            
-            Debug.Log(LogCategory.Rendering, "Current graphics backend: " + Renderer.GraphicsDevice.BackendType.ToString());
+
+            Debug.Log(LogCategory.Rendering,
+                "Current graphics backend: " + Renderer.GraphicsDevice.BackendType.ToString());
 #if DEBUG
             _window.Title = GetAdjustedWindowTitle(_title);
 #endif
@@ -227,9 +246,11 @@ namespace SolidCode.Atlas.Rendering
 
             _window.Resized += () =>
             {
+                PreResize?.Invoke();
                 Renderer.GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
                 Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
                 Renderer.CreateResources();
+                OnResize?.Invoke();
             };
 
             Renderer.CreateResources();
@@ -247,7 +268,13 @@ namespace SolidCode.Atlas.Rendering
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             int frame = 0;
-            if (_window == null) {Debug.Error(LogCategory.Framework, "Window doesn't exist yet! Did you forget to call Start() or StartCoreFeatures()?");return;}
+            if (_window == null)
+            {
+                Debug.Error(LogCategory.Framework,
+                    "Window doesn't exist yet! Did you forget to call Start() or StartCoreFeatures()?");
+                return;
+            }
+
             while (_window.Exists)
             {
                 _renderTimeStopwatch.Restart();
@@ -258,10 +285,12 @@ namespace SolidCode.Atlas.Rendering
                     Atlas.StartTickLoop();
                     Input.Input.Initialize();
                 }
+
                 if (frame == 2)
                 {
                     Debug.Log(LogCategory.Rendering, "First frame has been rendered. Rendering frame 2");
                 }
+
                 InputSnapshot inputSnapshot = _window.PumpEvents();
 
                 if (_reloadShaders)
@@ -269,6 +298,7 @@ namespace SolidCode.Atlas.Rendering
                     _reloadShaders = false;
                     Renderer.ReloadAllShaders();
                 }
+
                 Input.Input.UpdateInputs(inputSnapshot);
                 frame++;
 #if DEBUG
@@ -283,9 +313,11 @@ namespace SolidCode.Atlas.Rendering
                 // Update window if needed
                 if (_positionDirty)
                 {
-                    Sdl2Native.SDL_SetWindowPosition(_window.SdlWindowHandle, AMath.RoundToInt(_position.X), AMath.RoundToInt(_position.Y));
+                    Sdl2Native.SDL_SetWindowPosition(_window.SdlWindowHandle, AMath.RoundToInt(_position.X),
+                        AMath.RoundToInt(_position.Y));
                     _positionDirty = false;
                 }
+
                 if (_sizeDirty)
                 {
                     _window.Width = AMath.RoundToInt(_size.X);
@@ -306,6 +338,7 @@ namespace SolidCode.Atlas.Rendering
                     AverageFramerate = 1f / (_frameTimes / 60f);
                     _frameTimes = 0f;
                 }
+
                 _frames++;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
@@ -317,7 +350,9 @@ namespace SolidCode.Atlas.Rendering
                 _renderTimeStopwatch.Stop();
                 if (MaxFramerate != 0)
                 {
-                    Thread.Sleep(Math.Clamp(AMath.RoundToInt((1000.0 / MaxFramerate) - _renderTimeStopwatch.Elapsed.TotalMilliseconds), 0, 1000));
+                    Thread.Sleep(Math.Clamp(
+                        AMath.RoundToInt((1000.0 / MaxFramerate) - _renderTimeStopwatch.Elapsed.TotalMilliseconds), 0,
+                        1000));
                 }
             }
 
@@ -330,11 +365,8 @@ namespace SolidCode.Atlas.Rendering
             _window.WindowState = WindowState.Minimized;
             Thread.Sleep(100);
             _window.WindowState = WindowState.Maximized;
-
         }
 
-
-        
 
         private static string GetAdjustedWindowTitle(string preferred)
         {
@@ -346,6 +378,5 @@ namespace SolidCode.Atlas.Rendering
 #endif
             return preferred;
         }
-        
     }
 }
