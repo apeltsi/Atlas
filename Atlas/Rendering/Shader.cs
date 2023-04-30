@@ -28,8 +28,6 @@ namespace SolidCode.Atlas.Rendering
         private void FromSource(byte[] vertSource, byte[] fragSource)
         {
             bool isSPIRV = HasSpirvHeader(vertSource);
-            if(isSPIRV)
-                Debug.Log("Compiling from SPIR-V");
             if (Renderer.GraphicsDevice.BackendType == GraphicsBackend.Direct3D11)
                 isSPIRV = false;
             ShaderDescription vertexShaderDesc = new ShaderDescription(
