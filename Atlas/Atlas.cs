@@ -197,7 +197,7 @@ namespace SolidCode.Atlas
             
             EntityComponentSystem.Tick();
 #if DEBUG
-            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond, Version }, EntityComponentSystem.GetECSHierarchy());
+            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "TPS: " + Atlas.TicksPerSecond, "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", Version }, EntityComponentSystem.GetECSHierarchy());
             Profiler.SubmitTimes(Profiler.TickType.Tick);
 #endif
             TickScheduler.FreeThreads();
