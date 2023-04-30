@@ -106,7 +106,7 @@ namespace SolidCode.Atlas.Rendering
         protected List<Texture> _textureAssets = new List<Texture>();
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
-        protected Sampler sampler;
+        protected Sampler? sampler;
         private ResourceLayout _transformTextureResourceLayout;
         private ResourceLayout _uniformResourceLayout;
 
@@ -129,10 +129,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 textures = new List<Texture>();
             }
-            if (sampler == null)
-            {
-                sampler = _graphicsDevice.LinearSampler;
-            }
+            
             this._textureAssets = textures;
             this.sampler = sampler;
             if (mesh != null)
@@ -230,7 +227,7 @@ namespace SolidCode.Atlas.Rendering
                 buffers[i] = texView;
                 i++;
             }
-            buffers[^1] = this.sampler;
+            buffers[^1] = this.sampler ?? _graphicsDevice.LinearSampler;
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 _transformTextureResourceLayout,
                 buffers));
@@ -324,7 +321,6 @@ namespace SolidCode.Atlas.Rendering
             _transformSet.Dispose();
             _transformTextureResourceLayout.Dispose();
             _uniformResourceLayout.Dispose();
-            sampler.Dispose();
             if (_uniformSet != null)
                 _uniformSet.Dispose();
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)
@@ -336,7 +332,10 @@ namespace SolidCode.Atlas.Rendering
             {
                 texView.Dispose();
             }
+            
             _textures.Clear();
+            if(sampler != Renderer.GraphicsDevice.PointSampler && sampler != Renderer.GraphicsDevice.LinearSampler && sampler != Renderer.GraphicsDevice.Aniso4xSampler)
+                sampler?.Dispose();
 
         }
 
