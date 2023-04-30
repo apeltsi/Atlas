@@ -1,6 +1,6 @@
 #if DEBUG
 using System.Diagnostics;
-
+using System.Collections.Concurrent;
 namespace SolidCode.Atlas.Telescope;
 public static class Profiler
 {
@@ -20,17 +20,17 @@ public static class Profiler
         }
     }
 
-    private static Dictionary<TickType, Dictionary<string, float>> curTimes = new();
-    private static Dictionary<TickType, Dictionary<string, float>> allTimes = new();
-    private static Dictionary<TickType,int> frames = new ();
-    private static Dictionary<TickType, Stopwatch> watches = new();
+    private static ConcurrentDictionary<TickType, Dictionary<string, float>> curTimes = new();
+    private static ConcurrentDictionary<TickType, Dictionary<string, float>> allTimes = new();
+    private static ConcurrentDictionary<TickType,int> frames = new ();
+    private static ConcurrentDictionary<TickType, Stopwatch> watches = new();
 
     public static void StartTimer(TickType tickType)
     {
         if(DebugServer.Connections == 0) return;
         if (!watches.ContainsKey(tickType))
         {
-            watches.Add(tickType, new Stopwatch());
+            watches.TryAdd(tickType, new Stopwatch());
         }
         watches[tickType].Restart();
     }
@@ -41,7 +41,7 @@ public static class Profiler
         sw.Stop();
         if (!curTimes.ContainsKey(tickType))
         {
-            curTimes.Add(tickType, new ());
+            curTimes.TryAdd(tickType, new ());
         }
 
         if (!curTimes[tickType].ContainsKey(p))
@@ -67,13 +67,14 @@ public static class Profiler
         
         foreach (var time in curTimes[tickType])
         {
+            if (!allTimes.ContainsKey(tickType)) break;
             if(!allTimes[tickType].ContainsKey(time.Key))
                 allTimes[tickType][time.Key] = time.Value;
             else
                 allTimes[tickType][time.Key] += time.Value;
         }
 
-        curTimes = new();
+        curTimes[tickType].Clear();;
 
         frames.TryAdd(tickType, 0);
         frames[tickType]++;

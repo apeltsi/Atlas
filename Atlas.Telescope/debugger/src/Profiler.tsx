@@ -31,6 +31,7 @@ let offset = 0;
 let [doAnimations, setDoAnimations] = createSignal(false);
 
 export function addData(obj: any) {
+  if (obj == undefined) return;
   dataNames = Object.keys(obj);
   let data = Object.values(obj);
   let datasets = [...series()];

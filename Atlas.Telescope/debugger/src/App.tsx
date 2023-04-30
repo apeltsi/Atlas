@@ -104,6 +104,7 @@ function StartListening() {
         });
       } else if (data.type === "profiler" && data.times !== undefined) {
         addData(data.times["Update"]);
+        if (data.times["Tick"] == undefined) return;
         UpdateTickDurations(
           Object.values(data.times["Tick"]),
           Object.keys(data.times["Tick"])
