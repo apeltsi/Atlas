@@ -4,59 +4,98 @@ using System.Diagnostics;
 namespace SolidCode.Atlas.Telescope;
 public static class Profiler
 {
-    public enum FrameTimeType
-    {
-        Waiting,
-        Scripting,
-        PreRender,
-        Rendering
-    }
-    private static float[] curTimes = new float[4];
-    private static float[] allTimes = new float[4] { 0, 0, 0, 0 };
-    private static int frames = 0;
-    private static Stopwatch watch = new Stopwatch();
-    private static FrameTimeType curType;
-    private static float[] cachedTimes = new float[3];
+ 
+    
 
-    public static void StartTimer(FrameTimeType p)
+    public class TickType
     {
-        watch.Reset();
-        watch.Start();
-        curType = p;
-    }
-    public static void EndTimer()
-    {
-        watch.Stop();
-        curTimes[(int)curType] = watch.ElapsedMilliseconds;
-    }
+        private TickType(string value) { Value = value; }
+        public string Value { get; private set; }
+        public static readonly TickType Update = new TickType("Update");
+        public static readonly TickType Tick = new TickType("Tick");
 
-    public static void SubmitTimes()
-    {
-        for (int i = 0; i < curTimes.Length; i++)
+        public override string ToString()
         {
-            allTimes[i] += curTimes[i];
+            return Value;
         }
-        frames++;
     }
 
-    public static float[] GetAverageTimes()
+    private static Dictionary<TickType, Dictionary<string, float>> curTimes = new();
+    private static Dictionary<TickType, Dictionary<string, float>> allTimes = new();
+    private static Dictionary<TickType,int> frames = new ();
+    private static Dictionary<TickType, Stopwatch> watches = new();
+
+    public static void StartTimer(TickType tickType)
     {
-        if (frames < 30)
+        if(DebugServer.Connections == 0) return;
+        if (!watches.ContainsKey(tickType))
         {
-            return cachedTimes;
+            watches.Add(tickType, new Stopwatch());
+        }
+        watches[tickType].Restart();
+    }
+    public static void EndTimer(TickType tickType, string p)
+    {
+        if(DebugServer.Connections == 0 || !watches.ContainsKey(tickType)) return;
+        Stopwatch sw = watches[tickType];
+        sw.Stop();
+        if (!curTimes.ContainsKey(tickType))
+        {
+            curTimes.Add(tickType, new ());
+        }
+
+        if (!curTimes[tickType].ContainsKey(p))
+        {
+            curTimes[tickType][p] = (float)sw.Elapsed.TotalMilliseconds;
         }
         else
         {
-            float[] avgTimes = new float[4];
-            for (int i = 0; i < allTimes.Length; i++)
-            {
-                avgTimes[i] = allTimes[i] / frames;
-            }
-            cachedTimes = avgTimes;
-            frames = 0;
-            allTimes = new float[4];
-            return avgTimes;
+            curTimes[tickType][p] += (float)sw.Elapsed.TotalMilliseconds;
         }
+    }
+
+    public static void SubmitTimes(TickType tickType)
+    {
+        if(DebugServer.Connections == 0) return;
+        if (!allTimes.ContainsKey(tickType))
+        {
+            allTimes[tickType] = new Dictionary<string, float>();
+        }
+
+        if (!curTimes.ContainsKey(tickType)) return;
+        
+        
+        foreach (var time in curTimes[tickType])
+        {
+            if(!allTimes[tickType].ContainsKey(time.Key))
+                allTimes[tickType][time.Key] = time.Value;
+            else
+                allTimes[tickType][time.Key] += time.Value;
+        }
+
+        curTimes = new();
+
+        frames.TryAdd(tickType, 0);
+        frames[tickType]++;
+    }
+
+    public static Dictionary<string, Dictionary<string, float>> GetAverageTimes()
+    {
+        Dictionary<string, Dictionary<string, float>> allAverages = new();
+        foreach (var tickTimes in allTimes)
+        {
+            Dictionary<string, float> avgTimes = new();
+            foreach (var times in tickTimes.Value)
+            {
+                avgTimes[times.Key] = times.Value / frames[tickTimes.Key];
+            }
+
+            allAverages[tickTimes.Key.ToString()] = avgTimes;
+        }
+
+        allTimes.Clear();
+        frames.Clear();
+        return allAverages;
     }
 }
 

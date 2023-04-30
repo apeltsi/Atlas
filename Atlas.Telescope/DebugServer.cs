@@ -25,9 +25,9 @@ class Log
 class ProfilerData
 {
     public string type { get; set; }
-    public float[] times { get; set; }
+    public Dictionary<string,Dictionary<string,float>> times { get; set; }
 
-    public ProfilerData(float[] data)
+    public ProfilerData(Dictionary<string,Dictionary<string,float>> data)
     {
         this.type = "profiler";
         this.times = data;
@@ -50,6 +50,7 @@ class DebuggerSocketBehaviour : WebSocketBehavior
     }
     protected override void OnOpen()
     {
+        DebugServer.Connections++;
         id = DebugServer.instance.AddListener(this);
 
         timer = new System.Timers.Timer(50);
@@ -72,6 +73,7 @@ class DebuggerSocketBehaviour : WebSocketBehavior
 
     protected override void OnClose(CloseEventArgs e)
     {
+        DebugServer.Connections--;
         DebugServer.instance.RemoveListener(id);
         timer.Stop();
         timer.Close();
@@ -109,7 +111,7 @@ class DebuggerSocketBehaviour : WebSocketBehavior
         }
         try
         {
-            float[] times = Profiler.GetAverageTimes();
+            Dictionary<string,Dictionary<string,float>> times = Profiler.GetAverageTimes();
 
             string jsonString = JsonSerializer.Serialize(new ProfilerData(times));
 
@@ -153,6 +155,7 @@ class DebugServer
     public static DebugServer instance;
     WebSocketServer wssv;
     int listenerID = 0;
+    public static int Connections = 0;
     ConcurrentDictionary<int, DebuggerSocketBehaviour> listeners = new ConcurrentDictionary<int, DebuggerSocketBehaviour>();
     private void StartWebsocket()
     {

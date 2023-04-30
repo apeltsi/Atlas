@@ -105,7 +105,7 @@ public static class Renderer
     {
         if (GraphicsDevice == null) return;
 #if DEBUG
-        Profiler.StartTimer(Profiler.FrameTimeType.PreRender);
+        Profiler.StartTimer(Profiler.TickType.Update);
 #endif
         if (_resourcesDirty)
         {
@@ -168,8 +168,8 @@ public static class Renderer
 
         // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
 #if DEBUG
-        Profiler.EndTimer();
-        Profiler.StartTimer(Profiler.FrameTimeType.Rendering);
+        Profiler.EndTimer(Profiler.TickType.Update, "Pre-Render Tasks");
+        Profiler.StartTimer(Profiler.TickType.Update);
 #endif
 
         GraphicsDevice.SubmitCommands(_commandList);
@@ -183,8 +183,8 @@ public static class Renderer
             
         }
 #if DEBUG
-        Profiler.EndTimer();
-        Profiler.SubmitTimes();
+        Profiler.EndTimer(Profiler.TickType.Update, "Render");
+        Profiler.SubmitTimes(Profiler.TickType.Update);
 #endif
     }
 

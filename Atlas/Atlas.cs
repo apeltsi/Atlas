@@ -180,14 +180,26 @@ namespace SolidCode.Atlas
             sw.Start();
             _ticksThisSecond++;
             TickDeltaStopwatch.Restart();
+            
+#if DEBUG
+            Profiler.StartTimer(Profiler.TickType.Tick);
+#endif
             Task t = TickScheduler.RequestTick();
             t.Wait();
+#if DEBUG
+            Profiler.EndTimer(Profiler.TickType.Tick, "Wait");
+#endif
+
             if (!ecsStopwatch.IsRunning)
             {
                 ecsStopwatch.Start();
             }
+            
             EntityComponentSystem.Tick();
+#if DEBUG
             Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond, Version }, EntityComponentSystem.GetECSHierarchy());
+            Profiler.SubmitTimes(Profiler.TickType.Tick);
+#endif
             TickScheduler.FreeThreads();
             sw.Stop();
         }

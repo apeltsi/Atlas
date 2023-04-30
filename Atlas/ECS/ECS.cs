@@ -213,7 +213,15 @@ namespace SolidCode.Atlas.ECS
                     }
                     try
                     {
+#if DEBUG
+                        Profiler.StartTimer(Profiler.TickType.Tick);
+#endif
+
                         pair.Value.Invoke();
+#if DEBUG
+                        Profiler.EndTimer(Profiler.TickType.Tick, pair.Key.GetType().FullName);
+#endif
+
                     }
                     catch (Exception e)
                     {

@@ -272,13 +272,13 @@ namespace SolidCode.Atlas.Rendering
                 Input.Input.UpdateInputs(inputSnapshot);
                 frame++;
 #if DEBUG
-                Profiler.StartTimer(Profiler.FrameTimeType.Waiting);
+                Profiler.StartTimer(Profiler.TickType.Update);
 #endif
 
                 TickScheduler.RequestTick().Wait();
 #if DEBUG
-                Profiler.EndTimer();
-                Profiler.StartTimer(Profiler.FrameTimeType.Scripting);
+                Profiler.EndTimer(Profiler.TickType.Update, "Wait");
+                Profiler.StartTimer(Profiler.TickType.Update);
 #endif
                 // Update window if needed
                 if (_positionDirty)
@@ -310,7 +310,7 @@ namespace SolidCode.Atlas.Rendering
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 #if DEBUG
-                Profiler.EndTimer();
+                Profiler.EndTimer(Profiler.TickType.Update, "Update");
 #endif
                 Renderer.Draw();
 
