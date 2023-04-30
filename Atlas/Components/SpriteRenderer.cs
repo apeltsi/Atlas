@@ -82,7 +82,6 @@ public class SpriteRenderer : RenderComponent
             Position = position;
             UV = uv;
         }
-        public const uint SizeInBytes = 24;
     }
 
 }
