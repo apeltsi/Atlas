@@ -185,12 +185,12 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Invoked when the window is resized but before the renderer's resources have been updated.
         /// </summary>
-        public event Action PreResize;
+        public static event Action PreResize;
 
         /// <summary>
         /// Invoked after the window has been resized.
         /// </summary>
-        public event Action OnResize;
+        public static event Action OnResize;
 
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
