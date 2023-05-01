@@ -3,6 +3,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Resources;
 using SolidCode.Atlas.Audio;
+using SolidCode.Atlas.Compute;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Telescope;
 
@@ -63,6 +64,10 @@ namespace SolidCode.Atlas.AssetManagement
                 if (!assetHandlers.ContainsKey("ttf"))
                 {
                     AddAssetHandler("ttf", DefaultHandlers.HandleBytedata<Font>);
+                }
+                if (!assetHandlers.ContainsKey("compute"))
+                {
+                    AddAssetHandler("compute", DefaultHandlers.HandleBytedata<ComputeShader>);
                 }
 
             }
@@ -196,8 +201,8 @@ namespace SolidCode.Atlas.AssetManagement
                     loadedAssetPacks.Add(this.relativePath, this);
                 }
             }
-            // We lock loadfiles so that we can't manually load anything twice accidentally
-            lock (loadFiles) lock (loadedAssetPacks[this.relativePath] ?? this)
+            // We lock loadFiles so that we can't manually load anything twice accidentally
+            lock (loadFiles) lock (loadedAssetPacks.ContainsKey(this.relativePath) ? loadedAssetPacks[this.relativePath] : this)
                 {
 
                     List<Thread> threads = new List<Thread>();

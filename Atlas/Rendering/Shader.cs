@@ -64,7 +64,7 @@ namespace SolidCode.Atlas.Rendering
             FromSource(ReadFully(streams[0]), ReadFully(streams[1]));
         }
         
-        private static byte[] ReadFully(Stream input)
+        internal static byte[] ReadFully(Stream input)
         {
             byte[] buffer = new byte[16*1024];
             using (MemoryStream ms = new MemoryStream())

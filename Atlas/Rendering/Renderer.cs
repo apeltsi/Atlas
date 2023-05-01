@@ -17,7 +17,7 @@ public static class Renderer
     private static ShaderPass? _resolvePass;
     private static TextureView? _finalTextureView;
     public static GraphicsDevice? GraphicsDevice { get; internal set; }
-    private static CommandList _commandList = null!;
+    internal static CommandList CommandList = null!;
     private static ConcurrentDictionary<int, ManualConcurrentList<Drawable>> _layers = new();
     private static TextureView? _downSampledTextureView;
     private static bool _resourcesDirty = false;
@@ -116,29 +116,29 @@ public static class Renderer
 
         // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
         ResourceFactory factory = GraphicsDevice.ResourceFactory;
-        _commandList.Begin();
+        CommandList.Begin();
 
         // Before we can issue a Draw command, we need to set a Framebuffer.
-        _commandList.SetFramebuffer(PrimaryFramebuffer);
+        CommandList.SetFramebuffer(PrimaryFramebuffer);
 
         // At the beginning of every frame, we clear the screen to black. 
-        _commandList.ClearColorTarget(0, Window.ClearColor);
+        CommandList.ClearColorTarget(0, Window.ClearColor);
         int ppLayer = PostProcessLayer;
         for (int i = 0; i < ppLayer; i++)
         {
             if (_layers.TryGetValue(i, out var layer))
             {
-                _commandList.InsertDebugMarker("Begin Layer " + i);
+                CommandList.InsertDebugMarker("Begin Layer " + i);
                 RenderDrawables(_windowScalingMatrix, layer);
             }
         }
 
-        _commandList.InsertDebugMarker("Begin Post-Process");
+        CommandList.InsertDebugMarker("Begin Post-Process");
         if (DoPostProcess)
         {
             foreach (var effect in PostProcessEffects)
             {
-                effect.Draw(_commandList);
+                effect.Draw(CommandList);
             }
         }
 
@@ -150,20 +150,20 @@ public static class Renderer
 
         while (_layers.ContainsKey(curLayer))
         {
-            _commandList.InsertDebugMarker("Begin Layer " + curLayer);
+            CommandList.InsertDebugMarker("Begin Layer " + curLayer);
             RenderDrawables(_windowScalingMatrix, _layers[curLayer]);
             curLayer++;
         }
 
-        _commandList.InsertDebugMarker("Final Resolve shader");
+        CommandList.InsertDebugMarker("Final Resolve shader");
         // If we're using multi-sampling we need to resolve the texture first
         if (SampleCount != TextureSampleCount.Count1)
         {
-            _commandList.ResolveTexture(_finalTextureView.Target, _downSampledTextureView.Target);
+            CommandList.ResolveTexture(_finalTextureView.Target, _downSampledTextureView.Target);
         }
 
-        _resolvePass.Draw(_commandList);
-        _commandList.End();
+        _resolvePass.Draw(CommandList);
+        CommandList.End();
         TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 
         // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
@@ -172,7 +172,7 @@ public static class Renderer
         Profiler.StartTimer(Profiler.TickType.Update);
 #endif
 
-        GraphicsDevice.SubmitCommands(_commandList);
+        GraphicsDevice.SubmitCommands(CommandList);
         GraphicsDevice.WaitForIdle();
         try
         {
@@ -200,7 +200,7 @@ public static class Renderer
 
             drawable.SetGlobalMatrix(GraphicsDevice, scalingMatrix);
             drawable.SetScreenSize(GraphicsDevice, RenderResolution);
-            drawable.Draw(_commandList);
+            drawable.Draw(CommandList);
         }
     }
 
@@ -281,12 +281,12 @@ public static class Renderer
             if (GraphicsDevice == null) return;
 
             ResourceFactory factory = GraphicsDevice.ResourceFactory;
-            if (_commandList is { IsDisposed: false })
+            if (CommandList is { IsDisposed: false })
             {
-                _commandList.Dispose();
+                CommandList.Dispose();
             }
 
-            _commandList = factory.CreateCommandList();
+            CommandList = factory.CreateCommandList();
             if (_mainColorTexture is { IsDisposed: false })
             {
                 _mainColorTexture.Dispose();
@@ -424,7 +424,7 @@ public static class Renderer
             GraphicsDevice.WaitForIdle();
             _mainColorTexture.Dispose();
             _mainColorView?.Dispose();
-            _commandList.Dispose();
+            CommandList.Dispose();
             _resolvePass?.Dispose();
             PrimaryFramebuffer.Dispose();
             

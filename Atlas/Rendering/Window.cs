@@ -372,7 +372,7 @@ namespace SolidCode.Atlas.Rendering
         {
 #if DEBUG
             return preferred + " | Atlas/" + Atlas.Version + " | " + Renderer.GraphicsDevice?.BackendType.ToString() +
-                   " | Telescope Active" + (Atlas.StartupArgumentExists("--disable-multi-process-debugging")
+                   " on " + Renderer.GraphicsDevice?.DeviceName + " | Telescope Active" + (Atlas.StartupArgumentExists("--disable-multi-process-debugging")
                        ? " | Multi-Process Debugging Disabled"
                        : "");
 #endif
