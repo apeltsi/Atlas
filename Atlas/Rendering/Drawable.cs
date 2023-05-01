@@ -107,8 +107,8 @@ namespace SolidCode.Atlas.Rendering
         protected ShaderStages uniformShaderStages;
         protected ShaderStages transformShaderStages;
         protected Sampler? sampler;
-        private ResourceLayout _transformTextureResourceLayout;
-        private ResourceLayout _uniformResourceLayout;
+        protected ResourceLayout? _transformTextureResourceLayout;
+        protected ResourceLayout? _uniformResourceLayout;
 
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
         {
@@ -319,8 +319,8 @@ namespace SolidCode.Atlas.Rendering
             indexBuffer.Dispose();
             transformBuffer.Dispose();
             _transformSet.Dispose();
-            _transformTextureResourceLayout.Dispose();
-            _uniformResourceLayout.Dispose();
+            _transformTextureResourceLayout?.Dispose();
+            _uniformResourceLayout?.Dispose();
             if (_uniformSet != null)
                 _uniformSet.Dispose();
             foreach (DeviceBuffer buffer in _uniformBuffers.Values)

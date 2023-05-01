@@ -173,7 +173,7 @@ namespace SolidCode.Atlas.Rendering
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.UInt1),
                         new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
-
+            
             this._mesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.virtualMesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.transform = t;
@@ -193,6 +193,7 @@ namespace SolidCode.Atlas.Rendering
 
         }
         bool buffersDirty = false;
+        private ResourceLayout _textResourceLayout;
 
         public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
         {
@@ -226,14 +227,14 @@ namespace SolidCode.Atlas.Rendering
             _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4(), HorizontalOffset)); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
             _graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
-            // Next lest load textures to the gpu
+            // Next lets load textures to the gpu
 
-            TextureView texView = factory.CreateTextureView(texture);
+            texView = factory.CreateTextureView(texture);
 
 
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
-
+            
             _shaders = shader.shaders;
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
@@ -246,8 +247,9 @@ namespace SolidCode.Atlas.Rendering
             elementDescriptions[2] = new ResourceLayoutElementDescription("TextureSampler", ResourceKind.Sampler, ShaderStages.Fragment);
             elementDescriptions[3] = new ResourceLayoutElementDescription("Color", ResourceKind.UniformBuffer, ShaderStages.Fragment);
 
-            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+            _textResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
+            
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
                 depthTestEnabled: false,
                 depthWriteEnabled: false,
@@ -265,7 +267,7 @@ namespace SolidCode.Atlas.Rendering
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                 shaders: _shaders);
-            pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _textResourceLayout };
 
             pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
@@ -276,7 +278,7 @@ namespace SolidCode.Atlas.Rendering
             buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
-                uniformResourceLayout,
+                _textResourceLayout,
                 buffers));
 
         }
@@ -334,10 +336,10 @@ namespace SolidCode.Atlas.Rendering
             {
                 return;
             }
+            cl.SetPipeline(pipeline);
 
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
-            cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.DrawIndexed(
                 indexCount: (uint)_mesh.Indicies.Length,
@@ -345,6 +347,15 @@ namespace SolidCode.Atlas.Rendering
                 indexStart: 0,
                 vertexOffset: 0,
                 instanceStart: 0);
+        }
+
+        public override void Dispose()
+        {
+            texView.Dispose();
+            texture.Dispose();
+            colorBuffer.Dispose();
+            _textResourceLayout.Dispose();
+            base.Dispose();
         }
     }
 }
