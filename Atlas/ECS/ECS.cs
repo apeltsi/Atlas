@@ -20,21 +20,21 @@ namespace SolidCode.Atlas.ECS
 
 
         public static Window? window;
-        private static ConcurrentQueue<Entity> _removeQueue = new ConcurrentQueue<Entity>();
-        private static ConcurrentQueue<Entity> _addQueue = new ConcurrentQueue<Entity>();
-        internal delegate void ComponentMethod();
+        private static ConcurrentQueue<Entity> _removeQueue = new ();
+        private static ConcurrentQueue<Entity> _addQueue = new ();
 
-        public delegate void TickTask();
 
-        private static List<(int, Action)> _tickTasks = new List<(int, Action)>();
-        private static List<(float, Action)> _frameDelays = new List<(float, Action)>();
+        private static List<(int, Action)> _tickTasks = new ();
+        private static List<(float, Action)> _frameDelays = new ();
 
-        private static ConcurrentDictionary<Component, ComponentMethod> _updateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentDictionary<Component, ComponentMethod> _tickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentQueue<ComponentMethod> _dirtyEntities = new ConcurrentQueue<ComponentMethod>();
-        private static ConcurrentBag<Component> _startMethods = new ConcurrentBag<Component>();
-
-        public static ConcurrentDictionary<Type, int> InstanceCount = new ConcurrentDictionary<Type, int>();
+        private static ConcurrentDictionary<Component, Action> _updateMethods = new ();
+        private static ConcurrentDictionary<Component, Action> _tickMethods = new ();
+        private static ConcurrentQueue<Action> _dirtyEntities = new ();
+        private static ConcurrentBag<Component> _startMethods = new ();
+        private static List<Action> _updateActions = new();
+        private static List<Action> _tickActions = new();
+           
+        public static ConcurrentDictionary<Type, int> InstanceCount = new ();
 
         public static bool HasStarted { get; set; }
 
@@ -43,12 +43,12 @@ namespace SolidCode.Atlas.ECS
         {
             _removeQueue.Enqueue(entity);
         }
-        static internal void AddDirtyEntity(ComponentMethod method)
+        internal static void AddDirtyEntity(Action method)
         {
             _dirtyEntities.Enqueue(method);
         }
 
-        static internal void AddStartMethod(Component c)
+        internal static void AddStartMethod(Component c)
         {
             lock (_startMethods)
             {
@@ -56,23 +56,60 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
-        static internal void RegisterUpdateMethod(Component c, ComponentMethod method)
+        internal static void RegisterComponentUpdateMethod(Component c, Action method)
         {
             _updateMethods.TryAdd(c, method);
         }
-        static internal void RegisterTickMethod(Component c, ComponentMethod method)
+        internal static void RegisterComponentTickMethod(Component c, Action method)
         {
             _tickMethods.TryAdd(c, method);
         }
-        static internal void UnregisterUpdateMethod(Component c)
+        internal static void UnregisterComponentUpdateMethod(Component c)
         {
             _updateMethods.Remove(c, out _);
         }
-        static internal void UnregisterTickMethod(Component c)
+        internal static void UnregisterComponentTickMethod(Component c)
         {
             _tickMethods.Remove(c, out _);
         }
-
+        /// <summary>
+        /// Registers a action to be invoked at every Tick
+        /// </summary>
+        /// <param name="action">The action to be invoked</param>
+        public static void RegisterTickAction(Action action)
+        {
+            lock(_tickActions)
+                _tickActions.Add(action);
+        }
+        /// <summary>
+        /// Registers a action to be invoked at every Frame. (Before rendering)
+        /// </summary>
+        /// <param name="action">The action to be invoked</param>
+        public static void RegisterUpdateAction(Action action)
+        {
+            lock(_updateActions)
+                _updateActions.Add(action);
+        }
+        
+        /// <summary>
+        /// Unregisters an action from being invoked at every Tick
+        /// </summary>
+        /// <param name="action"></param>
+        public static void UnregisterTickAction(Action action)
+        {
+            lock(_tickActions)
+                _tickActions.Remove(action);
+        }
+        
+        /// <summary>
+        /// Unregisters an action from being invoked at every Frame. 
+        /// </summary>
+        /// <param name="action"></param>
+        public static void UnregisterUpdateAction(Action action)
+        {
+            lock(_updateActions)
+                _updateActions.Remove(action);
+        }
 
 
         static void UpdateECS()
@@ -81,7 +118,7 @@ namespace SolidCode.Atlas.ECS
             {
                 while (_dirtyEntities.Count > 0)
                 {
-                    ComponentMethod? m;
+                    Action? m;
                     _dirtyEntities.TryDequeue(out m);
                     if (m != null)
                     {
@@ -162,9 +199,16 @@ namespace SolidCode.Atlas.ECS
                         _frameDelays[i] = (task.Item1 - (float)Time.deltaTime, task.Item2);
                     }
                 }
+            // Run through each of our Update Actions
+            lock(_updateActions)
+                foreach (var action in _updateActions)
+                {
+                    action.Invoke();
+                }
+
             lock (_updateMethods)
             {
-                foreach (KeyValuePair<Component, ComponentMethod> pair in _updateMethods)
+                foreach (KeyValuePair<Component, Action> pair in _updateMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
                     try
@@ -188,6 +232,7 @@ namespace SolidCode.Atlas.ECS
             UpdateECS();
             lock (_tickMethods)
             {
+                // Run through each of our tick tasks
                 lock(_tickTasks)
                     for (int i = _tickTasks.Count - 1; i >= 0; i--)
                     {
@@ -202,7 +247,13 @@ namespace SolidCode.Atlas.ECS
                             _tickTasks[i] = (task.Item1 - 1, task.Item2);
                         }
                     }
-                foreach (KeyValuePair<Component, ComponentMethod> pair in _tickMethods)
+                // Run through each of our Tick Actions
+                lock(_tickActions)
+                    foreach (var action in _tickActions)
+                    {
+                        action.Invoke();
+                    }
+                foreach (KeyValuePair<Component, Action> pair in _tickMethods)
                 {
                     if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
                     if (pair.Key.isNew)
@@ -257,6 +308,9 @@ namespace SolidCode.Atlas.ECS
             _updateMethods.Clear();
             _dirtyEntities.Clear();
             _startMethods.Clear();
+            
+            _tickActions.Clear();
+            _updateActions.Clear();
         }
 
         public static void PrintHierarchy()
@@ -300,12 +354,12 @@ namespace SolidCode.Atlas.ECS
 
         internal static ECSElement ElementFromEntity(string name, Component[] components, ECSElement[] children)
         {
-            List<ECSComponent> ecscomponents = new List<ECSComponent>();
+            List<ECSComponent> ecsComponents = new List<ECSComponent>();
             for (int i = 0; i < components.Length; i++)
             {
-                ecscomponents.Add(new ECSComponent(components[i]));
+                ecsComponents.Add(new ECSComponent(components[i]));
             }
-            return new ECSElement(name, ecscomponents.ToArray(), children);
+            return new ECSElement(name, ecsComponents.ToArray(), children);
         }
     }
 }

@@ -86,15 +86,8 @@ namespace SolidCode.Atlas.Animation
     public static class Animation
     {
         static List<ITween> tweens = new List<ITween>();
-        static void AnimationManagerSetup()
-        {
-            if (AnimationManager.instance != null)
-            {
-                return;
-            }
-            Entity e = new Entity("ATLAS | Animation Manager");
-            AnimationManager.instance = e.AddComponent<AnimationManager>();
-        }
+        private static bool isInitialized = false;
+        
         public static TweenReference DoTween<T>(ValueRef<T> value, T end, float time, Action? onDone = null, Func<float, float>? timingFunction = null)
         {
             if (onDone == null)
@@ -105,7 +98,12 @@ namespace SolidCode.Atlas.Animation
             {
                 timingFunction = TimingFunction.Linear;
             }
-            AnimationManagerSetup();
+
+            if (!isInitialized)
+            {
+                EntityComponentSystem.RegisterUpdateAction(UpdateAnimations);
+                isInitialized = true;
+            }
             ITween t = new Tween<T>(value, end, time, onDone, timingFunction);
             tweens.Add(t);
             return new TweenReference(t);
@@ -171,34 +169,29 @@ namespace SolidCode.Atlas.Animation
                 {
                     age += diff;
                     float t = timingFunction(Math.Clamp(age / duration, 0, 1));
+                    // Im really sorry for what im about to do...
                     if (typeof(T) == typeof(float))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((float)(object)start, (float)(object)end, t);
                     }
                     else if (typeof(T) == typeof(int))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((int)(object)start, (int)(object)end, t);
                     }
                     else if (typeof(T) == typeof(double))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((double)(object)start, (double)(object)end, t);
                     }
                     else if (typeof(T) == typeof(Vector2))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((Vector2)(object)start, (Vector2)(object)end, t);
                     }
                     else if (typeof(T) == typeof(Vector3))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((Vector3)(object)start, (Vector3)(object)end, t);
                     }
                     else if (typeof(T) == typeof(Vector4))
                     {
-                        // Im really sorry for what im about to do...
                         this.value.Value = (T)(object)AMath.Lerp((Vector4)(object)start, (Vector4)(object)end, t);
                     }
                     if (age > duration)
@@ -220,34 +213,25 @@ namespace SolidCode.Atlas.Animation
                     return true;
                 }
             }
+            
+
         }
-        [SingleInstance]
-        public class AnimationManager : Component
+        private static void UpdateAnimations()
         {
-            public static AnimationManager? instance;
-
-            public void Start()
+            List<ITween> curTweens = new List<ITween>(Animation.tweens);
+            foreach (ITween tween in curTweens)
             {
-                instance = this;
-            }
-
-            public void Update()
-            {
-                List<ITween> curTweens = new List<ITween>(Animation.tweens);
-                foreach (ITween tween in curTweens)
+                try
                 {
-                    try
+                    if (!tween.Tick((float)Time.deltaTime))
                     {
-                        if (!tween.Tick((float)Time.deltaTime))
-                        {
-                            tweens.Remove(tween);
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Error(LogCategory.Framework, "Failed to tween: " + e.Message);
                         tweens.Remove(tween);
                     }
+                }
+                catch (Exception e)
+                {
+                    Debug.Error(LogCategory.Framework, "Failed to tween: " + e.Message);
+                    tweens.Remove(tween);
                 }
             }
         }

@@ -53,11 +53,11 @@ namespace SolidCode.Atlas.ECS
 
             if (updateMethod != null)
             {
-                EntityComponentSystem.RegisterUpdateMethod(this, () => updateMethod.Invoke(this, null));
+                EntityComponentSystem.RegisterComponentUpdateMethod(this, () => updateMethod.Invoke(this, null));
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.RegisterTickMethod(this, () => tickMethod.Invoke(this, null));
+                EntityComponentSystem.RegisterComponentTickMethod(this, () => tickMethod.Invoke(this, null));
             }
         }
         internal void UnregisterMethods()
@@ -67,11 +67,11 @@ namespace SolidCode.Atlas.ECS
 
             if (updateMethod != null)
             {
-                EntityComponentSystem.UnregisterUpdateMethod(this);
+                EntityComponentSystem.UnregisterComponentUpdateMethod(this);
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.UnregisterTickMethod(this);
+                EntityComponentSystem.UnregisterComponentTickMethod(this);
             }
 
         }
