@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using Veldrid;
 using SolidCode.Atlas.ECS;
@@ -146,7 +147,7 @@ namespace SolidCode.Atlas.Rendering
             if (this.transform != null)
                 this.transform.RegisterDrawable(this);
 
-            Shader shader = ShaderManager.GetShader(shaderPath);
+            Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));

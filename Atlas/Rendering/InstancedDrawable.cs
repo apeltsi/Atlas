@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using Veldrid;
@@ -74,7 +75,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         if (this.transform != null)
             this.transform.RegisterDrawable(this);
 
-        Shader shader = ShaderManager.GetShader(shaderPath);
+        Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
         ResourceFactory factory = _graphicsDevice.ResourceFactory;
         vertexBuffer =
             factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(),

@@ -266,8 +266,6 @@ public static class Renderer
         if (GraphicsDevice == null) return;
         TickScheduler.RequestTick().Wait();
         Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
-        // First, lets recompile all our shaders
-        ShaderManager.ClearAllShaders();
         // Next, lets dispose all drawables
         foreach (var layer in _layers)
         {

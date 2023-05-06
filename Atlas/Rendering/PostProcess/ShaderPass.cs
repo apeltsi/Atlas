@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
@@ -72,7 +73,7 @@ public class ShaderPass<TUniform> : ShaderPass
         GraphicsDevice graphicsDevice = Renderer.GraphicsDevice;
         
         // Get the shader
-        Shader shader = ShaderManager.GetShader(_shaderName);
+        Shader shader = AssetManager.GetAsset<Shader>(_shaderName);
         // Get the resource factory
         ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
 
