@@ -28,11 +28,12 @@ namespace SolidCode.Atlas.ECS
             get => _layer;
             set
             {
+                uint prevValue = _layer;
                 _layer = value;
                 _drawables.Update();
                 foreach (Drawable d in _drawables)
                 {
-                    Renderer.ResortDrawable(d);
+                    Renderer.ResortDrawable(d, prevValue);
                 }
             }
         }

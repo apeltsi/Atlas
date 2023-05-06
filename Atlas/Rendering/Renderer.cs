@@ -237,9 +237,18 @@ public static class Renderer
         }
     }
 
-    public static void RemoveDrawable(Drawable drawable)
+    public static void RemoveDrawable(Drawable drawable, uint? itemLayer = null)
     {
-        bool removed = _layers[(int)drawable.transform.Layer].Remove(drawable);
+        uint layerIndex = 0;
+        if (itemLayer == null)
+        {
+            layerIndex = drawable.transform.Layer;
+        }
+        else
+        {
+            layerIndex = itemLayer.Value;
+        }
+        bool removed = _layers[(int)layerIndex].Remove(drawable);
         if (!removed)
         {
             foreach (var layer in _layers)
@@ -398,12 +407,13 @@ public static class Renderer
     {
     }
 
-    public static void ResortDrawable(Drawable d)
+    public static void ResortDrawable(Drawable d, uint? prevLayer = null)
     {
+        
         // Lets just grab out the drawable out of our sorted List and add it back
         lock (_layers)
         {
-            RemoveDrawable(d);
+            RemoveDrawable(d, prevLayer);
             AddDrawables(new List<Drawable>() { d });
         }
     }
