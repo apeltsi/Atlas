@@ -27,7 +27,7 @@ public class AnchoredPoint
     {
         if (Time.time == cacheTime)
             return cachedPositon;
-        Vector2 ret = Position.Evaluate();
+        Vector2 ret = Position.Evaluate() + (Parent?.Position.Evaluate() ?? Vector2.Zero);
         if (Parent == null)
         {
             ret += (AnchorPoint * 2f - new Vector2(1f)) * Renderer.UnitScale;
@@ -37,11 +37,8 @@ public class AnchoredPoint
             ret += (AnchorPoint * 2f - new Vector2(1f)) * Parent.Scale.Evaluate();
         }
         
-        if (Time.time != cacheTime)
-        {
-            cacheTime = Time.time;
-            cachedPositon = ret;
-        }
+        cacheTime = Time.time;
+        cachedPositon = ret;
 
         return ret;
     }

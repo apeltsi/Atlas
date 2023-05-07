@@ -33,6 +33,8 @@ public class SpriteRenderer : RenderComponent
         }
         set
         {
+            if (_color == value)
+                return;
             _color = value;
             if (drawable != null)
             {

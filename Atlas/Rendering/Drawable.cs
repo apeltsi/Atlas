@@ -148,6 +148,10 @@ namespace SolidCode.Atlas.Rendering
                 this.transform.RegisterDrawable(this);
 
             Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
+            if (shader == null)
+            {
+                Debug.Error("Drawable shader is null! Path: " + shaderPath);
+            }
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
@@ -184,7 +188,6 @@ namespace SolidCode.Atlas.Rendering
             foreach (Texture texture in _textureAssets)
             {
                 elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
-                i++;
                 i++;
             }
             elementDescriptions[^1] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
