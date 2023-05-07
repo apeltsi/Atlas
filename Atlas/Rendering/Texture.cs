@@ -17,6 +17,21 @@ namespace SolidCode.Atlas.Rendering
             name = "";
             texture = null;
         }
+
+        public void LoadFromDisk(string absolutePath)
+        {
+            try
+            {
+                this.texture = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, absolutePath, PixelFormat.R8_G8_B8_A8_UNorm);
+                this.IsValid = true;
+            }
+            catch (Exception e)
+            {
+                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.name + ": " + e.Message);
+                this.IsValid = false;
+            }
+        }
+        
         public override void Load(string path, string name)
         {
             this.path = path + ".ktx";
