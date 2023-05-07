@@ -1,4 +1,6 @@
 
+using SolidCode.Atlas.UI;
+
 namespace SolidCode.Atlas.Rendering
 {
     using System.Collections.Generic;
@@ -296,13 +298,18 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            Matrix4x4 cmat = Matrix4x4.Identity;
+            
+            if(transform.GetType() != typeof(RectTransform)) 
+                cmat = Camera.GetTransformMatrix();
+
             if (transformBuffer != null && _graphicsDevice != null)
             {
                 _graphicsDevice.UpdateBuffer(transformBuffer,
                 0,
                 new TextTransformStruct(matrix,
                                         transform.GetTransformationMatrix(),
-                                        Camera.GetTransformMatrix(),
+                                        cmat,
                                         HorizontalOffset));
             }
 

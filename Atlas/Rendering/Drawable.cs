@@ -4,6 +4,7 @@ using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using Veldrid;
 using SolidCode.Atlas.ECS;
+using SolidCode.Atlas.UI;
 
 namespace SolidCode.Atlas.Rendering
 {
@@ -297,7 +298,10 @@ namespace SolidCode.Atlas.Rendering
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
             Matrix4x4 tmat = transform.GetTransformationMatrix();
-            Matrix4x4 cmat = Camera.GetTransformMatrix();
+            Matrix4x4 cmat = Matrix4x4.Identity;
+            
+            if(transform.GetType() != typeof(RectTransform)) 
+                cmat = Camera.GetTransformMatrix();
             if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
                 // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)

@@ -25,6 +25,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     protected VertexLayoutDescription instanceLayoutDescription;
     protected DeviceBuffer _instanceVB;
     protected TInstanceData[] _instanceData;
+    protected ResourceLayout? _uniformResourceLayout;
 
     public InstancedDrawable(string shaderPath, Mesh<T> mesh, Transform t, TInstanceData[] instanceData,VertexLayoutDescription instanceLayoutDesc,
         TUniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null,
@@ -131,7 +132,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         elementDescriptions[^1] =
             new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
 
-        ResourceLayout transformTextureResourceLayout = factory.CreateResourceLayout(
+        _transformTextureResourceLayout = factory.CreateResourceLayout(
             new ResourceLayoutDescription(elementDescriptions));
 
         // Next up we have to create the layout for our uniform
@@ -140,7 +141,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             new ResourceLayoutElementDescription[_uniformBuffers.Count];
         uniformElementDescriptions[0] = new ResourceLayoutElementDescription(_uniformBuffers["Default Uniform"].Name,
             ResourceKind.UniformBuffer, this.uniformShaderStages);
-        ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+        _uniformResourceLayout = factory.CreateResourceLayout(
             new ResourceLayoutDescription(uniformElementDescriptions));
         
         //  -- Instancing STUFF --
@@ -169,7 +170,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         pipelineDescription.ShaderSet = new ShaderSetDescription(
             vertexLayouts: new VertexLayoutDescription[] { vertexLayout, instanceLayoutDescription },
             shaders: _shaders);
-        pipelineDescription.ResourceLayouts = new[] { transformTextureResourceLayout, uniformResourceLayout };
+        pipelineDescription.ResourceLayouts = new[] { _transformTextureResourceLayout, _uniformResourceLayout };
 
 
         pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
@@ -186,7 +187,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
         buffers[^1] = this.sampler;
         _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
-            transformTextureResourceLayout,
+            _transformTextureResourceLayout,
             buffers));
         i = 0;
         buffers = new BindableResource[_uniformBuffers.Count];
@@ -197,7 +198,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         }
 
         _uniformSet = factory.CreateResourceSet(new ResourceSetDescription(
-            uniformResourceLayout,
+            _uniformResourceLayout,
             buffers));
     }
 
@@ -231,6 +232,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     }
 
     private bool _instancesDirty = false;
+    private ResourceLayout _transformTextureResourceLayout;
 
     public override void Draw(CommandList cl)
     {
@@ -302,6 +304,8 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         transformBuffer.Dispose();
         _transformSet.Dispose();
         _instanceVB.Dispose();
+        _uniformResourceLayout?.Dispose();
+        _transformTextureResourceLayout?.Dispose();
         if (_uniformSet != null)
             _uniformSet.Dispose();
         foreach (DeviceBuffer buffer in _uniformBuffers.Values)
