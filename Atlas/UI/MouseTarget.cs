@@ -105,7 +105,6 @@ public class MouseTarget : Component
                 curEntity = curEntity.parent;
                 _currentTargets.Add(curEntity);
             }
-            Debug.Log("Items: " + _currentTargets.Count + "top " + _currentTargets[^1]);
         }
         
     }
