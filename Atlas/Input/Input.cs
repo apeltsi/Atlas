@@ -8,8 +8,10 @@ namespace SolidCode.Atlas.Input
 {
     public static class Input
     {
-        private static List<Key> keys = new();
-        private static List<Key> downKeys = new();
+        private static List<Key> _keys = new();
+        private static List<Key> _downKeys = new();
+        private static List<MouseButton> _mouseButtons = new();
+        private static List<MouseButton> _downMouseButtons = new();
         public static string ControllerName { get; private set; } 
         public static float WheelDelta { get; internal set; }
         public static Vector2 MousePosition = Vector2.Zero;
@@ -37,8 +39,8 @@ namespace SolidCode.Atlas.Input
             {
                 
             }
-            downKeys.Clear();
-            keys.Clear();
+            _downKeys.Clear();
+            _keys.Clear();
             _axisValues.Clear();
             _buttonValues.Clear();
             ControllerName = "";
@@ -49,7 +51,7 @@ namespace SolidCode.Atlas.Input
         internal static void UpdateInputs(InputSnapshot snapshot)
         {
             Sdl2Events.ProcessEvents();
-            downKeys.Clear();
+            _downKeys.Clear();
             WheelDelta = snapshot.WheelDelta;
             for (int i = 0; i < snapshot.KeyEvents.Count; i++)
             {
@@ -57,18 +59,32 @@ namespace SolidCode.Atlas.Input
 
                 if (e.Down == true)
                 {
-                    if (!keys.Contains(e.Key))
+                    if (!_keys.Contains(e.Key))
                     {
-                        keys.Add(e.Key);
-                        downKeys.Add(e.Key);
+                        _keys.Add(e.Key);
+                        _downKeys.Add(e.Key);
                     }
                 }
                 else
                 {
-                    keys.Remove(e.Key);
+                    _keys.Remove(e.Key);
                 }
             }
             MousePosition = snapshot.MousePosition;
+            _downMouseButtons.Clear();
+            foreach (var mevent in snapshot.MouseEvents)
+            {
+                if (mevent.Down)
+                {
+                    _mouseButtons.Add(mevent.MouseButton);
+                    _downMouseButtons.Add(mevent.MouseButton);
+                }
+                else
+                {
+                    _mouseButtons.Remove(mevent.MouseButton);
+                }
+            }
+
         }
         
         private static void HandleEvent(ref SDL_Event ev)
@@ -126,13 +142,25 @@ namespace SolidCode.Atlas.Input
 
         public static bool GetKey(Key key)
         {
-            return keys.Contains(key);
+            return _keys.Contains(key);
         }
 
         public static bool GetKeyDown(Key key)
         {
-            return downKeys.Contains(key);
+            return _downKeys.Contains(key);
         }
+
+        public static bool GetMouseButton(MouseButton button)
+        {
+            return _mouseButtons.Contains(button);
+        }
+        
+        public static bool GetMouseButtonDown(MouseButton button)
+        {
+            return _downMouseButtons.Contains(button);
+        }
+        
+        
 
         public static float GetControllerAxis(SDL_GameControllerAxis axis)
         {
