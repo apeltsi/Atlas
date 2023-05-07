@@ -14,9 +14,6 @@
         public Entity parent { get; protected set; }
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();
-        private ConcurrentQueue<Entity> _childrenToAdd = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> _childrenToRemove = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> _childrenToDestroy = new ConcurrentQueue<Entity>();
 
         private ConcurrentQueue<Component> _componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> _componentsToRemove = new ConcurrentQueue<Component>();
@@ -169,11 +166,36 @@
         /// <returns>Self</returns>
         public Entity AddChildren(params Entity[] childrenToAdd)
         {
-            foreach (Entity e in childrenToAdd)
+            lock (children)
             {
-                _childrenToAdd.Enqueue(e);
+                foreach (var e in childrenToAdd) 
+                {
+                    if (e != null)
+                    {
+                        if (e.parent != this)
+                        {
+                            lock (e.parent.children)
+                            {
+                                e.parent.children.Remove(e);
+                                e.parent = this;
+                                Transform? tr = e.GetComponent<Transform>(true);
+                                if (tr != null)
+                                {
+                                    tr.Layer = GetComponent<Transform>(true)?.Layer ?? 0;
+                                }
+                                this.children.Add(e);
+                            }
+                        }
+                        else
+                        {
+                            if (!this.children.Contains(e))
+                            {
+                                this.children.Add(e);
+                            }
+                        }
+                    }
+                }
             }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
 
@@ -183,11 +205,14 @@
         /// <returns>Self</returns>
         public Entity RemoveChildren(params Entity[] childrenToRemove)
         {
-            foreach (Entity e in childrenToRemove)
-            {
-                _childrenToRemove.Enqueue(e);
-            }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
+            lock(children)
+                foreach (Entity e in childrenToRemove)
+                {
+                    if (e != null)
+                    {
+                        children.Remove(e);
+                    }
+                }
             return this;
         }
         /// <summary>
@@ -196,65 +221,22 @@
         /// <returns>Self</returns>
         public Entity DestroyChildren(params Entity[] childrenToDestroy)
         {
-            foreach (Entity e in childrenToDestroy)
-            {
-                _childrenToDestroy.Enqueue(e);
-            }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
+            lock(children)
+                foreach (Entity e in childrenToDestroy)
+                {
+                    if (e != null)
+                    {
+                        children.Remove(e);
+                        e.parent = EntityComponentSystem.DestroyedRoot;
+                        e.Destroy();
+                    }
+                }
 
             return this;
         }
 
         void UpdateComponentsAndChildren()
         {
-            while (_childrenToAdd.Count > 0)
-            {
-                Entity? e;
-                _childrenToAdd.TryDequeue(out e);
-                if (e != null)
-                {
-                    if (e.parent != this)
-                    {
-                        e.parent.children.Remove(e);
-                        e.parent = this;
-                        Transform? tr = e.GetComponent<Transform>(true);
-                        if (tr != null)
-                        {
-                            tr.Layer = GetComponent<Transform>(true)?.Layer ?? 0;
-                        }
-                        this.children.Add(e);
-                    }
-                    else
-                    {
-                        if (!this.children.Contains(e))
-                        {
-                            this.children.Add(e);
-                        }
-                    }
-                }
-            }
-
-            while (_childrenToRemove.Count > 0)
-            {
-                Entity? e;
-                _childrenToRemove.TryDequeue(out e);
-                if (e != null)
-                {
-                    children.Remove(e);
-                }
-            }
-
-            while (_childrenToDestroy.Count > 0)
-            {
-                Entity? e;
-                _childrenToDestroy.TryDequeue(out e);
-                if (e != null)
-                {
-                    children.Remove(e);
-                    e.parent = EntityComponentSystem.DestroyedRoot;
-                    e.Destroy();
-                }
-            }
 
             while (_componentsToAdd.Count > 0)
             {
