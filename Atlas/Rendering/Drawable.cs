@@ -111,8 +111,9 @@ namespace SolidCode.Atlas.Rendering
         protected Sampler? sampler;
         protected ResourceLayout? _transformTextureResourceLayout;
         protected ResourceLayout? _uniformResourceLayout;
+        protected PrimitiveTopology _topology;
 
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
             this._shader = shaderPath;
             if (mesh != null)
@@ -123,6 +124,8 @@ namespace SolidCode.Atlas.Rendering
             {
                 Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
             }
+
+            _topology = topology;
             this.transform = t;
             this.textUniform = textUniform;
             this.uniformShaderStages = uniformShaderStages;
@@ -208,13 +211,13 @@ namespace SolidCode.Atlas.Rendering
                 comparisonKind: ComparisonKind.LessEqual);
 
             pipelineDescription.RasterizerState = new RasterizerStateDescription(
-                cullMode: FaceCullMode.Back,
+                cullMode: FaceCullMode.None,
                 fillMode: PolygonFillMode.Solid,
                 frontFace: FrontFace.Clockwise,
                 depthClipEnabled: false,
                 scissorTestEnabled: false);
 
-            pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+            pipelineDescription.PrimitiveTopology = _topology;
             pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
