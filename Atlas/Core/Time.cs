@@ -25,5 +25,10 @@ namespace SolidCode.Atlas
 
         public static double tickDeltaTime { get; internal set; }
 
+        /// <summary>
+        /// The time since the start of the application. Measured in seconds
+        /// </summary>
+        public static double trueTime => Atlas.ecsStopwatch.Elapsed.TotalSeconds;
+
     }
 }
