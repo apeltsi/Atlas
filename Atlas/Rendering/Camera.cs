@@ -26,6 +26,12 @@ namespace SolidCode.Atlas.Components
             _scale = _t.GlobalScale;
         }
 
+        public void OnDisable()
+        {
+            _position = Vector2.Zero;
+            _scale = Vector2.One;
+        }
+
         public static Matrix4x4 GetTransformMatrix()
         {
             Matrix4x4 scale = new Matrix4x4(
