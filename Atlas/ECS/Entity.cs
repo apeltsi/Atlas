@@ -11,6 +11,7 @@
         public string name;
         public bool enabled = true;
         public List<Entity> children = new List<Entity>();
+        public bool IsDestroyed { get; internal set; } = false; 
         public Entity parent { get; protected set; }
         public List<Component> components = new List<Component>();
         public List<RenderComponent> renderingComponents = new List<RenderComponent>();

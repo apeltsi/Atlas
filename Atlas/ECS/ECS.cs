@@ -146,12 +146,13 @@ namespace SolidCode.Atlas.ECS
                 {
                     List<Entity> entitiesToRemove = new List<Entity>();
                     entitiesToRemove.AddRange(e.GetAllChildrenRecursively());
-
+            
                     entitiesToRemove.Add(e);
                     e.parent.RemoveChildren(e);
                     e.children.Clear();
                     foreach (Entity entity in entitiesToRemove)
                     {
+                        entity.IsDestroyed = true;
                         entity.enabled = false;
                         entity.ForceParent(DestroyedRoot);
 
