@@ -90,7 +90,7 @@
             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(typeof(T), typeof(LimitInstanceCountAttribute));
             if (attr != null)
             {
-                if (EntityComponentSystem.InstanceCount.GetValueOrDefault(typeof(T), 0) >= attr.count)
+                if (EntityComponentSystem.InstanceCount.GetValueOrDefault(typeof(T), 0) >= attr.Count)
                 {
                     Debug.Error(LogCategory.ECS, "Maximum instance count of component \"" + typeof(T).ToString() + "\"");
                     return null!; // FIXME(amos): It might be a bit harsh to return a null reference, although it could also be argued that it is up to the developer to check for null references when adding components with an instance limit

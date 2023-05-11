@@ -1,6 +1,7 @@
 namespace SolidCode.Atlas.ECS
 {
-    /// <summary>Limits the allowed instance count of a component to 1. 
+    /// <summary>
+    /// Limits the allowed instance count of a component to 1. 
     /// The component cannot be added if a Entity if another instance of the component already exists in the ECS.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
@@ -8,7 +9,7 @@ namespace SolidCode.Atlas.ECS
     {
         public SingleInstanceAttribute()
         {
-            this.count = 1;
+            this.Count = 1;
         }
     }
     /// <summary>
@@ -18,27 +19,26 @@ namespace SolidCode.Atlas.ECS
     [AttributeUsage(AttributeTargets.Class)]
     public class LimitInstanceCountAttribute : Attribute
     {
-        public int count { get; protected set; }
+        public int Count { get; protected set; }
         public LimitInstanceCountAttribute(int count)
         {
-            this.count = count;
+            this.Count = count;
         }
         public LimitInstanceCountAttribute()
         {
-            this.count = 1;
+            this.Count = 1;
         }
     }
     /// <summary>
     /// Specifies what thread the entity's tick method will be called on
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class TickThreadAttribute : Attribute
+    public class ECSThreadAttribute : Attribute
     {
-        // TODO: This function
-        public string name { get; protected set; }
-        public TickThreadAttribute(string name)
+        public string Name { get; protected set; }
+        public ECSThreadAttribute(string name)
         {
-            this.name = name;
+            this.Name = name;
         }
     }
 
