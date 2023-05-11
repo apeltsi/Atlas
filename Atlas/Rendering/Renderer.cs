@@ -443,6 +443,7 @@ public static class Renderer
                     drawable.Dispose();
                 }
             }
+            FontSet.DisposeAll();
 
             _downSampledTextureView?.Target.Dispose();
             _downSampledTextureView?.Dispose();

@@ -356,7 +356,6 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
 
-            Renderer.Dispose();
         }
 
         public static void MoveToFront()
