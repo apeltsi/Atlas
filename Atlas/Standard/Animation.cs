@@ -3,6 +3,7 @@ using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Telescope;
+using SolidCode.Atlas.UI;
 using static SolidCode.Atlas.Animation.Animation;
 
 namespace SolidCode.Atlas.Animation
@@ -193,6 +194,11 @@ namespace SolidCode.Atlas.Animation
                     else if (typeof(T) == typeof(Vector4))
                     {
                         this.value.Value = (T)(object)AMath.Lerp((Vector4)(object)start, (Vector4)(object)end, t);
+                    }
+                    else if (typeof(T) == typeof(RelativeVector))
+                    {
+                        this.value.Value = (T)(object)AMath.Lerp((RelativeVector)(object)start,
+                            (RelativeVector)(object)end, t);
                     }
                     if (age > duration)
                     {

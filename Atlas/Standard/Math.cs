@@ -1,4 +1,5 @@
 using System.Numerics;
+using SolidCode.Atlas.UI;
 
 namespace SolidCode.Atlas.Mathematics
 {
@@ -30,6 +31,10 @@ namespace SolidCode.Atlas.Mathematics
         public static Vector4 Lerp(Vector4 a, Vector4 b, float t)
         {
             return Vector4.Lerp(a, b, t);
+        }
+        public static RelativeVector Lerp(RelativeVector a, RelativeVector b, float t)
+        {
+            return new RelativeVector(AMath.Lerp(a.X, b.X, t), b.XRelative, AMath.Lerp(a.Y, b.Y, t), b.YRelative);
         }
 
         public static int RoundToInt(float value)
