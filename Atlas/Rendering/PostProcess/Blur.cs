@@ -11,6 +11,7 @@ public class BlurEffect : PostProcessEffect
     List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();
     List<TextureView> _textureViews = new List<TextureView>();
     List<Framebuffer> _frameBuffers = new List<Framebuffer>();
+    private readonly bool _bypass = false;
     private float _quality = 1f;
     private float _intensity = 0.5f;
     /// <summary>
@@ -40,9 +41,10 @@ public class BlurEffect : PostProcessEffect
         
     }
 
-    public BlurEffect(float intensity = 1f)
+    public BlurEffect(float intensity = 1f, bool bypass = false)
     {
         _intensity = intensity;
+        _bypass = bypass;
     }
 
     public override TextureView CreateResources(TextureView textureView)
@@ -97,7 +99,18 @@ public class BlurEffect : PostProcessEffect
             _passes.Add(kawasePass);
         }
 #endregion
-        return _textureViews[^1];
+
+        if (_bypass)
+            return textureView;
+        else
+            return _textureViews[^1];
+    }
+
+    public Veldrid.Texture? GetTexture()
+    {
+        if(_textureViews.Count > 0 && !_textureViews[^1].IsDisposed)
+            return _textureViews[^1].Target;
+        return null;
     }
         
     public override void Draw(CommandList cl)
@@ -111,6 +124,8 @@ public class BlurEffect : PostProcessEffect
         {
             pass.Draw(cl);
         }
+        if(_bypass)
+            cl.SetFramebuffer(Renderer.PrimaryFramebuffer);
     }
 
     public override void Dispose()

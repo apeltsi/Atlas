@@ -18,6 +18,13 @@ namespace SolidCode.Atlas.Rendering
             texture = null;
         }
 
+        public Texture(Veldrid.Texture texture)
+        {
+            path = "";
+            name = "";
+            this.texture = texture;
+        }
+
         public void LoadFromDisk(string absolutePath)
         {
             try
