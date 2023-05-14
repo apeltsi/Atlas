@@ -304,6 +304,8 @@ namespace SolidCode.Atlas.ECS
                     e.Destroy();
                 }
             }
+            // Force an update (so that OnRemove & OnDisable are called)
+            UpdateECS();
             _tickTasks.Clear();
             _tickMethods.Clear();
             _updateMethods.Clear();
