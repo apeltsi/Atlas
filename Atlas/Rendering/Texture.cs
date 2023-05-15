@@ -11,6 +11,7 @@ namespace SolidCode.Atlas.Rendering
         public string Name { get; protected set; }
 
         public Veldrid.Texture? TextureData;
+        private bool _autoDispose = true;
         public Texture()
         {
             Path = "";
@@ -18,11 +19,12 @@ namespace SolidCode.Atlas.Rendering
             TextureData = null;
         }
 
-        public Texture(Veldrid.Texture textureData)
+        public Texture(Veldrid.Texture textureData, bool autoDispose = true)
         {
             Path = "";
             Name = "";
             this.TextureData = textureData;
+            _autoDispose = autoDispose;
         }
 
         public void LoadFromDisk(string absolutePath)
@@ -73,10 +75,13 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            if (TextureData != null)
+            if (TextureData != null && _autoDispose)
             {
                 this.TextureData.Dispose();
                 this.IsValid = false;
+            } else if (!_autoDispose)
+            {
+                SolidCode.Atlas.Debug.Log("Skipping dispose! :)");
             }
 
         }

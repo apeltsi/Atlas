@@ -106,12 +106,15 @@ public class BlurEffect : PostProcessEffect
             return _textureViews[^1];
     }
 
-    public Veldrid.Texture? GetTexture()
+    public Veldrid.Texture? Texture
     {
-        if(_textureViews.Count > 0 && !_textureViews[^1].IsDisposed)
-            return _textureViews[^1].Target;
-        return null;
-    }
+        get{
+            if(_textureViews.Count > 0 && !_textureViews[^1].IsDisposed)
+                return _textureViews[^1].Target;
+            return null;
+        }
+    } 
+    
         
     public override void Draw(CommandList cl)
     {
