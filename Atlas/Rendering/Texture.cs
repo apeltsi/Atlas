@@ -79,11 +79,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 this.TextureData.Dispose();
                 this.IsValid = false;
-            } else if (!_autoDispose)
-            {
-                SolidCode.Atlas.Debug.Log("Skipping dispose! :)");
             }
-
         }
     }
 }
