@@ -19,7 +19,6 @@ namespace SolidCode.Atlas.ECS
         public static readonly Entity DestroyedRoot = new Entity("DESTROYED_ROOT", false);
 
 
-        public static Window? window;
         private static ConcurrentQueue<Entity> _removeQueue = new ();
         private static ConcurrentQueue<Entity> _addQueue = new ();
 
@@ -130,9 +129,9 @@ namespace SolidCode.Atlas.ECS
             {
                 foreach (Component c in _startMethods)
                 {
-                    c.enabled = true; // This is done so that OnEnable() is called
+                    c.Enabled = true; // This is done so that OnEnable() is called
                     c.TryInvokeMethod("Start");
-                    c.isNew = false;
+                    c.IsNew = false;
                 }
                 _startMethods.Clear();
 
@@ -148,19 +147,19 @@ namespace SolidCode.Atlas.ECS
                     entitiesToRemove.AddRange(e.GetAllChildrenRecursively());
             
                     entitiesToRemove.Add(e);
-                    e.parent.RemoveChildren(e);
-                    e.children.Clear();
+                    e.Parent.RemoveChildren(e);
+                    e.Children.Clear();
                     foreach (Entity entity in entitiesToRemove)
                     {
                         entity.IsDestroyed = true;
-                        entity.enabled = false;
+                        entity.Enabled = false;
                         entity.ForceParent(DestroyedRoot);
 
-                        for (int i = 0; i < entity.components.Count; i++)
+                        for (int i = 0; i < entity.Components.Count; i++)
                         {
-                            Component c = entity.components[i];
-                            c.enabled = false;
-                            c.entity = null;
+                            Component c = entity.Components[i];
+                            c.Enabled = false;
+                            c.Entity = null;
                             c.TryInvokeMethod("OnRemove");
                             c.UnregisterMethods();
                             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
@@ -172,7 +171,7 @@ namespace SolidCode.Atlas.ECS
                                 // We have to remove the component from the instance count limit
                             }
                         }
-                        entity.components.Clear();
+                        entity.Components.Clear();
 
                     }
                 }
@@ -211,7 +210,7 @@ namespace SolidCode.Atlas.ECS
             {
                 foreach (KeyValuePair<Component, Action> pair in _updateMethods)
                 {
-                    if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
+                    if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled || pair.Key.IsNew) continue;
                     try
                     {
                         pair.Value.Invoke();
@@ -256,12 +255,12 @@ namespace SolidCode.Atlas.ECS
                     }
                 foreach (KeyValuePair<Component, Action> pair in _tickMethods)
                 {
-                    if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
-                    if (pair.Key.isNew)
+                    if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled) continue;
+                    if (pair.Key.IsNew)
                     {
-                        pair.Key.enabled = true; // This is done so that OnEnable() is called
+                        pair.Key.Enabled = true; // This is done so that OnEnable() is called
                         pair.Key.TryInvokeMethod("Start");
-                        pair.Key.isNew = false;
+                        pair.Key.IsNew = false;
                     }
                     try
                     {
@@ -297,7 +296,7 @@ namespace SolidCode.Atlas.ECS
 
         public static void Dispose()
         {
-            foreach (Entity e in RootEntity.children)
+            foreach (Entity e in RootEntity.Children)
             {
                 if (e != null)
                 {
@@ -333,25 +332,25 @@ namespace SolidCode.Atlas.ECS
                 return ElementFromEntity("NULL ENTITY", new Component[0], new ECSElement[0]);
             }
             List<ECSElement> children = new List<ECSElement>();
-            for (int i = 0; i < e.children.Count; i++)
+            for (int i = 0; i < e.Children.Count; i++)
             {
-                children.Add(GetEntityECSElement(e.children[i]));
+                children.Add(GetEntityECSElement(e.Children[i]));
             }
             List<Component> components = new List<Component>();
-            for (int i = 0; i < e.components.Count; i++)
+            for (int i = 0; i < e.Components.Count; i++)
             {
-                components.Add(e.components[i]);
+                components.Add(e.Components[i]);
             }
-            return ElementFromEntity(e.name, components.ToArray(), children.ToArray());
+            return ElementFromEntity(e.Name, components.ToArray(), children.ToArray());
         }
 
         static void PrintEntity(Entity e, int layer)
         {
-            int children = e.children.Count;
-            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.name + " - (" + children + " children)");
+            int children = e.Children.Count;
+            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.Name + " - (" + children + " children)");
             for (int i = 0; i < children; i++)
             {
-                PrintEntity(e.children[i], layer + 1);
+                PrintEntity(e.Children[i], layer + 1);
             }
         }
 

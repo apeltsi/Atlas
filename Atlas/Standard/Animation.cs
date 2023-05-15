@@ -118,50 +118,39 @@ namespace SolidCode.Atlas.Animation
 
         public class TweenReference
         {
-            private ITween tween;
-            public float time
-            {
-                get
-                {
-                    return tween.age;
-                }
-            }
-            public bool isPlaying
-            {
-                get
-                {
-                    return Animation.tweens.Contains(tween);
-                }
-            }
+            private ITween _tween;
+            public float Time => _tween.age;
+            public bool IsPlaying => Animation.tweens.Contains(_tween);
+
             public TweenReference(ITween tween)
             {
-                this.tween = tween;
+                this._tween = tween;
             }
 
             public void Stop()
             {
-                Animation.tweens.Remove(tween);
+                Animation.tweens.Remove(_tween);
             }
         }
 
         class Tween<T> : ITween
         {
-            ValueRef<T> value;
-            T end;
-            T start;
-            float duration;
+            ValueRef<T> _value;
+            T _end;
+            T _start;
+            float _duration;
             public float age { get; protected set; }
-            Action onDone;
-            Func<float, float> timingFunction;
+            Action _onDone;
+            Func<float, float> _timingFunction;
 
             public Tween(ValueRef<T> value, T end, float duration, Action onDone, Func<float, float> timingFunction)
             {
-                this.start = value.Value;
-                this.value = value;
-                this.duration = duration;
-                this.end = end;
-                this.onDone = onDone;
-                this.timingFunction = timingFunction;
+                this._start = value.Value;
+                this._value = value;
+                this._duration = duration;
+                this._end = end;
+                this._onDone = onDone;
+                this._timingFunction = timingFunction;
             }
 
             public bool Tick(float diff)
@@ -169,51 +158,51 @@ namespace SolidCode.Atlas.Animation
                 try
                 {
                     age += diff;
-                    float t = timingFunction(Math.Clamp(age / duration, 0, 1));
+                    float t = _timingFunction(Math.Clamp(age / _duration, 0, 1));
                     // Im really sorry for what im about to do...
                     if (typeof(T) == typeof(float))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((float)(object)start, (float)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((float)(object)_start, (float)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(int))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((int)(object)start, (int)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((int)(object)_start, (int)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(double))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((double)(object)start, (double)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((double)(object)_start, (double)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(Vector2))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((Vector2)(object)start, (Vector2)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((Vector2)(object)_start, (Vector2)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(Vector3))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((Vector3)(object)start, (Vector3)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((Vector3)(object)_start, (Vector3)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(Vector4))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((Vector4)(object)start, (Vector4)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((Vector4)(object)_start, (Vector4)(object)_end, t);
                     }
                     else if (typeof(T) == typeof(RelativeVector))
                     {
-                        this.value.Value = (T)(object)AMath.Lerp((RelativeVector)(object)start,
-                            (RelativeVector)(object)end, t);
+                        this._value.Value = (T)(object)AMath.Lerp((RelativeVector)(object)_start,
+                            (RelativeVector)(object)_end, t);
                     }
-                    if (age > duration)
+                    if (age > _duration)
                     {
-                        this.value.Value = end;
-                        onDone.Invoke();
+                        this._value.Value = _end;
+                        _onDone.Invoke();
                         return false;
                     }
                     return true;
                 }
                 catch (Exception e)
                 {
-                    if (age > duration)
+                    if (age > _duration)
                     {
-                        this.value.Value = end;
-                        onDone.Invoke();
+                        this._value.Value = _end;
+                        _onDone.Invoke();
                         return false;
                     }
                     return true;

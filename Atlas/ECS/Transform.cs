@@ -65,14 +65,14 @@ namespace SolidCode.Atlas.ECS
         {
             get
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     return Vector2.Zero;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
@@ -83,15 +83,15 @@ namespace SolidCode.Atlas.ECS
             }
             set
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     Position = value;
                     return;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global position and add it to ours
@@ -111,14 +111,14 @@ namespace SolidCode.Atlas.ECS
 
             get
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     return Vector2.One;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global scale and multiply it by ours
@@ -136,14 +136,14 @@ namespace SolidCode.Atlas.ECS
         {
             get
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     return 0;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
@@ -154,15 +154,15 @@ namespace SolidCode.Atlas.ECS
             }
             set
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     Rotation = value;
                     return;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global rotation and add it to ours
@@ -182,14 +182,14 @@ namespace SolidCode.Atlas.ECS
         {
             get
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     return 0f;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours
@@ -200,15 +200,15 @@ namespace SolidCode.Atlas.ECS
             }
             set
             {
-                if (entity == null)
+                if (Entity == null)
                 {
                     Z = value;
                     return;
                 }
-                if (entity.parent != null)
+                if (Entity.Parent != null)
                 {
                     // We have a parent! Lets check if it has a transform
-                    Transform? t = entity.parent.GetComponent<Transform>(true);
+                    Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
                         // We have a parent with a transform. Lets get its global z and add it to ours

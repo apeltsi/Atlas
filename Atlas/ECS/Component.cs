@@ -5,9 +5,9 @@ namespace SolidCode.Atlas.ECS
 {
     public abstract class Component
     {
-        internal bool isNew = true;
+        internal bool IsNew = true;
         private bool _enabled = false;
-        public bool enabled
+        public bool Enabled
         {
             get
             {
@@ -41,7 +41,7 @@ namespace SolidCode.Atlas.ECS
         }
 
         [HideInInspector]
-        public Entity? entity;
+        public Entity? Entity;
 
         protected Component()
         {

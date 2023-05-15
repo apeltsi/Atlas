@@ -202,7 +202,7 @@ namespace SolidCode.Atlas.Rendering
         public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
         {
             int c = this.virtualMesh.Vertices.Length;
-            this.virtualMesh.AddIndicies(new ushort[6] { (ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 1), (ushort)(c + 3) });
+            this.virtualMesh.AddIndices(new ushort[6] { (ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 1), (ushort)(c + 3) });
             this.virtualMesh.AddVertices(new VertexPositionColorTexture[4] { topLeft, topRight, bottomLeft, bottomRight });
             this.texture = (Veldrid.Texture)texture;
             buffersDirty = true;
@@ -210,7 +210,7 @@ namespace SolidCode.Atlas.Rendering
 
         public void ClearAllQuads()
         {
-            this.virtualMesh.ClearIndicies();
+            this.virtualMesh.ClearIndices();
             this.virtualMesh.ClearVertices();
             buffersDirty = true;
         }
@@ -220,7 +220,7 @@ namespace SolidCode.Atlas.Rendering
             Shader shader = AssetManagement.AssetManager.GetAsset<Shader>("text");
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
             colorBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextUniform>(), BufferUsage.UniformBuffer));
 
@@ -228,7 +228,7 @@ namespace SolidCode.Atlas.Rendering
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4(), HorizontalOffset)); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
             _graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
             // Next lets load textures to the gpu
@@ -239,7 +239,7 @@ namespace SolidCode.Atlas.Rendering
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
             
-            _shaders = shader.shaders;
+            _shaders = shader.Shaders;
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
@@ -351,7 +351,7 @@ namespace SolidCode.Atlas.Rendering
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.DrawIndexed(
-                indexCount: (uint)_mesh.Indicies.Length,
+                indexCount: (uint)_mesh.Indices.Length,
                 instanceCount: 1,
                 indexStart: 0,
                 vertexOffset: 0,

@@ -7,11 +7,11 @@ namespace SolidCode.Atlas.Rendering
 {
     public class Shader : Asset
     {
-        public Veldrid.Shader[] shaders { get; protected set; }
+        public Veldrid.Shader[] Shaders { get; protected set; }
 
         public Shader()
         {
-            this.shaders = new Veldrid.Shader[0];
+            this.Shaders = new Veldrid.Shader[0];
         }
 
 
@@ -41,7 +41,7 @@ namespace SolidCode.Atlas.Rendering
                 isSPIRV ? "pixel" : "main");
             try
             {
-                shaders = Renderer.GraphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
+                Shaders = Renderer.GraphicsDevice.ResourceFactory.CreateFromSpirv(vertexShaderDesc, fragmentShaderDesc);
                 this.IsValid = true;
             }
             catch (Exception ex)
@@ -81,9 +81,9 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            for (int i = 0; i < shaders.Length; i++)
+            for (int i = 0; i < Shaders.Length; i++)
             {
-                shaders[i].Dispose();
+                Shaders[i].Dispose();
             }
         }
     }

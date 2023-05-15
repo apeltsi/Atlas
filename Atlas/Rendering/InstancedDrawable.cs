@@ -82,7 +82,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(),
                 BufferUsage.VertexBuffer));
         indexBuffer =
-            factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort),
+            factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort),
                 BufferUsage.IndexBuffer));
         transformBuffer =
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(),
@@ -96,20 +96,20 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
 
         _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-        _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+        _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
         _graphicsDevice.UpdateBuffer(transformBuffer, 0,
             new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
         // Next lets load textures to the gpu
         foreach (Texture texture in _textureAssets)
         {
-            _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
+            _textures.Add(texture.Name, factory.CreateTextureView(texture.TextureData));
         }
 
 
         VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
 
-        _shaders = shader.shaders;
+        _shaders = shader.Shaders;
 
         GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
         pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
@@ -124,7 +124,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         foreach (Texture texture in _textureAssets)
         {
             elementDescriptions[i] =
-                new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+                new ResourceLayoutElementDescription(texture.Name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
             i++;
             i++;
         }
@@ -212,15 +212,15 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
                     BufferUsage.VertexBuffer));
         }
 
-        if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
+        if (indexBuffer.SizeInBytes != (uint)_mesh.Indices.Length * sizeof(ushort))
         {
             indexBuffer.Dispose();
             indexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(
-                new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+                new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
         }
 
         Renderer.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-        Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+        Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
     }
 
 
@@ -255,7 +255,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         cl.SetGraphicsResourceSet(0, _transformSet);
         cl.SetGraphicsResourceSet(1, _uniformSet);
         cl.DrawIndexed(
-            indexCount: (uint)_mesh.Indicies.Length,
+            indexCount: (uint)_mesh.Indices.Length,
             instanceCount: _instanceCount,
             indexStart: 0,
             vertexOffset: 0,

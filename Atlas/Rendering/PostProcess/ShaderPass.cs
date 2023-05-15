@@ -79,11 +79,11 @@ public class ShaderPass<TUniform> : ShaderPass
 
         // Initialize buffers
         _vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf(new VertexPositionUV()), BufferUsage.VertexBuffer));
-        _indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+        _indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
         // Update the buffers to their initial (and final in this case) values
         graphicsDevice.UpdateBuffer(_vertexBuffer, 0, _mesh.Vertices);
-        graphicsDevice.UpdateBuffer(_indexBuffer, 0, _mesh.Indicies);
+        graphicsDevice.UpdateBuffer(_indexBuffer, 0, _mesh.Indices);
 
 
         // Lets generate the pipeline description
@@ -134,7 +134,7 @@ public class ShaderPass<TUniform> : ShaderPass
             
         pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { _mesh.VertexLayout },
-                shaders: shader.shaders);
+                shaders: shader.Shaders);
         if (_uniformResourceLayout != null)
         {
             pipelineDescription.ResourceLayouts = new[] { _primaryResourceLayout, _uniformResourceLayout };
@@ -189,7 +189,7 @@ public class ShaderPass<TUniform> : ShaderPass
             cl.SetGraphicsResourceSet(1, _uniformResourceSet);
         }
         cl.DrawIndexed(
-            indexCount: (uint)_mesh.Indicies.Length,
+            indexCount: (uint)_mesh.Indices.Length,
             instanceCount: 1,
             indexStart: 0,
             vertexOffset: 0,

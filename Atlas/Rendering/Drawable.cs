@@ -158,7 +158,7 @@ namespace SolidCode.Atlas.Rendering
             }
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
 
             // Uniform
@@ -168,19 +168,19 @@ namespace SolidCode.Atlas.Rendering
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
             // Next lets load textures to the gpu
             foreach (Texture texture in _textureAssets)
             {
-                _textures.Add(texture.name, factory.CreateTextureView(texture.texture));
+                _textures.Add(texture.Name, factory.CreateTextureView(texture.TextureData));
             }
 
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
 
-            _shaders = shader.shaders;
+            _shaders = shader.Shaders;
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
@@ -191,7 +191,7 @@ namespace SolidCode.Atlas.Rendering
 
             foreach (Texture texture in _textureAssets)
             {
-                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
+                elementDescriptions[i] = new ResourceLayoutElementDescription(texture.Name, ResourceKind.TextureReadOnly, ShaderStages.Fragment);
                 i++;
             }
             elementDescriptions[^1] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
@@ -260,13 +260,13 @@ namespace SolidCode.Atlas.Rendering
                 vertexBuffer.Dispose();
                 vertexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             }
-            if (indexBuffer.SizeInBytes != (uint)_mesh.Indicies.Length * sizeof(ushort))
+            if (indexBuffer.SizeInBytes != (uint)_mesh.Indices.Length * sizeof(ushort))
             {
                 indexBuffer.Dispose();
-                indexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+                indexBuffer = Renderer.GraphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             }
             Renderer.GraphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            Renderer.GraphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
         }
 
 
@@ -285,7 +285,7 @@ namespace SolidCode.Atlas.Rendering
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.SetGraphicsResourceSet(1, _uniformSet);
             cl.DrawIndexed(
-                indexCount: (uint)_mesh.Indicies.Length,
+                indexCount: (uint)_mesh.Indices.Length,
                 instanceCount: 1,
                 indexStart: 0,
                 vertexOffset: 0,

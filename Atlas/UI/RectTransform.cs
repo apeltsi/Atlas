@@ -13,7 +13,7 @@ public class RectTransform : Transform
         set
         {
             _position = value;
-            RectTransform rt = entity?.parent.GetComponent<RectTransform>()!;
+            RectTransform rt = Entity?.Parent.GetComponent<RectTransform>()!;
             if (rt != null)
             {
                 _position.Position.Parent = rt.Position.Position;
@@ -29,7 +29,7 @@ public class RectTransform : Transform
         set
         {
             _scale = value;
-            _scale.Parent = entity?.parent.GetComponent<RectTransform>()?.Scale;
+            _scale.Parent = Entity?.Parent.GetComponent<RectTransform>()?.Scale;
         }
     }
 

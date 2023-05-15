@@ -9,7 +9,7 @@ public abstract class RigidBody : Component
     private PhysicsObject? _physicsObject;
     public void OnEnable()
     {
-        _physicsObject = new PhysicsObject(false, Shape, entity.GetComponent<Transform>());
+        _physicsObject = new PhysicsObject(false, Shape, Entity.GetComponent<Transform>());
     }
 
     

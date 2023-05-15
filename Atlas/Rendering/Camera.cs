@@ -13,7 +13,7 @@ namespace SolidCode.Atlas.Components
 
         public void Start()
         {
-            _t = entity?.GetComponent<Transform>();
+            _t = Entity?.GetComponent<Transform>();
             if (_t == null) return;
             _position = _t.GlobalPosition;
             _scale = _t.GlobalScale;

@@ -23,8 +23,8 @@ public class MouseTarget : Component
         }
     }
 
-    public bool IsHovered => CurrentTarget == entity;
-    public bool HoverInside => _currentTargets.Contains(entity);
+    public bool IsHovered => CurrentTarget == Entity;
+    public bool HoverInside => _currentTargets.Contains(Entity);
     private RectTransform _transform;
     private static List<MouseTarget> _targets = new List<MouseTarget>();
 
@@ -33,7 +33,7 @@ public class MouseTarget : Component
 
     public void Start()
     {
-        _transform = entity.GetComponent<RectTransform>();
+        _transform = Entity.GetComponent<RectTransform>();
         _targets.Add(this);
     }
 
@@ -76,9 +76,9 @@ public class MouseTarget : Component
         foreach (var target in _targets)
         {
             if(target._transform.Layer > currentLayer || (target._transform.GlobalZ > currentZ && target._transform.Layer == currentLayer))
-                if (target.enabled && target.IsInside(convertedPos))
+                if (target.Enabled && target.IsInside(convertedPos))
                 {
-                    currentTarget = target.entity;
+                    currentTarget = target.Entity;
                     currentZ = target._transform.GlobalZ;
                     currentLayer = target._transform.Layer;
                 }
@@ -100,9 +100,9 @@ public class MouseTarget : Component
         {
             Entity curEntity = _currentTarget;
             _currentTargets.Add(curEntity);
-            while (curEntity != EntityComponentSystem.RootEntity && curEntity.parent != null)
+            while (curEntity != EntityComponentSystem.RootEntity && curEntity.Parent != null)
             {
-                curEntity = curEntity.parent;
+                curEntity = curEntity.Parent;
                 _currentTargets.Add(curEntity);
             }
         }

@@ -93,7 +93,6 @@ namespace SolidCode.Atlas
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + primaryStopwatch.ElapsedMilliseconds + "ms");
             _w = new Window(windowTitle, flags);
             Debug.Log(LogCategory.Framework, "Window created after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            EntityComponentSystem.window = _w;
             if (timer != null)
                 timer.Stop();
         }

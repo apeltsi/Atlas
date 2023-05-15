@@ -6,28 +6,28 @@ namespace SolidCode.Atlas.Rendering
 
     public class RenderComponent : Component
     {
-        private Drawable[] drawables;
-        public virtual Drawable[] StartRender(GraphicsDevice _graphicsDevice)
+        private Drawable[] _drawables = Array.Empty<Drawable>();
+        public virtual Drawable[] StartRender(GraphicsDevice graphicsDevice)
         {
             return new Drawable[0];
         }
 
         public void OnDisable()
         {
-            for (int i = 0; i < this.drawables.Length; i++)
+            for (int i = 0; i < this._drawables.Length; i++)
             {
-                Renderer.RemoveDrawable(this.drawables[i]);
-                this.drawables[i].Dispose();
+                Renderer.RemoveDrawable(this._drawables[i]);
+                this._drawables[i].Dispose();
             }
-            this.drawables = new Drawable[0];
+            this._drawables = new Drawable[0];
         }
 
         public void OnEnable()
         {
             try
             {
-                this.drawables = StartRender(Renderer.GraphicsDevice);
-                Renderer.AddDrawables(new List<Drawable>(this.drawables));
+                this._drawables = StartRender(Renderer.GraphicsDevice);
+                Renderer.AddDrawables(new List<Drawable>(this._drawables));
             }
             catch (Exception e)
             {

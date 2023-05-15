@@ -193,24 +193,24 @@ namespace SolidCode.Atlas.Input
     }
     
     public abstract class InputListener<T> {
-        public Keymap<T> keymap;
+        public Keymap<T> Keymap;
 
         public abstract T Evaluate();
 
         protected InputListener(Keymap<T> keymap)
         {
-            this.keymap = keymap;
+            this.Keymap = keymap;
             if (keymap.AxisContributors == null)
             {
-                this.keymap.AxisContributors = new();
+                this.Keymap.AxisContributors = new();
             }
             if (keymap.ButtonContributors == null)
             {
-                this.keymap.ButtonContributors = new();
+                this.Keymap.ButtonContributors = new();
             }
             if (keymap.KeyboardContributors == null)
             {
-                this.keymap.KeyboardContributors = new();
+                this.Keymap.KeyboardContributors = new();
             }
         }
         
@@ -218,13 +218,13 @@ namespace SolidCode.Atlas.Input
             Dictionary<Key, bool> keys = new();
             Dictionary<SDL_GameControllerAxis, float> axes = new();
             Dictionary<SDL_GameControllerButton, bool> buttons = new();
-            foreach (var key in keymap.KeyboardContributors.Keys) {
+            foreach (var key in Keymap.KeyboardContributors.Keys) {
                 keys.Add(key, Input.GetKey(key));
             }
-            foreach (var axis in keymap.AxisContributors.Keys) {
+            foreach (var axis in Keymap.AxisContributors.Keys) {
                 axes.Add(axis, Input.GetControllerAxis(axis));
             }
-            foreach (var button in keymap.ButtonContributors.Keys) {
+            foreach (var button in Keymap.ButtonContributors.Keys) {
                 buttons.Add(button, Input.GetControllerButton(button));
             }
 
@@ -241,7 +241,7 @@ namespace SolidCode.Atlas.Input
             (var keys, var axes, var buttons) = GetContributors();
             foreach (var key in keys.Keys)
             {
-                bool value = keymap.KeyboardContributors[key];
+                bool value = Keymap.KeyboardContributors[key];
                 if (keys[key] && value)
                 {
                     return true;
@@ -249,14 +249,14 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                if (axes[axis] > 0.75f && keymap.AxisContributors[axis])
+                if (axes[axis] > 0.75f && Keymap.AxisContributors[axis])
                 {
                     return true;
                 }
             }
             foreach (var button in buttons.Keys)
             {
-                if (buttons[button] && keymap.ButtonContributors[button])
+                if (buttons[button] && Keymap.ButtonContributors[button])
                 {
                     return true;
                 }
@@ -274,7 +274,7 @@ namespace SolidCode.Atlas.Input
             float value = 0;
             foreach (var key in keys.Keys)
             {
-                float contribution = keymap.KeyboardContributors[key];
+                float contribution = Keymap.KeyboardContributors[key];
                 if (keys[key])
                 {
                     value += contribution;
@@ -282,12 +282,12 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                float contribution = keymap.AxisContributors[axis];
+                float contribution = Keymap.AxisContributors[axis];
                 value += axes[axis] * contribution;
             }
             foreach (var button in buttons.Keys)
             {
-                float contribution = keymap.ButtonContributors[button];
+                float contribution = Keymap.ButtonContributors[button];
                 if (buttons[button])
                 {
                     value += contribution;
@@ -306,7 +306,7 @@ namespace SolidCode.Atlas.Input
             Vector2 value = Vector2.Zero;
             foreach (var key in keys.Keys)
             {
-                Vector2 contribution = keymap.KeyboardContributors[key];
+                Vector2 contribution = Keymap.KeyboardContributors[key];
                 if (keys[key])
                 {
                     value += contribution;
@@ -314,12 +314,12 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                Vector2 contribution = keymap.AxisContributors[axis];
+                Vector2 contribution = Keymap.AxisContributors[axis];
                 value += axes[axis] * contribution;
             }
             foreach (var button in buttons.Keys)
             {
-                Vector2 contribution = keymap.ButtonContributors[button];
+                Vector2 contribution = Keymap.ButtonContributors[button];
                 if (buttons[button])
                 {
                     value += contribution;

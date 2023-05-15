@@ -8,23 +8,23 @@
     public class Entity
     {
 
-        public string name;
-        public bool enabled = true;
-        public List<Entity> children = new List<Entity>();
+        public string Name;
+        public bool Enabled = true;
+        public List<Entity> Children { get; private set; } = new List<Entity>();
         public bool IsDestroyed { get; internal set; } = false; 
-        public Entity parent { get; protected set; }
-        public List<Component> components = new List<Component>();
-        public List<RenderComponent> renderingComponents = new List<RenderComponent>();
+        public Entity Parent { get; protected set; }
+        public List<Component> Components { get; private set; } = new List<Component>();
+        public List<RenderComponent> RenderingComponents { get; private set; }= new List<RenderComponent>();
 
         private ConcurrentQueue<Component> _componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> _componentsToRemove = new ConcurrentQueue<Component>();
 
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
-            this.children = new List<Entity>();
-            this.components = new List<Component>();
-            this.name = name;
-            this.parent = EntityComponentSystem.RootEntity;
+            this.Children = new List<Entity>();
+            this.Components = new List<Component>();
+            this.Name = name;
+            this.Parent = EntityComponentSystem.RootEntity;
             EntityComponentSystem.RootEntity.AddChildren(this);
 
             Vector2 pos = Vector2.Zero;
@@ -43,17 +43,17 @@
         }
         public Entity(string name, bool transform)
         {
-            this.children = new List<Entity>();
-            this.components = new List<Component>();
-            this.name = name;
+            this.Children = new List<Entity>();
+            this.Components = new List<Component>();
+            this.Name = name;
             if (EntityComponentSystem.RootEntity != null && EntityComponentSystem.DestroyedRoot != null)
             {
-                this.parent = EntityComponentSystem.RootEntity;
+                this.Parent = EntityComponentSystem.RootEntity;
                 EntityComponentSystem.RootEntity.AddChildren(this);
             }
             else
             {
-                this.parent = this;
+                this.Parent = this;
             }
             if (transform)
             {
@@ -70,15 +70,15 @@
 
         public void ForceParent(Entity e)
         {
-            parent = e;
+            Parent = e;
         }
 
         public Entity? GetChildByName(string childName)
         {
-            for (int i = 0; i < this.children.Count; i++)
+            for (int i = 0; i < this.Children.Count; i++)
             {
-                Entity e = this.children[i];
-                if (e.name == childName)
+                Entity e = this.Children[i];
+                if (e.Name == childName)
                 {
                     return e;
                 }
@@ -105,7 +105,7 @@
             }
 
             Component component = new T();
-            component.entity = this;
+            component.Entity = this;
             _componentsToAdd.Enqueue(component);
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
 
@@ -129,7 +129,7 @@
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             Component[] queuedComponents = _componentsToAdd.ToArray();
-            Component[] curComponents = components.ToArray();
+            Component[] curComponents = Components.ToArray();
             foreach (Component c in curComponents)
             {
                 if (c == null)
@@ -167,31 +167,31 @@
         /// <returns>Self</returns>
         public Entity AddChildren(params Entity[] childrenToAdd)
         {
-            lock (children)
+            lock (Children)
             {
                 foreach (var e in childrenToAdd) 
                 {
                     if (e != null)
                     {
-                        if (e.parent != this)
+                        if (e.Parent != this)
                         {
-                            lock (e.parent.children)
+                            lock (e.Parent.Children)
                             {
-                                e.parent.children.Remove(e);
-                                e.parent = this;
+                                e.Parent.Children.Remove(e);
+                                e.Parent = this;
                                 Transform? tr = e.GetComponent<Transform>(true);
                                 if (tr != null)
                                 {
                                     tr.Layer = GetComponent<Transform>(true)?.Layer ?? 0;
                                 }
-                                this.children.Add(e);
+                                this.Children.Add(e);
                             }
                         }
                         else
                         {
-                            if (!this.children.Contains(e))
+                            if (!this.Children.Contains(e))
                             {
-                                this.children.Add(e);
+                                this.Children.Add(e);
                             }
                         }
                     }
@@ -206,12 +206,12 @@
         /// <returns>Self</returns>
         public Entity RemoveChildren(params Entity[] childrenToRemove)
         {
-            lock(children)
+            lock(Children)
                 foreach (Entity e in childrenToRemove)
                 {
                     if (e != null)
                     {
-                        children.Remove(e);
+                        Children.Remove(e);
                     }
                 }
             return this;
@@ -222,13 +222,13 @@
         /// <returns>Self</returns>
         public Entity DestroyChildren(params Entity[] childrenToDestroy)
         {
-            lock(children)
+            lock(Children)
                 foreach (Entity e in childrenToDestroy)
                 {
                     if (e != null)
                     {
-                        children.Remove(e);
-                        e.parent = EntityComponentSystem.DestroyedRoot;
+                        Children.Remove(e);
+                        e.Parent = EntityComponentSystem.DestroyedRoot;
                         e.Destroy();
                     }
                 }
@@ -246,15 +246,15 @@
                 _componentsToAdd.TryDequeue(out component);
                 if (component != null)
                 {
-                    component.entity = this;
+                    component.Entity = this;
                     if (EntityComponentSystem.HasStarted)
                     {
                         EntityComponentSystem.AddStartMethod(component);
                     }
-                    components.Add(component);
+                    Components.Add(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
                     {
-                        renderingComponents.Add((RenderComponent)component);
+                        RenderingComponents.Add((RenderComponent)component);
                     }
 
                 }
@@ -274,14 +274,14 @@
                         EntityComponentSystem.InstanceCount.AddOrUpdate(component.GetType(), add, update);
                         // We have to remove the component from the instance count limit
                     }
-                    component.enabled = false;
-                    component.entity = null;
+                    component.Enabled = false;
+                    component.Entity = null;
                     component.TryInvokeMethod("OnRemove");
 
-                    components.Remove(component);
+                    Components.Remove(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
                     {
-                        renderingComponents.Remove((RenderComponent)component);
+                        RenderingComponents.Remove((RenderComponent)component);
                     }
                 }
             }
@@ -294,7 +294,7 @@
         public Entity[] GetAllChildrenRecursively()
         {
             List<Entity> allchildren = new List<Entity>();
-            foreach (Entity e in children)
+            foreach (Entity e in Children)
             {
                 allchildren.Add(e);
                 allchildren.AddRange(e.GetAllChildrenRecursively());
@@ -309,7 +309,7 @@
         }
         public override string ToString()
         {
-            return this.name;
+            return this.Name;
         }
     }
 }

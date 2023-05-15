@@ -69,7 +69,7 @@ public class TextRenderer : RenderComponent
     
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, entity.GetComponent<Transform>(true));
+        textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, Entity.GetComponent<Transform>(true));
         return new Drawable[] { textDrawable };
     }
 
