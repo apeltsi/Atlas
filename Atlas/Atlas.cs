@@ -6,7 +6,6 @@ namespace SolidCode.Atlas
     using SolidCode.Atlas.Rendering;
     using SolidCode.Atlas.ECS;
     using SolidCode.Atlas.Components;
-    using SolidCode.Atlas.ECS.SceneManagement;
     using Veldrid.Sdl2;
     using SolidCode.Atlas.AssetManagement;
     using SolidCode.Atlas.Audio;
@@ -97,14 +96,13 @@ namespace SolidCode.Atlas
                 timer.Stop();
         }
 
-        public static void Start(Scene defaultScene)
+        public static void Start()
         {
 
             if (_w == null)
             {
                 throw new NullReferenceException("Window hasn't been created yet!");
             }
-            SceneManager.LoadScene(defaultScene);
             Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch?.ElapsedMilliseconds + "ms");
             try
             {
