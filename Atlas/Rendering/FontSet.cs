@@ -21,7 +21,7 @@ public class FontSet
         _sets.Add(this);
     }
 
-    public Vector2 MeasureString(int size, string text)
+    public Vector2 MeasureString(float size, string text)
     {
         return System.GetFont(size).MeasureString(text);
     }

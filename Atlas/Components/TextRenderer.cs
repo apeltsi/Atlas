@@ -10,7 +10,7 @@ public class TextRenderer : RenderComponent
 {
     private TextDrawable? textDrawable;
     private string _text = "Hello World!";
-    public int Size = 100;
+    public float Size = 100f;
     public bool Centered = true;
     private Vector4 _color = new Vector4(1f, 1f, 1f, 1f);
     private FontSet _fontSet = FontSet.GetDefault();
@@ -32,13 +32,13 @@ public class TextRenderer : RenderComponent
             {
                 return _color;
             }
-            return textDrawable.color;
+            return textDrawable.Color;
         }
         set
         {
             if (textDrawable != null)
             {
-                textDrawable.color = value;
+                textDrawable.Color = value;
             }
             else
             {

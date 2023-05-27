@@ -1,4 +1,5 @@
 
+using System.Text;
 using SolidCode.Atlas.UI;
 
 namespace SolidCode.Atlas.Rendering
@@ -16,14 +17,14 @@ namespace SolidCode.Atlas.Rendering
     public class TextDrawable : Drawable
     {
         bool dirty = false;
-        string text;
-        int size;
+        string _text;
+        float _size;
         FontSet _fontSet;
-        FontRenderer renderer;
-        Matrix4x4 lastMatrix;
-        bool centered = true;
+        FontRenderer _renderer;
+        Matrix4x4 _lastMatrix;
+        bool _centered = true;
         private Vector4 _color;
-        public Vector4 color
+        public Vector4 Color
         {
             get
             {
@@ -32,54 +33,53 @@ namespace SolidCode.Atlas.Rendering
             set
             {
                 _color = value;
-                if (renderer != null)
+                if (_renderer != null)
                 {
-                    renderer.Color = value;
-                    renderer.UpdateColor(value);
+                    _renderer.Color = value;
+                    _renderer.UpdateColor(value);
                 }
             }
         }
-        public TextDrawable(string text, FontSet fonts, Vector4 Color, bool centered, int size, Transform transform)
+        public TextDrawable(string text, FontSet fonts, Vector4 color, bool centered, float size, Transform transform)
         {
-            this.text = text;
+            this._text = text;
             this.transform = transform;
             this._fontSet = fonts;
-            this.size = size;
-            this.centered = centered;
-            this.color = Color;
+            this._size = size;
+            this._centered = centered;
+            this.Color = color;
             CreateResources(Renderer.GraphicsDevice);
         }
 
-        public void UpdateText(string text, int size)
+        public void UpdateText(string text, float size)
         {
-            if (text == this.text && size == this.size)
+            if (text == this._text && size == this._size)
                 return; // Lets not waste our precious time updating text that is already up to date
-            renderer.ClearAllQuads();
-            this.size = size;
-            this.text = text;
+            _renderer.ClearAllQuads();
+            this._size = size;
+            this._text = text;
             dirty = true;
         }
 
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-            renderer = new FontRenderer(Renderer.GraphicsDevice, this.color, transform, new TextUniform(),  ShaderStages.Vertex | ShaderStages.Fragment, this._fontSet.TextureManager);
-            if (centered)
-                renderer.SetHorizontalOffset(this._fontSet.System.GetFont(size).MeasureString(text).X / 2f);
-            this._fontSet.System.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
-
+            _renderer = new FontRenderer(Renderer.GraphicsDevice, this.Color, transform, new TextUniform(),  ShaderStages.Vertex | ShaderStages.Fragment, this._fontSet.TextureManager);
+            if (_centered)
+                _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+            this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White, new Vector2(_size,_size));
         }
         
         public override void Draw(CommandList cl)
         {
             if (dirty)
             {
-                if (centered)
-                    renderer.SetHorizontalOffset(this._fontSet.System.GetFont(size).MeasureString(text).X / 2f);
-                this._fontSet.System.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
-                SetGlobalMatrix(Renderer.GraphicsDevice, lastMatrix);
+                if (_centered)
+                    _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+                this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White);
+                SetGlobalMatrix(Renderer.GraphicsDevice, _lastMatrix);
                 dirty = false;
             }
-            renderer.Draw(cl);
+            _renderer.Draw(cl);
         }
 
         public void UpdateFontSet(FontSet set)
@@ -91,13 +91,13 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            this.renderer.Dispose();
+            this._renderer.Dispose();
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            renderer.SetGlobalMatrix(_graphicsDevice, matrix);
-            lastMatrix = matrix;
+            _renderer.SetGlobalMatrix(_graphicsDevice, matrix);
+            _lastMatrix = matrix;
         }
 
 
@@ -260,7 +260,7 @@ namespace SolidCode.Atlas.Rendering
                 comparisonKind: ComparisonKind.LessEqual);
 
             pipelineDescription.RasterizerState = new RasterizerStateDescription(
-                cullMode: FaceCullMode.Back,
+                cullMode: FaceCullMode.None,
                 fillMode: PolygonFillMode.Solid,
                 frontFace: FrontFace.Clockwise,
                 depthClipEnabled: false,

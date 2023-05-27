@@ -13,6 +13,6 @@ layout(location = 0) out vec2 fsin_UV;
 
 void main()
 {
-    gl_Position = vec4((Position.x - Offset.x) / 200.0 , (-Position.y - Offset.y) / 200.0, 0, 1) * Transform * Camera * Matrix;
+    gl_Position = vec4((Position.x - Offset.x * 100.0) / 20000.0 , (-Position.y - Offset.y) / 20000.0, 0, 1) * Transform * Camera * Matrix;
     fsin_UV = UV;
 }  

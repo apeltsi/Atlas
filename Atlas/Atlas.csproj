@@ -12,7 +12,7 @@
     <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="FontStashSharp" Version="1.1.7" />
+    <PackageReference Include="FontStashSharp" Version="1.2.8" />
     <PackageReference Include="NokitaKaze.WAVParser" Version="0.1.0" />
     <PackageReference Include="OpenTK.OpenAL" Version="5.0.0-pre.8" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
