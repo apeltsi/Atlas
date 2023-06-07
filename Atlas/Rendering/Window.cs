@@ -211,6 +211,7 @@ namespace SolidCode.Atlas.Rendering
             };
 
             _window = CreateWindow.CreateWindowWithFlags(ref windowCI, flags);
+            
             // Setup graphics device
             GraphicsDeviceOptions options = new GraphicsDeviceOptions
             {
@@ -239,6 +240,7 @@ namespace SolidCode.Atlas.Rendering
 #if DEBUG
             _window.Title = GetAdjustedWindowTitle(_title);
 #endif
+            Debug.Log("The MSAA limit is: " + Renderer.GraphicsDevice.GetSampleCountLimit(PixelFormat.R16_G16_B16_A16_Float, false));
             // We have to load our builtin shaders now
             AssetPack builtinAssets = new AssetPack("%ASSEMBLY%/atlas");
             builtinAssets.Load();

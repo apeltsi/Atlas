@@ -134,8 +134,13 @@ public static class Renderer
         }
 
         CommandList.InsertDebugMarker("Begin Post-Process");
-        if (DoPostProcess)
+        if (DoPostProcess && PostProcessEffects.Count > 0)
         {
+            // we have to resolve the ms texture down to a normal texture for our pp passes
+            if (SampleCount != TextureSampleCount.Count1)
+            {
+                CommandList.ResolveTexture(_mainColorTexture, _downSampledTextureView.Target);
+            }
             foreach (var effect in PostProcessEffects)
             {
                 effect.Draw(CommandList);
@@ -159,7 +164,7 @@ public static class Renderer
         // If we're using multi-sampling we need to resolve the texture first
         if (SampleCount != TextureSampleCount.Count1)
         {
-            CommandList.ResolveTexture(_finalTextureView.Target, _downSampledTextureView.Target);
+            CommandList.ResolveTexture(_mainColorView.Target, _downSampledTextureView.Target);
         }
 
         _resolvePass.Draw(CommandList);
@@ -340,8 +345,29 @@ public static class Renderer
 
             TextureView previousView = _mainColorView;
 
-            if (DoPostProcess)
+            if (SampleCount != TextureSampleCount.Count1)
             {
+                TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
+                    GraphicsDevice.SwapchainFramebuffer.Width,
+                    GraphicsDevice.SwapchainFramebuffer.Height,
+                    1,
+                    1,
+                    PixelFormat.R16_G16_B16_A16_Float,
+                    TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
+                Veldrid.Texture tex = factory.CreateTexture(downSampledTextureDescription);
+                tex.Name = "Downsampled Texture";
+                _downSampledTextureView =
+                    factory.CreateTextureView(tex);
+                _downSampledTextureView.Name = "Downsampled Texture View";
+            }
+            
+            if (DoPostProcess && PostProcessEffects.Count > 0)
+            {
+                if (_downSampledTextureView != null)
+                {
+                    // If we're using multisampling, we need to use the downsampled texture instead
+                    previousView = _downSampledTextureView;
+                }
                 foreach (var effect in PostProcessEffects)
                 {
                     effect.Dispose();
@@ -350,20 +376,11 @@ public static class Renderer
             }
 
             _finalTextureView = previousView;
+            _finalTextureView.Name += " - Final Texture View";
             _resolvePass = new ShaderPass<EmptyStruct>("resolve/shader", null);
 
-            if (SampleCount != TextureSampleCount.Count1)
+            if (_downSampledTextureView != null)
             {
-                TextureDescription downSampledTextureDescription = TextureDescription.Texture2D(
-                    GraphicsDevice.SwapchainFramebuffer.Width,
-                    GraphicsDevice.SwapchainFramebuffer.Height,
-                    1,
-                    1,
-                    GraphicsDevice.SwapchainFramebuffer.ColorTargets[0].Target.Format,
-                    TextureUsage.RenderTarget | TextureUsage.Sampled, TextureSampleCount.Count1);
-
-                _downSampledTextureView =
-                    factory.CreateTextureView(factory.CreateTexture(downSampledTextureDescription));
                 _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer,
                     new[] { _downSampledTextureView });
             }
