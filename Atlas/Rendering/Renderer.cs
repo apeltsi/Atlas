@@ -68,7 +68,6 @@ public static class Renderer
     /// </summary>
     public static Vector2 RenderResolution => Window.Size * ResolutionScale;
 
-    public static int PostProcessLayer = 1;
 
     private static float _postResolutionScale = 1f;
 
@@ -114,7 +113,6 @@ public static class Renderer
 
 
         // The first thing we need to do is call Begin() on our CommandList. Before commands can be recorded into a CommandList, this method must be called.
-        ResourceFactory factory = GraphicsDevice.ResourceFactory;
         CommandList.Begin();
 
         // Before we can issue a Draw command, we need to set a Framebuffer.
@@ -122,37 +120,35 @@ public static class Renderer
 
         // At the beginning of every frame, we clear the screen to black. 
         CommandList.ClearColorTarget(0, Window.ClearColor);
-        int ppLayer = PostProcessLayer;
-        for (int i = 0; i < ppLayer; i++)
+        int currentLayer = 0;
+        int ppEffectIndex = 0;
+        while (true)
         {
-            if (_layers.TryGetValue(i, out var layer))
+            bool skip = true;
+            if (_layers.TryGetValue(currentLayer, out var layer))
             {
-                CommandList.InsertDebugMarker("Begin Layer " + i);
+                CommandList.InsertDebugMarker("Begin Layer " + currentLayer);
                 RenderDrawables(_windowScalingMatrix, layer);
+                skip = false;
             }
-        }
 
-        CommandList.InsertDebugMarker("Begin Post-Process");
-        if (DoPostProcess && PostProcessEffects.Count > 0)
-        {
-            // we have to resolve the ms texture down to a normal texture for our pp passes
-            foreach (var effect in PostProcessEffects)
+            if (DoPostProcess)
             {
-                effect.Draw(CommandList);
+                // lets draw every effect on this layer in order
+                CommandList.InsertDebugMarker("Post-Process (Layer " + currentLayer +  ")");
+                while (PostProcessEffects.Count > ppEffectIndex &&
+                       PostProcessEffects[ppEffectIndex].Layer == currentLayer)
+                {
+                    PostProcessEffects[ppEffectIndex].Draw(CommandList);
+                    ppEffectIndex++;
+                    skip = false;
+                }
+
             }
-        }
 
-        int curLayer = ppLayer;
-        if (!_layers.ContainsKey(curLayer))
-        {
-            curLayer++;
-        }
-
-        while (_layers.ContainsKey(curLayer))
-        {
-            CommandList.InsertDebugMarker("Begin Layer " + curLayer);
-            RenderDrawables(_windowScalingMatrix, _layers[curLayer]);
-            curLayer++;
+            currentLayer++;
+            if (skip)
+                break;
         }
 
         CommandList.InsertDebugMarker("Final Resolve shader");
@@ -359,12 +355,26 @@ public static class Renderer
     }
 
     /// <summary>
-    /// Adds a post process effect to the list of effects to be applied to the scene
+    /// Adds a post process effect to the list of effects to be applied to the scene. Note that calling order matters, as the effects are applied in the order they are added.
+    /// DO NOT add an effect with a lower layer than a previous effect!
     /// </summary>
     /// <param name="effect">The effect to be applied</param>
-    public static void AddPostProcessEffect(PostProcessEffect effect)
+    /// <param name="layer">The layer of the effect, should be larger or equal to the layer of a previous effect</param>
+
+    public static void AddPostProcessEffect(PostProcessEffect effect, uint layer = 1)
     {
+        effect.Layer = layer;
+        foreach (var e in PostProcessEffects)
+        {
+            if (e.Layer > effect.Layer)
+            {
+                Debug.Error(LogCategory.Rendering,
+                    $"Can't add Post Process Effect {effect.GetType().Name}. It has a lower layer than {e.GetType().Name}!");
+                return;
+            }
+        }
         PostProcessEffects.Add(effect);
+
         lock (_resourcesLock)
             _resourcesDirty = true;
     }
