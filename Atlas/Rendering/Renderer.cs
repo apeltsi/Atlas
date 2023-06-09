@@ -197,8 +197,8 @@ public static class Renderer
 
     public static void UpdateGetScalingMatrix(Vector2 dimensions)
     {
-        float width = dimensions.X * ScalingIndex;
-        float height = dimensions.Y * ScalingIndex;
+        float width = dimensions.X;
+        float height = dimensions.Y;
         float max = Math.Max(width, height);
         UnitScale = new Vector2(max / height, max / width);
         ScalingIndex = max / 1000f;
