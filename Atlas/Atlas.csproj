@@ -20,6 +20,12 @@
     <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
     <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
   </ItemGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <DefineConstants>Windows</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <DefineConstants>Linux</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Label="Resources"> 
       <EmbeddedResource Include="assets\atlas.assetpack" />
       <EmbeddedResource Include="assets\atlas-post.assetpack" />

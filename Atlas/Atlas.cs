@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
-
+#if Windows
+using SolidCode.Atlas.Rendering.Windows;
+#endif
 namespace SolidCode.Atlas
 {
     using System.Timers;
@@ -74,6 +76,9 @@ namespace SolidCode.Atlas
 
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
+            #if Windows
+            ForceHighPerformance.InitializeDedicatedGraphics();
+            #endif
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
