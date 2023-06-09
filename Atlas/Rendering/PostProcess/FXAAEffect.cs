@@ -23,12 +23,16 @@ public class FXAAEffect : PostProcessEffect
         public Vector2 TexelSize;
         public float ContrastThreshold;
         public float RelativeThreshold;
-
+        public int EdgeStepCount = 10;
+        public int EdgeGuess = 8;
+        public float SubpixelBlending;
+        public float Extra = 1f; // Added to get us up to a multiple of 16
         public FXAAUniform()
         {
             TexelSize = new Vector2(1f / Renderer.PostRenderResolution.X, 1f / Renderer.PostRenderResolution.Y);
             ContrastThreshold = 0.0625f;
             RelativeThreshold = 0.125f;
+            SubpixelBlending = Math.Clamp(Renderer.ScalingIndex - 1.25f, 0.1f, 1f);
         }
     }
 
