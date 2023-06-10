@@ -7,42 +7,66 @@ namespace SolidCode.Atlas.Rendering
 
     public class Texture : Asset
     {
-        public string path { get; protected set; }
-        public string name { get; protected set; }
+        public string Path { get; protected set; }
+        public string Name { get; protected set; }
 
-        public Veldrid.Texture? texture;
+        public Veldrid.Texture? TextureData;
+        private bool _autoDispose = true;
         public Texture()
         {
-            path = "";
-            name = "";
-            texture = null;
+            Path = "";
+            Name = "";
+            TextureData = null;
         }
-        public override void Load(string path, string name)
+
+        public Texture(Veldrid.Texture textureData, bool autoDispose = true)
         {
-            this.path = path + ".ktx";
-            this.name = name;
+            Path = "";
+            Name = "";
+            this.TextureData = textureData;
+            _autoDispose = autoDispose;
+        }
+
+        public void LoadFromDisk(string absolutePath)
+        {
             try
             {
-                this.texture = KtxFile.LoadTexture(Window.GraphicsDevice, Window.GraphicsDevice.ResourceFactory, Path.Join(Atlas.AssetsDirectory, this.path), PixelFormat.R8_G8_B8_A8_UNorm);
+                this.TextureData = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, absolutePath, PixelFormat.R8_G8_B8_A8_UNorm);
                 this.IsValid = true;
             }
             catch (Exception e)
             {
-                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.name + ": " + e.Message);
+                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.Name + ": " + e.Message);
+                this.IsValid = false;
+            }
+        }
+        
+        public override void Load(string path, string name)
+        {
+            this.Path = path + ".ktx";
+            this.Name = name;
+            try
+            {
+                this.TextureData = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, System.IO.Path.Join(Atlas.AssetsDirectory, this.Path), PixelFormat.R8_G8_B8_A8_UNorm);
+                this.IsValid = true;
+            }
+            catch (Exception e)
+            {
+                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.Name + ": " + e.Message);
                 this.IsValid = false;
             }
         }
         public override void FromStreams(Stream[] streams, string name)
         {
-            this.name = name;
+            this.Name = name;
             try
             {
-                this.texture = KtxFile.LoadTexture(Window.GraphicsDevice, Window.GraphicsDevice.ResourceFactory, streams[0], PixelFormat.R8_G8_B8_A8_UNorm);
+                this.TextureData = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, streams[0], PixelFormat.R8_G8_B8_A8_UNorm);
                 this.IsValid = true;
             }
             catch (Exception e)
             {
-                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.name + ": " + e.Message);
+                Debug.Error(LogCategory.Framework, "Couldn't load texture " + this.Name + ": " + e.Message);
                 Debug.Error(LogCategory.Framework, "" + e.StackTrace);
                 this.IsValid = false;
             }
@@ -51,12 +75,11 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            if (texture != null)
+            if (TextureData != null && _autoDispose)
             {
-                this.texture.Dispose();
+                this.TextureData.Dispose();
                 this.IsValid = false;
             }
-
         }
     }
 }

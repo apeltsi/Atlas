@@ -10,6 +10,7 @@ namespace SolidCode.Atlas.Rendering.PostProcess;
 public abstract class PostProcessEffect
 {
 
+    internal uint Layer = 1;
     public abstract void Draw(CommandList cl);
     public abstract void Dispose();
     public abstract TextureView CreateResources(TextureView textureView);

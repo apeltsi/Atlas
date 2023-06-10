@@ -23,7 +23,7 @@ public static class StartupAnimations
     public static Entity DefaultSplash(Action onDone)
     {
         LoadExtras();
-        Entity star = new Entity("Star", new Vector2(2f, 2.5f), new Vector2(0.5f));
+        Entity star = new Entity("Star", new Vector2(1.2f, 1.5f), new Vector2(0.5f));
         SpriteRenderer sr = star.AddComponent<SpriteRenderer>();
         sr.Sprite = AssetManager.GetAsset<Texture>("Atlas-Star");
         Transform t = star.GetComponent<Transform>();
@@ -37,7 +37,7 @@ public static class StartupAnimations
                 ps.Sprite = AssetManager.GetAsset<Texture>("Atlas-Triangle");
                 ps.Burst = true;
                 ps.InitialPosition = () => ARandom.Vector2() * 0.75f - new Vector2(0f, 0.5f);
-                ps.InitialScale = () => new Vector2(0.1f);
+                ps.InitialScale = () => new Vector2(0.2f);
                 ps.InitialRotation = () => ARandom.Value() * 3.14f;
                 ps.InitialVelocity = () => new Vector2(-(ARandom.Value() + 0.75f) * 3f, ARandom.Value() * -2f);
                 ps.InitialColor = () => new Vector4(1f, 1f, 1f, ARandom.Value());

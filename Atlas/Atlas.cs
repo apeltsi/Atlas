@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
-
+#if Windows
+using SolidCode.Atlas.Rendering.Windows;
+#endif
 namespace SolidCode.Atlas
 {
     using System.Timers;
     using SolidCode.Atlas.Rendering;
     using SolidCode.Atlas.ECS;
     using SolidCode.Atlas.Components;
-    using SolidCode.Atlas.ECS.SceneManagement;
     using Veldrid.Sdl2;
     using SolidCode.Atlas.AssetManagement;
     using SolidCode.Atlas.Audio;
@@ -34,8 +35,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public static string AppName = "Atlas";
-        public const string Version = "marble-soda@2.1";
+        public const string Version = "iced-coffee@1.0-pre.1";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
@@ -76,7 +76,9 @@ namespace SolidCode.Atlas
 
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
-            AppName = windowTitle;
+            #if Windows
+            ForceHighPerformance.InitializeDedicatedGraphics();
+            #endif
             primaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
             ecsStopwatch = new System.Diagnostics.Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
@@ -95,19 +97,17 @@ namespace SolidCode.Atlas
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + primaryStopwatch.ElapsedMilliseconds + "ms");
             _w = new Window(windowTitle, flags);
             Debug.Log(LogCategory.Framework, "Window created after " + primaryStopwatch.ElapsedMilliseconds + "ms");
-            EntityComponentSystem.window = _w;
             if (timer != null)
                 timer.Stop();
         }
 
-        public static void Start(Scene defaultScene)
+        public static void Start()
         {
 
             if (_w == null)
             {
                 throw new NullReferenceException("Window hasn't been created yet!");
             }
-            SceneManager.LoadScene(defaultScene);
             Debug.Log(LogCategory.Rendering, "Rendering first frame after " + primaryStopwatch?.ElapsedMilliseconds + "ms");
             try
             {
@@ -120,7 +120,7 @@ namespace SolidCode.Atlas
             _doTick = false;
             Audio.Audio.Dispose();
             EntityComponentSystem.Dispose();
-            AssetManager.Dispose();
+            Renderer.Dispose();
             Input.Input.Dispose();
             primaryStopwatch?.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((primaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");
@@ -183,14 +183,26 @@ namespace SolidCode.Atlas
             sw.Start();
             _ticksThisSecond++;
             TickDeltaStopwatch.Restart();
+            
+#if DEBUG
+            Profiler.StartTimer(Profiler.TickType.Tick);
+#endif
             Task t = TickScheduler.RequestTick();
             t.Wait();
+#if DEBUG
+            Profiler.EndTimer(Profiler.TickType.Tick, "Wait");
+#endif
+
             if (!ecsStopwatch.IsRunning)
             {
                 ecsStopwatch.Start();
             }
+            
             EntityComponentSystem.Tick();
-            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", "TPS: " + Atlas.TicksPerSecond, Version }, EntityComponentSystem.GetECSHierarchy());
+#if DEBUG
+            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "TPS: " + Atlas.TicksPerSecond, "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", Version }, EntityComponentSystem.GetECSHierarchy());
+            Profiler.SubmitTimes(Profiler.TickType.Tick);
+#endif
             TickScheduler.FreeThreads();
             sw.Stop();
         }

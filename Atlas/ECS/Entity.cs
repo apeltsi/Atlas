@@ -8,25 +8,23 @@
     public class Entity
     {
 
-        public string name;
-        public bool enabled = true;
-        public List<Entity> children = new List<Entity>();
-        public Entity parent { get; protected set; }
-        public List<Component> components = new List<Component>();
-        public List<RenderComponent> renderingComponents = new List<RenderComponent>();
-        private ConcurrentQueue<Entity> _childrenToAdd = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> _childrenToRemove = new ConcurrentQueue<Entity>();
-        private ConcurrentQueue<Entity> _childrenToDestroy = new ConcurrentQueue<Entity>();
+        public string Name;
+        public bool Enabled = true;
+        public List<Entity> Children { get; private set; } = new List<Entity>();
+        public bool IsDestroyed { get; internal set; } = false; 
+        public Entity Parent { get; protected set; }
+        public List<Component> Components { get; private set; } = new List<Component>();
+        public List<RenderComponent> RenderingComponents { get; private set; }= new List<RenderComponent>();
 
         private ConcurrentQueue<Component> _componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> _componentsToRemove = new ConcurrentQueue<Component>();
 
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
-            this.children = new List<Entity>();
-            this.components = new List<Component>();
-            this.name = name;
-            this.parent = EntityComponentSystem.RootEntity;
+            this.Children = new List<Entity>();
+            this.Components = new List<Component>();
+            this.Name = name;
+            this.Parent = EntityComponentSystem.RootEntity;
             EntityComponentSystem.RootEntity.AddChildren(this);
 
             Vector2 pos = Vector2.Zero;
@@ -45,17 +43,17 @@
         }
         public Entity(string name, bool transform)
         {
-            this.children = new List<Entity>();
-            this.components = new List<Component>();
-            this.name = name;
+            this.Children = new List<Entity>();
+            this.Components = new List<Component>();
+            this.Name = name;
             if (EntityComponentSystem.RootEntity != null && EntityComponentSystem.DestroyedRoot != null)
             {
-                this.parent = EntityComponentSystem.RootEntity;
+                this.Parent = EntityComponentSystem.RootEntity;
                 EntityComponentSystem.RootEntity.AddChildren(this);
             }
             else
             {
-                this.parent = this;
+                this.Parent = this;
             }
             if (transform)
             {
@@ -72,15 +70,15 @@
 
         public void ForceParent(Entity e)
         {
-            parent = e;
+            Parent = e;
         }
 
         public Entity? GetChildByName(string childName)
         {
-            for (int i = 0; i < this.children.Count; i++)
+            for (int i = 0; i < this.Children.Count; i++)
             {
-                Entity e = this.children[i];
-                if (e.name == childName)
+                Entity e = this.Children[i];
+                if (e.Name == childName)
                 {
                     return e;
                 }
@@ -93,7 +91,7 @@
             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(typeof(T), typeof(LimitInstanceCountAttribute));
             if (attr != null)
             {
-                if (EntityComponentSystem.InstanceCount.GetValueOrDefault(typeof(T), 0) >= attr.count)
+                if (EntityComponentSystem.InstanceCount.GetValueOrDefault(typeof(T), 0) >= attr.Count)
                 {
                     Debug.Error(LogCategory.ECS, "Maximum instance count of component \"" + typeof(T).ToString() + "\"");
                     return null!; // FIXME(amos): It might be a bit harsh to return a null reference, although it could also be argued that it is up to the developer to check for null references when adding components with an instance limit
@@ -107,7 +105,7 @@
             }
 
             Component component = new T();
-            component.entity = this;
+            component.Entity = this;
             _componentsToAdd.Enqueue(component);
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
 
@@ -119,10 +117,19 @@
             EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
+
+        public Entity RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
+        {
+            Component? c = GetComponent<T>(allowInheritedClasses);
+            if(c != null)
+                RemoveComponent(c);
+            return this;
+        }
+        
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             Component[] queuedComponents = _componentsToAdd.ToArray();
-            Component[] curComponents = components.ToArray();
+            Component[] curComponents = Components.ToArray();
             foreach (Component c in curComponents)
             {
                 if (c == null)
@@ -157,97 +164,80 @@
         /// <summary>
         /// Assigns children to Entity
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
+        /// <returns>Self</returns>
         public Entity AddChildren(params Entity[] childrenToAdd)
         {
-            foreach (Entity e in childrenToAdd)
+            lock (Children)
             {
-                _childrenToAdd.Enqueue(e);
+                foreach (var e in childrenToAdd) 
+                {
+                    if (e != null)
+                    {
+                        if (e.Parent != this)
+                        {
+                            lock (e.Parent.Children)
+                            {
+                                e.Parent.Children.Remove(e);
+                                e.Parent = this;
+                                Transform? tr = e.GetComponent<Transform>(true);
+                                if (tr != null)
+                                {
+                                    tr.Layer = GetComponent<Transform>(true)?.Layer ?? 0;
+                                }
+                                this.Children.Add(e);
+                            }
+                        }
+                        else
+                        {
+                            if (!this.Children.Contains(e))
+                            {
+                                this.Children.Add(e);
+                            }
+                        }
+                    }
+                }
             }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
             return this;
         }
 
         /// <summary>
         /// Removes children from Entity
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
+        /// <returns>Self</returns>
         public Entity RemoveChildren(params Entity[] childrenToRemove)
         {
-            foreach (Entity e in childrenToRemove)
-            {
-                _childrenToRemove.Enqueue(e);
-            }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
+            lock(Children)
+                foreach (Entity e in childrenToRemove)
+                {
+                    if (e != null)
+                    {
+                        Children.Remove(e);
+                    }
+                }
             return this;
         }
         /// <summary>
-        /// Destroys children
+        /// Destroys children provided
         /// </summary>
-        /// <returns>
-        /// Self
-        /// </returns>
-
+        /// <returns>Self</returns>
         public Entity DestroyChildren(params Entity[] childrenToDestroy)
         {
-            foreach (Entity e in childrenToDestroy)
-            {
-                _childrenToDestroy.Enqueue(e);
-            }
-            EntityComponentSystem.AddDirtyEntity(UpdateComponentsAndChildren);
+            lock(Children)
+                foreach (Entity e in childrenToDestroy)
+                {
+                    if (e != null)
+                    {
+                        Children.Remove(e);
+                        e.Parent = EntityComponentSystem.DestroyedRoot;
+                        e.Destroy();
+                    }
+                }
 
             return this;
         }
 
         void UpdateComponentsAndChildren()
         {
-            while (_childrenToAdd.Count > 0)
-            {
-                Entity? e;
-                _childrenToAdd.TryDequeue(out e);
-                if (e != null)
-                {
-                    if (e.parent != this)
-                    {
-                        e.parent.children.Remove(e);
-                        e.parent = this;
-                        this.children.Add(e);
-                    }
-                    else
-                    {
-                        if (!this.children.Contains(e))
-                        {
-                            this.children.Add(e);
-                        }
-                    }
-                }
-            }
-
-            while (_childrenToRemove.Count > 0)
-            {
-                Entity? e;
-                _childrenToRemove.TryDequeue(out e);
-                if (e != null)
-                {
-                    children.Remove(e);
-                }
-            }
-
-            while (_childrenToDestroy.Count > 0)
-            {
-                Entity? e;
-                _childrenToDestroy.TryDequeue(out e);
-                if (e != null)
-                {
-                    children.Remove(e);
-                    e.parent = EntityComponentSystem.DestroyedRoot;
-                    e.Destroy();
-                }
-            }
 
             while (_componentsToAdd.Count > 0)
             {
@@ -256,15 +246,15 @@
                 _componentsToAdd.TryDequeue(out component);
                 if (component != null)
                 {
-                    component.entity = this;
+                    component.Entity = this;
                     if (EntityComponentSystem.HasStarted)
                     {
                         EntityComponentSystem.AddStartMethod(component);
                     }
-                    components.Add(component);
+                    Components.Add(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
                     {
-                        renderingComponents.Add((RenderComponent)component);
+                        RenderingComponents.Add((RenderComponent)component);
                     }
 
                 }
@@ -284,24 +274,27 @@
                         EntityComponentSystem.InstanceCount.AddOrUpdate(component.GetType(), add, update);
                         // We have to remove the component from the instance count limit
                     }
-                    component.enabled = false;
-                    component.entity = null;
+                    component.Enabled = false;
+                    component.Entity = null;
                     component.TryInvokeMethod("OnRemove");
 
-                    components.Remove(component);
+                    Components.Remove(component);
                     if (typeof(RenderComponent).IsAssignableFrom(component.GetType()))
                     {
-                        renderingComponents.Remove((RenderComponent)component);
+                        RenderingComponents.Remove((RenderComponent)component);
                     }
                 }
             }
 
         }
 
+        /// <summary>
+        /// Returns all children of this entity, their children and so on
+        /// </summary>
         public Entity[] GetAllChildrenRecursively()
         {
             List<Entity> allchildren = new List<Entity>();
-            foreach (Entity e in children)
+            foreach (Entity e in Children)
             {
                 allchildren.Add(e);
                 allchildren.AddRange(e.GetAllChildrenRecursively());
@@ -313,24 +306,10 @@
         public void Destroy()
         {
             EntityComponentSystem.RemoveEntity(this);
-            /*foreach (Component c in components)
-            {
-                c.OnDisable();
-                c.OnRemove();
-                LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
-                if (attr != null)
-                {
-                    Func<Type, int> add = type => 0;
-                    Func<Type, int, int> update = (type, amount) => Interlocked.Add(ref amount, -1);
-                    EntityComponentSystem.InstanceCount.AddOrUpdate(c.GetType(), add, update);
-                    // We have to remove the component from the instance count limit
-                }
-            }
-            components.Clear();*/
         }
         public override string ToString()
         {
-            return this.name;
+            return this.Name;
         }
     }
 }

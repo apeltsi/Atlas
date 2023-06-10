@@ -13,7 +13,7 @@ namespace SolidCode.Atlas.Components
 
         public void Start()
         {
-            _t = entity?.GetComponent<Transform>();
+            _t = Entity?.GetComponent<Transform>();
             if (_t == null) return;
             _position = _t.GlobalPosition;
             _scale = _t.GlobalScale;
@@ -24,6 +24,12 @@ namespace SolidCode.Atlas.Components
             if (_t == null) return;
             _position = _t.GlobalPosition;
             _scale = _t.GlobalScale;
+        }
+
+        public void OnDisable()
+        {
+            _position = Vector2.Zero;
+            _scale = Vector2.One;
         }
 
         public static Matrix4x4 GetTransformMatrix()

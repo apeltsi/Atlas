@@ -12,14 +12,20 @@
     <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj" />
   </ItemGroup>
   <ItemGroup Label="Package References">
-    <PackageReference Include="FontStashSharp" Version="1.1.7" />
+    <PackageReference Include="FontStashSharp" Version="1.2.8" />
     <PackageReference Include="NokitaKaze.WAVParser" Version="0.1.0" />
     <PackageReference Include="OpenTK.OpenAL" Version="5.0.0-pre.8" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="Veldrid" Version="4.9.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
   </ItemGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <DefineConstants>Windows</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <DefineConstants>Linux</DefineConstants>
+  </PropertyGroup>
   <ItemGroup Label="Resources"> 
       <EmbeddedResource Include="assets\atlas.assetpack" />
       <EmbeddedResource Include="assets\atlas-post.assetpack" />

@@ -33,10 +33,12 @@ public class SpriteRenderer : RenderComponent
         }
         set
         {
+            if (_color == value)
+                return;
             _color = value;
             if (drawable != null)
             {
-                drawable.SetUniformBufferValue(Window.GraphicsDevice, new ColorUniform(value));
+                drawable.SetUniformBufferValue(Renderer.GraphicsDevice, new ColorUniform(value));
             }
         }
     }
@@ -56,7 +58,7 @@ public class SpriteRenderer : RenderComponent
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         List<SolidCode.Atlas.Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
         textures.Add(Sprite);
-        drawable = new Drawable<VertexPositionUV, ColorUniform>(_graphicsDevice, "sprite/shader", mesh, entity.GetComponent<Transform>(), new ColorUniform(Color), ShaderStages.Fragment, textures, ShaderStages.Vertex, sampler);
+        drawable = new Drawable<VertexPositionUV, ColorUniform>(_graphicsDevice, "sprite/shader", mesh, Entity.GetComponent<Transform>(true), new ColorUniform(Color), ShaderStages.Fragment, textures, ShaderStages.Vertex, sampler);
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);
         return drawables.ToArray();
@@ -82,7 +84,6 @@ public class SpriteRenderer : RenderComponent
             Position = position;
             UV = uv;
         }
-        public const uint SizeInBytes = 24;
     }
 
 }

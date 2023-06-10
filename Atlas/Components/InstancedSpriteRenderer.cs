@@ -74,7 +74,7 @@ public class InstancedSpriteRenderer : SpriteRenderer
         List<Rendering.Texture> textures = new List<Rendering.Texture>();
         textures.Add(this.Sprite);
         Drawable[] ret = new Drawable[1];
-        drawable = new InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>("instanced-sprite/shader", mesh, entity.GetComponent<Transform>(), _data, desc, new ColorUniform(Color), ShaderStages.Fragment, textures);
+        drawable = new InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>("instanced-sprite/shader", mesh, Entity.GetComponent<Transform>(true), _data, desc, new ColorUniform(Color), ShaderStages.Fragment, textures);
         ret[0] = drawable;
         return ret;
     }

@@ -102,7 +102,7 @@ namespace SolidCode.Atlas.Audio
                 AL.Source(source, ALSourcef.Gain, settings.Volume!.Value);
                 AL.Source(source, ALSourcef.Pitch, settings.Pitch!.Value);
                 AL.SourcePlay(source);
-                PlayingAudio p = new PlayingAudio(track, source);
+                PlayingAudio p = new PlayingAudio(track, source, settings.Pitch!.Value);
                 RemoveSource(source, (float)track.Duration);
                 return p;
             }
@@ -134,9 +134,9 @@ namespace SolidCode.Atlas.Audio
             private int source;
             public double Duration { get; protected set; }
             public double TimePlayed => stopwatch.Elapsed.TotalSeconds;
-            internal PlayingAudio(AudioTrack t, int source)
+            internal PlayingAudio(AudioTrack t, int source, float pitch)
             {
-                this.Duration = t.Duration;
+                this.Duration = t.Duration / pitch;
                 this.stopwatch = Stopwatch.StartNew();
                 this.source = source;
             }

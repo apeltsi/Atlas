@@ -8,8 +8,10 @@ namespace SolidCode.Atlas.Input
 {
     public static class Input
     {
-        private static List<Key> keys = new();
-        private static List<Key> downKeys = new();
+        private static List<Key> _keys = new();
+        private static List<Key> _downKeys = new();
+        private static List<MouseButton> _mouseButtons = new();
+        private static List<MouseButton> _downMouseButtons = new();
         public static string ControllerName { get; private set; } 
         public static float WheelDelta { get; internal set; }
         public static Vector2 MousePosition = Vector2.Zero;
@@ -37,8 +39,8 @@ namespace SolidCode.Atlas.Input
             {
                 
             }
-            downKeys.Clear();
-            keys.Clear();
+            _downKeys.Clear();
+            _keys.Clear();
             _axisValues.Clear();
             _buttonValues.Clear();
             ControllerName = "";
@@ -49,7 +51,7 @@ namespace SolidCode.Atlas.Input
         internal static void UpdateInputs(InputSnapshot snapshot)
         {
             Sdl2Events.ProcessEvents();
-            downKeys.Clear();
+            _downKeys.Clear();
             WheelDelta = snapshot.WheelDelta;
             for (int i = 0; i < snapshot.KeyEvents.Count; i++)
             {
@@ -57,18 +59,32 @@ namespace SolidCode.Atlas.Input
 
                 if (e.Down == true)
                 {
-                    if (!keys.Contains(e.Key))
+                    if (!_keys.Contains(e.Key))
                     {
-                        keys.Add(e.Key);
-                        downKeys.Add(e.Key);
+                        _keys.Add(e.Key);
+                        _downKeys.Add(e.Key);
                     }
                 }
                 else
                 {
-                    keys.Remove(e.Key);
+                    _keys.Remove(e.Key);
                 }
             }
             MousePosition = snapshot.MousePosition;
+            _downMouseButtons.Clear();
+            foreach (var mevent in snapshot.MouseEvents)
+            {
+                if (mevent.Down)
+                {
+                    _mouseButtons.Add(mevent.MouseButton);
+                    _downMouseButtons.Add(mevent.MouseButton);
+                }
+                else
+                {
+                    _mouseButtons.Remove(mevent.MouseButton);
+                }
+            }
+
         }
         
         private static void HandleEvent(ref SDL_Event ev)
@@ -126,13 +142,25 @@ namespace SolidCode.Atlas.Input
 
         public static bool GetKey(Key key)
         {
-            return keys.Contains(key);
+            return _keys.Contains(key);
         }
 
         public static bool GetKeyDown(Key key)
         {
-            return downKeys.Contains(key);
+            return _downKeys.Contains(key);
         }
+
+        public static bool GetMouseButton(MouseButton button)
+        {
+            return _mouseButtons.Contains(button);
+        }
+        
+        public static bool GetMouseButtonDown(MouseButton button)
+        {
+            return _downMouseButtons.Contains(button);
+        }
+        
+        
 
         public static float GetControllerAxis(SDL_GameControllerAxis axis)
         {
@@ -165,24 +193,24 @@ namespace SolidCode.Atlas.Input
     }
     
     public abstract class InputListener<T> {
-        public Keymap<T> keymap;
+        public Keymap<T> Keymap;
 
         public abstract T Evaluate();
 
         protected InputListener(Keymap<T> keymap)
         {
-            this.keymap = keymap;
+            this.Keymap = keymap;
             if (keymap.AxisContributors == null)
             {
-                this.keymap.AxisContributors = new();
+                this.Keymap.AxisContributors = new();
             }
             if (keymap.ButtonContributors == null)
             {
-                this.keymap.ButtonContributors = new();
+                this.Keymap.ButtonContributors = new();
             }
             if (keymap.KeyboardContributors == null)
             {
-                this.keymap.KeyboardContributors = new();
+                this.Keymap.KeyboardContributors = new();
             }
         }
         
@@ -190,13 +218,13 @@ namespace SolidCode.Atlas.Input
             Dictionary<Key, bool> keys = new();
             Dictionary<SDL_GameControllerAxis, float> axes = new();
             Dictionary<SDL_GameControllerButton, bool> buttons = new();
-            foreach (var key in keymap.KeyboardContributors.Keys) {
+            foreach (var key in Keymap.KeyboardContributors.Keys) {
                 keys.Add(key, Input.GetKey(key));
             }
-            foreach (var axis in keymap.AxisContributors.Keys) {
+            foreach (var axis in Keymap.AxisContributors.Keys) {
                 axes.Add(axis, Input.GetControllerAxis(axis));
             }
-            foreach (var button in keymap.ButtonContributors.Keys) {
+            foreach (var button in Keymap.ButtonContributors.Keys) {
                 buttons.Add(button, Input.GetControllerButton(button));
             }
 
@@ -213,7 +241,7 @@ namespace SolidCode.Atlas.Input
             (var keys, var axes, var buttons) = GetContributors();
             foreach (var key in keys.Keys)
             {
-                bool value = keymap.KeyboardContributors[key];
+                bool value = Keymap.KeyboardContributors[key];
                 if (keys[key] && value)
                 {
                     return true;
@@ -221,14 +249,14 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                if (axes[axis] > 0.75f && keymap.AxisContributors[axis])
+                if (axes[axis] > 0.75f && Keymap.AxisContributors[axis])
                 {
                     return true;
                 }
             }
             foreach (var button in buttons.Keys)
             {
-                if (buttons[button] && keymap.ButtonContributors[button])
+                if (buttons[button] && Keymap.ButtonContributors[button])
                 {
                     return true;
                 }
@@ -246,7 +274,7 @@ namespace SolidCode.Atlas.Input
             float value = 0;
             foreach (var key in keys.Keys)
             {
-                float contribution = keymap.KeyboardContributors[key];
+                float contribution = Keymap.KeyboardContributors[key];
                 if (keys[key])
                 {
                     value += contribution;
@@ -254,17 +282,18 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                float contribution = keymap.AxisContributors[axis];
+                float contribution = Keymap.AxisContributors[axis];
                 value += axes[axis] * contribution;
             }
             foreach (var button in buttons.Keys)
             {
-                float contribution = keymap.ButtonContributors[button];
+                float contribution = Keymap.ButtonContributors[button];
                 if (buttons[button])
                 {
                     value += contribution;
                 }
             }
+            
             return Math.Clamp(value, -1f, 1f);
         }
     }
@@ -278,7 +307,7 @@ namespace SolidCode.Atlas.Input
             Vector2 value = Vector2.Zero;
             foreach (var key in keys.Keys)
             {
-                Vector2 contribution = keymap.KeyboardContributors[key];
+                Vector2 contribution = Keymap.KeyboardContributors[key];
                 if (keys[key])
                 {
                     value += contribution;
@@ -286,18 +315,32 @@ namespace SolidCode.Atlas.Input
             }
             foreach (var axis in axes.Keys)
             {
-                Vector2 contribution = keymap.AxisContributors[axis];
+                Vector2 contribution = Keymap.AxisContributors[axis];
                 value += axes[axis] * contribution;
             }
             foreach (var button in buttons.Keys)
             {
-                Vector2 contribution = keymap.ButtonContributors[button];
+                Vector2 contribution = Keymap.ButtonContributors[button];
                 if (buttons[button])
                 {
                     value += contribution;
                 }
             }
-            return Vector2.Normalize(value);
+
+            Vector2 val = Vector2.Normalize(value);
+
+            // Remove any NANs
+            if (float.IsNaN(val.X))
+            {
+                val.X = 0;
+            }
+
+            if (float.IsNaN(val.Y))
+            {
+                val.Y = 0;
+            }
+            
+            return val;
         }
     }
 }

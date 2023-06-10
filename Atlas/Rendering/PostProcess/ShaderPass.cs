@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
+using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
@@ -26,6 +27,9 @@ public class ShaderPass<TUniform> : ShaderPass
     private TUniform? _uniform;
     private ResourceSet? _uniformResourceSet;
     private DeviceBuffer? _uniformBuffer;
+    private ResourceLayout? _uniformResourceLayout;
+    private ResourceLayout _primaryResourceLayout;
+    private Sampler _sampler;
 
     private struct VertexPositionUV
     {
@@ -61,25 +65,25 @@ public class ShaderPass<TUniform> : ShaderPass
     // Called by the PostProcessEffect class with the target framebuffer
     public override void CreateResources(Framebuffer? targetBuffer, TextureView[] textureViews)
     {
-        if (Window.GraphicsDevice == null)
+        if (Renderer.GraphicsDevice == null)
         {
             throw new NullReferenceException(
                 "GraphicsDevice is null! PostProcess requires a GraphicsDevice to be initialized.");
         }
-        GraphicsDevice graphicsDevice = Window.GraphicsDevice;
+        GraphicsDevice graphicsDevice = Renderer.GraphicsDevice;
         
         // Get the shader
-        Shader shader = ShaderManager.GetShader(_shaderName);
+        Shader shader = AssetManager.GetAsset<Shader>(_shaderName);
         // Get the resource factory
-        ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
+        ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
 
         // Initialize buffers
         _vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf(new VertexPositionUV()), BufferUsage.VertexBuffer));
-        _indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+        _indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
 
         // Update the buffers to their initial (and final in this case) values
         graphicsDevice.UpdateBuffer(_vertexBuffer, 0, _mesh.Vertices);
-        graphicsDevice.UpdateBuffer(_indexBuffer, 0, _mesh.Indicies);
+        graphicsDevice.UpdateBuffer(_indexBuffer, 0, _mesh.Indices);
 
 
         // Lets generate the pipeline description
@@ -95,10 +99,10 @@ public class ShaderPass<TUniform> : ShaderPass
         elementDescriptions[textureViews.Length] = new ResourceLayoutElementDescription("Sampler", ResourceKind.Sampler, ShaderStages.Fragment);
         
         // Lets generate the uniform resource layout
-        ResourceLayout primaryResourceLayout = factory.CreateResourceLayout(
+        _primaryResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
 
-        ResourceLayout? uniformResourceLayout = null;
+        _uniformResourceLayout = null;
         // Lets generate our uniform if present
         if (_uniform != null)
         {
@@ -108,7 +112,7 @@ public class ShaderPass<TUniform> : ShaderPass
 
             ResourceLayoutElementDescription[] uniformElementDescriptions = new ResourceLayoutElementDescription[1];
             uniformElementDescriptions[0] = new ResourceLayoutElementDescription("Uniform", ResourceKind.UniformBuffer, ShaderStages.Fragment | ShaderStages.Vertex);
-            uniformResourceLayout = factory.CreateResourceLayout(
+            _uniformResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(uniformElementDescriptions));
         }
         
@@ -130,18 +134,18 @@ public class ShaderPass<TUniform> : ShaderPass
             
         pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { _mesh.VertexLayout },
-                shaders: shader.shaders);
-        if (uniformResourceLayout != null)
+                shaders: shader.Shaders);
+        if (_uniformResourceLayout != null)
         {
-            pipelineDescription.ResourceLayouts = new[] { primaryResourceLayout, uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _primaryResourceLayout, _uniformResourceLayout };
         }
         else
         {
-            pipelineDescription.ResourceLayouts = new[] { primaryResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _primaryResourceLayout };
         }
 
 
-        targetBuffer ??= Window.PrimaryFramebuffer;
+        targetBuffer ??= Renderer.PrimaryFramebuffer;
             
         pipelineDescription.Outputs = targetBuffer.OutputDescription;
         
@@ -154,16 +158,16 @@ public class ShaderPass<TUniform> : ShaderPass
         }
         
         SamplerDescription sdesc = new SamplerDescription(SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerAddressMode.Clamp, SamplerFilter.MinLinear_MagLinear_MipLinear, null, 4, 0, uint.MaxValue, 0, SamplerBorderColor.TransparentBlack);
-        Sampler s = factory.CreateSampler(sdesc);
-        buffers[textureViews.Length] = s;
+        _sampler = factory.CreateSampler(sdesc);
+        buffers[textureViews.Length] = _sampler;
         _primaryResourceSet = factory.CreateResourceSet(new ResourceSetDescription(
-            primaryResourceLayout,
+            _primaryResourceLayout,
             buffers));
 
-        if (uniformResourceLayout != null)
+        if (_uniformResourceLayout != null)
         {
             _uniformResourceSet = factory.CreateResourceSet(new ResourceSetDescription(
-                uniformResourceLayout,
+                _uniformResourceLayout,
                 _uniformBuffer));
         }
         else
@@ -185,7 +189,7 @@ public class ShaderPass<TUniform> : ShaderPass
             cl.SetGraphicsResourceSet(1, _uniformResourceSet);
         }
         cl.DrawIndexed(
-            indexCount: (uint)_mesh.Indicies.Length,
+            indexCount: (uint)_mesh.Indices.Length,
             instanceCount: 1,
             indexStart: 0,
             vertexOffset: 0,
@@ -196,14 +200,18 @@ public class ShaderPass<TUniform> : ShaderPass
     public void UpdateUniform(TUniform uniform)
     {
         _uniform = uniform;
-        Window.GraphicsDevice.UpdateBuffer<TUniform>(_uniformBuffer, 0, uniform);
+        Renderer.GraphicsDevice.UpdateBuffer<TUniform>(_uniformBuffer, 0, uniform);
     }
 
     public override void Dispose()
     {
         _vertexBuffer?.Dispose();
         _indexBuffer?.Dispose();
-        _pipeline?.Dispose();
-        _primaryResourceSet?.Dispose();
+        _uniformBuffer?.Dispose();
+        _pipeline.Dispose();
+        _uniformResourceLayout?.Dispose();
+        _primaryResourceLayout.Dispose();
+        _primaryResourceSet.Dispose();
+        _sampler.Dispose();
     }
 }

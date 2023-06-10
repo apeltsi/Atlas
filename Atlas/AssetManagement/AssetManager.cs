@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Telescope;
 namespace SolidCode.Atlas.AssetManagement
@@ -21,6 +22,35 @@ namespace SolidCode.Atlas.AssetManagement
         static ConcurrentDictionary<string, WeakReference<Asset>> loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
         static ConcurrentDictionary<string, Asset> keepAliveAssets = new ConcurrentDictionary<string, Asset>();
         static Dictionary<string, List<string>> assetMap = new Dictionary<string, List<string>>(); // <string: path, string[] index 0 = assetpackname index n = truepath of file(s)
+        
+        // Quick Helper functions
+        /// <summary>
+        /// Shorthand for GetAsset&lt;Texture>(path, tryLoad)
+        /// </summary>
+        /// <param name="path">The path (excluding the extension) of the asset</param>
+        /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
+        /// <returns>The <c>Texture</c></returns>
+        public static Texture? GetTexture(string path, bool tryLoad = true)
+        {
+            return GetAsset<Texture>(path, tryLoad);
+        }
+        /// <summary>
+        /// Shorthand for GetAsset&lt;AudioTrack>(path, tryLoad)
+        /// </summary>
+        /// <param name="path">The path (excluding the extension) of the asset</param>
+        /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
+        /// <returns>The <c>AudioTrack</c></returns>
+        public static AudioTrack? GetAudio(string path, bool tryLoad = true)
+        {
+            return GetAsset<AudioTrack>(path, tryLoad);
+        }
+        /// <summary>
+        /// Loads an asset into memory and returns it or alternatively if it's already loaded it will return the loaded asset.
+        /// </summary>
+        /// <param name="path">The path (excluding the extension) of the asset</param>
+        /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
+        /// <typeparam name="T">The type of asset to load</typeparam>
+        /// <returns>The asset</returns>
         public static T? GetAsset<T>(string path, bool tryLoad = true) where T : Asset, new()
         {
             Asset? asset = null;
@@ -117,7 +147,7 @@ namespace SolidCode.Atlas.AssetManagement
             }
 
             T a = new T();
-            lock (Window.GraphicsDevice)
+            lock (Renderer.GraphicsDevice)
             {
                 a.Load(path, Path.GetFileName(path));
             }
@@ -126,7 +156,7 @@ namespace SolidCode.Atlas.AssetManagement
         public static T? LoadAssetToMemory<T>(Stream[] streams, string path, AssetMode mode) where T : Asset, new()
         {
             T a = new T();
-            lock (Window.GraphicsDevice)
+            lock (Renderer.GraphicsDevice)
             {
                 a.FromStreams(streams, Path.GetFileName(path));
             }
@@ -162,7 +192,7 @@ namespace SolidCode.Atlas.AssetManagement
         }
 
         /// <summary>
-        /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is adivsed to let the garbage collector decide when the time is ripe.
+        /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is advised to let the garbage collector decide when the time is ripe.
         /// </summary>
         static void ForceUnloadAssets()
         {
@@ -172,6 +202,20 @@ namespace SolidCode.Atlas.AssetManagement
 
         internal static void Dispose()
         {
+            foreach (var asset in loadedAssets)
+            {
+                Asset? a = null;
+                asset.Value.TryGetTarget(out a);
+                if (a != null)
+                {
+                    a.Dispose();
+                }
+            }
+            foreach (var asset in keepAliveAssets)
+            {
+                Asset a = asset.Value;
+                a.Dispose();
+            }
             loadedAssets = new ConcurrentDictionary<string, WeakReference<Asset>>();
             keepAliveAssets = new ConcurrentDictionary<string, Asset>();
             assetMap = new Dictionary<string, List<string>>();

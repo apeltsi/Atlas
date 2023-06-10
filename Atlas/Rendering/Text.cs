@@ -1,4 +1,7 @@
 
+using System.Text;
+using SolidCode.Atlas.UI;
+
 namespace SolidCode.Atlas.Rendering
 {
     using System.Collections.Generic;
@@ -14,15 +17,14 @@ namespace SolidCode.Atlas.Rendering
     public class TextDrawable : Drawable
     {
         bool dirty = false;
-        string text;
-        int size;
-        FontSystem font;
-        Font[] fonts;
-        FontRenderer renderer;
-        Matrix4x4 lastMatrix;
-        bool centered = true;
+        string _text;
+        float _size;
+        FontSet _fontSet;
+        FontRenderer _renderer;
+        Matrix4x4 _lastMatrix;
+        bool _centered = true;
         private Vector4 _color;
-        public Vector4 color
+        public Vector4 Color
         {
             get
             {
@@ -31,78 +33,71 @@ namespace SolidCode.Atlas.Rendering
             set
             {
                 _color = value;
-                if (renderer != null)
+                if (_renderer != null)
                 {
-                    renderer.Color = value;
-                    renderer.UpdateColor(value);
+                    _renderer.Color = value;
+                    _renderer.UpdateColor(value);
                 }
             }
         }
-        public TextDrawable(string text, Font[] fonts, Vector4 Color, bool centered, int size, Transform transform)
+        public TextDrawable(string text, FontSet fonts, Vector4 color, bool centered, float size, Transform transform)
         {
-            this.text = text;
+            this._text = text;
             this.transform = transform;
-            this.fonts = fonts;
-            this.size = size;
-            this.centered = centered;
-            this.color = Color;
-            CreateResources(Window.GraphicsDevice);
+            this._fontSet = fonts;
+            this._size = size;
+            this._centered = centered;
+            this.Color = color;
+            CreateResources(Renderer.GraphicsDevice);
         }
 
-        public void UpdateText(string text, int size)
+        public void UpdateText(string text, float size)
         {
-            if (text == this.text && size == this.size)
+            if (text == this._text && size == this._size)
                 return; // Lets not waste our precious time updating text that is already up to date
-            renderer.ClearAllQuads();
-            this.size = size;
-            this.text = text;
+            _renderer.ClearAllQuads();
+            this._size = size;
+            this._text = text;
             dirty = true;
         }
 
         public override void CreateResources(GraphicsDevice _graphicsDevice)
         {
-            this.font = new FontSystem();
-            for (int i = 0; i < this.fonts.Length; i++)
-            {
-                this.font.AddFont(this.fonts[i].Data);
-            }
-            renderer = new FontRenderer(Window.GraphicsDevice, this.color, transform, new TextUniform(), ShaderStages.Vertex | ShaderStages.Fragment);
-            if (centered)
-                renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
-            this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, System.Drawing.Color.White);
-
+            _renderer = new FontRenderer(Renderer.GraphicsDevice, this.Color, transform, new TextUniform(),  ShaderStages.Vertex | ShaderStages.Fragment, this._fontSet.TextureManager);
+            if (_centered)
+                _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+            this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White, new Vector2(_size,_size));
         }
+        
         public override void Draw(CommandList cl)
         {
             if (dirty)
             {
-                if (centered)
-                    renderer.SetHorizontalOffset(this.font.GetFont(size).MeasureString(text).X / 2f);
-                this.font.GetFont(size).DrawText(renderer, text, System.Numerics.Vector2.Zero, Color.White);
-                SetGlobalMatrix(Window.GraphicsDevice, lastMatrix);
+                if (_centered)
+                    _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+                this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White);
+                SetGlobalMatrix(Renderer.GraphicsDevice, _lastMatrix);
                 dirty = false;
             }
-            renderer.Draw(cl);
+            _renderer.Draw(cl);
+        }
+
+        public void UpdateFontSet(FontSet set)
+        {
+            Dispose();
+            this._fontSet = set;
+            CreateResources(Renderer.GraphicsDevice);
         }
 
         public override void Dispose()
         {
-            this.font.Dispose();
-            this.renderer.Dispose();
-        }
-
-        public void UpdateFonts(Font[] fonts)
-        {
-            Window.GraphicsDevice.WaitForIdle();
-            Dispose();
-            this.fonts = fonts;
-            CreateResources(Window.GraphicsDevice);
+            this._renderer.Dispose();
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            renderer.SetGlobalMatrix(_graphicsDevice, matrix);
-            lastMatrix = matrix;
+            _renderer.SetGlobalMatrix(_graphicsDevice, matrix);
+            _lastMatrix = matrix;
         }
 
 
@@ -135,13 +130,14 @@ namespace SolidCode.Atlas.Rendering
     }
 
 
-    unsafe class FontTextureManager : ITexture2DManager
+    internal unsafe class FontTextureManager : ITexture2DManager
     {
-
+        private List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();  
         public object CreateTexture(int width, int height)
         {
-            ResourceFactory factory = Window.GraphicsDevice.ResourceFactory;
+            ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
             Veldrid.Texture t = factory.CreateTexture(new TextureDescription((uint)width, (uint)height, 1, 1, 1, PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled, TextureType.Texture2D));
+            _textures.Add(t);
             return t;
         }
 
@@ -155,7 +151,15 @@ namespace SolidCode.Atlas.Rendering
             Veldrid.Texture t = (Veldrid.Texture)texture;
             fixed (byte* ptr = data)
             {
-                Window.GraphicsDevice.UpdateTexture(t, new IntPtr(ptr), (uint)data.Length, (uint)bounds.X, (uint)bounds.Y, 0, (uint)bounds.Width, (uint)bounds.Height, 1, 0, 0);
+                Renderer.GraphicsDevice.UpdateTexture(t, new IntPtr(ptr), (uint)data.Length, (uint)bounds.X, (uint)bounds.Y, 0, (uint)bounds.Width, (uint)bounds.Height, 1, 0, 0);
+            }
+        }
+
+        public void Dispose()
+        {
+            foreach (Veldrid.Texture t in _textures)
+            {
+                t.Dispose();
             }
         }
     }
@@ -167,13 +171,13 @@ namespace SolidCode.Atlas.Rendering
         float HorizontalOffset = 0f;
         DeviceBuffer colorBuffer;
         public Vector4 Color = new Vector4(1, 1, 1, 1f);
-        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, TextUniform textUniform, ShaderStages uniformShaderStages, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, textUniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, TextUniform textUniform, ShaderStages uniformShaderStages, FontTextureManager textureManager, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, textUniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
                         new VertexElementDescription("Color", VertexElementSemantic.TextureCoordinate, VertexElementFormat.UInt1),
                         new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
-
+            
             this._mesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.virtualMesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.transform = t;
@@ -181,7 +185,7 @@ namespace SolidCode.Atlas.Rendering
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
             this.Color = Color;
-            texManager = new FontTextureManager();
+            texManager = textureManager;
         }
 
         TextureView texView;
@@ -193,11 +197,12 @@ namespace SolidCode.Atlas.Rendering
 
         }
         bool buffersDirty = false;
+        private ResourceLayout _textResourceLayout;
 
         public void DrawQuad(object texture, ref VertexPositionColorTexture topLeft, ref VertexPositionColorTexture topRight, ref VertexPositionColorTexture bottomLeft, ref VertexPositionColorTexture bottomRight)
         {
             int c = this.virtualMesh.Vertices.Length;
-            this.virtualMesh.AddIndicies(new ushort[6] { (ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 1), (ushort)(c + 3) });
+            this.virtualMesh.AddIndices(new ushort[6] { (ushort)(c), (ushort)(c + 1), (ushort)(c + 2), (ushort)(c + 2), (ushort)(c + 1), (ushort)(c + 3) });
             this.virtualMesh.AddVertices(new VertexPositionColorTexture[4] { topLeft, topRight, bottomLeft, bottomRight });
             this.texture = (Veldrid.Texture)texture;
             buffersDirty = true;
@@ -205,17 +210,17 @@ namespace SolidCode.Atlas.Rendering
 
         public void ClearAllQuads()
         {
-            this.virtualMesh.ClearIndicies();
+            this.virtualMesh.ClearIndices();
             this.virtualMesh.ClearVertices();
             buffersDirty = true;
         }
 
         protected void CreateResources(GraphicsDevice _graphicsDevice, Veldrid.Texture texture)
         {
-            Shader shader = ShaderManager.GetShader("text");
+            Shader shader = AssetManagement.AssetManager.GetAsset<Shader>("text");
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
-            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indicies.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
             colorBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextUniform>(), BufferUsage.UniformBuffer));
 
@@ -223,18 +228,18 @@ namespace SolidCode.Atlas.Rendering
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indicies);
+            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
             _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4(), HorizontalOffset)); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
             _graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
-            // Next lest load textures to the gpu
+            // Next lets load textures to the gpu
 
-            TextureView texView = factory.CreateTextureView(texture);
+            texView = factory.CreateTextureView(texture);
 
 
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
-
-            _shaders = shader.shaders;
+            
+            _shaders = shader.Shaders;
 
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
@@ -246,15 +251,16 @@ namespace SolidCode.Atlas.Rendering
             elementDescriptions[2] = new ResourceLayoutElementDescription("TextureSampler", ResourceKind.Sampler, ShaderStages.Fragment);
             elementDescriptions[3] = new ResourceLayoutElementDescription("Color", ResourceKind.UniformBuffer, ShaderStages.Fragment);
 
-            ResourceLayout uniformResourceLayout = factory.CreateResourceLayout(
+            _textResourceLayout = factory.CreateResourceLayout(
                 new ResourceLayoutDescription(elementDescriptions));
+            
             pipelineDescription.DepthStencilState = new DepthStencilStateDescription(
                 depthTestEnabled: false,
                 depthWriteEnabled: false,
                 comparisonKind: ComparisonKind.LessEqual);
 
             pipelineDescription.RasterizerState = new RasterizerStateDescription(
-                cullMode: FaceCullMode.Back,
+                cullMode: FaceCullMode.None,
                 fillMode: PolygonFillMode.Solid,
                 frontFace: FrontFace.Clockwise,
                 depthClipEnabled: false,
@@ -265,9 +271,9 @@ namespace SolidCode.Atlas.Rendering
             pipelineDescription.ShaderSet = new ShaderSetDescription(
                 vertexLayouts: new VertexLayoutDescription[] { vertexLayout },
                 shaders: _shaders);
-            pipelineDescription.ResourceLayouts = new[] { uniformResourceLayout };
+            pipelineDescription.ResourceLayouts = new[] { _textResourceLayout };
 
-            pipelineDescription.Outputs = Window.PrimaryFramebuffer.OutputDescription;
+            pipelineDescription.Outputs = Renderer.PrimaryFramebuffer.OutputDescription;
             pipeline = factory.CreateGraphicsPipeline(pipelineDescription);
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
@@ -276,7 +282,7 @@ namespace SolidCode.Atlas.Rendering
             buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
-                uniformResourceLayout,
+                _textResourceLayout,
                 buffers));
 
         }
@@ -289,18 +295,23 @@ namespace SolidCode.Atlas.Rendering
         public void UpdateColor(Vector4 color)
         {
             if (colorBuffer != null)
-                Window.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
+                Renderer.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
         }
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            Matrix4x4 cmat = Matrix4x4.Identity;
+            
+            if(transform.GetType() != typeof(RectTransform)) 
+                cmat = Camera.GetTransformMatrix();
+
             if (transformBuffer != null && _graphicsDevice != null)
             {
                 _graphicsDevice.UpdateBuffer(transformBuffer,
                 0,
                 new TextTransformStruct(matrix,
                                         transform.GetTransformationMatrix(),
-                                        Camera.GetTransformMatrix(),
+                                        cmat,
                                         HorizontalOffset));
             }
 
@@ -312,7 +323,7 @@ namespace SolidCode.Atlas.Rendering
             if (!resourcesCreated && buffersDirty && texture != null && virtualMesh.Vertices.Length > 0)
             {
                 _mesh = new Mesh<VertexPositionColorTexture>(virtualMesh);
-                CreateResources(Window.GraphicsDevice, this.texture);
+                CreateResources(Renderer.GraphicsDevice, this.texture);
                 resourcesCreated = true;
             }
 
@@ -334,17 +345,25 @@ namespace SolidCode.Atlas.Rendering
             {
                 return;
             }
+            cl.SetPipeline(pipeline);
 
             cl.SetVertexBuffer(0, vertexBuffer);
             cl.SetIndexBuffer(indexBuffer, IndexFormat.UInt16);
-            cl.SetPipeline(pipeline);
             cl.SetGraphicsResourceSet(0, _transformSet);
             cl.DrawIndexed(
-                indexCount: (uint)_mesh.Indicies.Length,
+                indexCount: (uint)_mesh.Indices.Length,
                 instanceCount: 1,
                 indexStart: 0,
                 vertexOffset: 0,
                 instanceStart: 0);
+        }
+
+        public override void Dispose()
+        {
+            texView.Dispose();
+            colorBuffer.Dispose();
+            _textResourceLayout.Dispose();
+            base.Dispose();
         }
     }
 }

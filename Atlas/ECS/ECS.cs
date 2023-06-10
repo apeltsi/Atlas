@@ -19,22 +19,21 @@ namespace SolidCode.Atlas.ECS
         public static readonly Entity DestroyedRoot = new Entity("DESTROYED_ROOT", false);
 
 
-        public static Window? window;
-        private static ConcurrentQueue<Entity> _removeQueue = new ConcurrentQueue<Entity>();
-        private static ConcurrentQueue<Entity> _addQueue = new ConcurrentQueue<Entity>();
-        internal delegate void ComponentMethod();
+        private static ConcurrentQueue<Entity> _removeQueue = new ();
+        private static ConcurrentQueue<Entity> _addQueue = new ();
 
-        public delegate void TickTask();
 
-        private static List<(int, Action)> _tickTasks = new List<(int, Action)>();
-        private static List<(float, Action)> _frameDelays = new List<(float, Action)>();
+        private static List<(int, Action)> _tickTasks = new ();
+        private static List<(float, Action)> _frameDelays = new ();
 
-        private static ConcurrentDictionary<Component, ComponentMethod> _updateMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentDictionary<Component, ComponentMethod> _tickMethods = new ConcurrentDictionary<Component, ComponentMethod>();
-        private static ConcurrentQueue<ComponentMethod> _dirtyEntities = new ConcurrentQueue<ComponentMethod>();
-        private static ConcurrentBag<Component> _startMethods = new ConcurrentBag<Component>();
-
-        public static ConcurrentDictionary<Type, int> InstanceCount = new ConcurrentDictionary<Type, int>();
+        private static ConcurrentDictionary<Component, Action> _updateMethods = new ();
+        private static ConcurrentDictionary<Component, Action> _tickMethods = new ();
+        private static ConcurrentQueue<Action> _dirtyEntities = new ();
+        private static ConcurrentBag<Component> _startMethods = new ();
+        private static List<Action> _updateActions = new();
+        private static List<Action> _tickActions = new();
+           
+        public static ConcurrentDictionary<Type, int> InstanceCount = new ();
 
         public static bool HasStarted { get; set; }
 
@@ -43,12 +42,12 @@ namespace SolidCode.Atlas.ECS
         {
             _removeQueue.Enqueue(entity);
         }
-        static internal void AddDirtyEntity(ComponentMethod method)
+        internal static void AddDirtyEntity(Action method)
         {
             _dirtyEntities.Enqueue(method);
         }
 
-        static internal void AddStartMethod(Component c)
+        internal static void AddStartMethod(Component c)
         {
             lock (_startMethods)
             {
@@ -56,23 +55,60 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
-        static internal void RegisterUpdateMethod(Component c, ComponentMethod method)
+        internal static void RegisterComponentUpdateMethod(Component c, Action method)
         {
             _updateMethods.TryAdd(c, method);
         }
-        static internal void RegisterTickMethod(Component c, ComponentMethod method)
+        internal static void RegisterComponentTickMethod(Component c, Action method)
         {
             _tickMethods.TryAdd(c, method);
         }
-        static internal void UnregisterUpdateMethod(Component c)
+        internal static void UnregisterComponentUpdateMethod(Component c)
         {
             _updateMethods.Remove(c, out _);
         }
-        static internal void UnregisterTickMethod(Component c)
+        internal static void UnregisterComponentTickMethod(Component c)
         {
             _tickMethods.Remove(c, out _);
         }
-
+        /// <summary>
+        /// Registers a action to be invoked at every Tick
+        /// </summary>
+        /// <param name="action">The action to be invoked</param>
+        public static void RegisterTickAction(Action action)
+        {
+            lock(_tickActions)
+                _tickActions.Add(action);
+        }
+        /// <summary>
+        /// Registers a action to be invoked at every Frame. (Before rendering)
+        /// </summary>
+        /// <param name="action">The action to be invoked</param>
+        public static void RegisterUpdateAction(Action action)
+        {
+            lock(_updateActions)
+                _updateActions.Add(action);
+        }
+        
+        /// <summary>
+        /// Unregisters an action from being invoked at every Tick
+        /// </summary>
+        /// <param name="action"></param>
+        public static void UnregisterTickAction(Action action)
+        {
+            lock(_tickActions)
+                _tickActions.Remove(action);
+        }
+        
+        /// <summary>
+        /// Unregisters an action from being invoked at every Frame. 
+        /// </summary>
+        /// <param name="action"></param>
+        public static void UnregisterUpdateAction(Action action)
+        {
+            lock(_updateActions)
+                _updateActions.Remove(action);
+        }
 
 
         static void UpdateECS()
@@ -81,7 +117,7 @@ namespace SolidCode.Atlas.ECS
             {
                 while (_dirtyEntities.Count > 0)
                 {
-                    ComponentMethod? m;
+                    Action? m;
                     _dirtyEntities.TryDequeue(out m);
                     if (m != null)
                     {
@@ -93,9 +129,9 @@ namespace SolidCode.Atlas.ECS
             {
                 foreach (Component c in _startMethods)
                 {
-                    c.enabled = true; // This is done so that OnEnable() is called
+                    c.Enabled = true; // This is done so that OnEnable() is called
                     c.TryInvokeMethod("Start");
-                    c.isNew = false;
+                    c.IsNew = false;
                 }
                 _startMethods.Clear();
 
@@ -109,20 +145,21 @@ namespace SolidCode.Atlas.ECS
                 {
                     List<Entity> entitiesToRemove = new List<Entity>();
                     entitiesToRemove.AddRange(e.GetAllChildrenRecursively());
-
+            
                     entitiesToRemove.Add(e);
-                    e.parent.RemoveChildren(e);
-                    e.children.Clear();
+                    e.Parent.RemoveChildren(e);
+                    e.Children.Clear();
                     foreach (Entity entity in entitiesToRemove)
                     {
-                        entity.enabled = false;
+                        entity.IsDestroyed = true;
+                        entity.Enabled = false;
                         entity.ForceParent(DestroyedRoot);
 
-                        for (int i = 0; i < entity.components.Count; i++)
+                        for (int i = 0; i < entity.Components.Count; i++)
                         {
-                            Component c = entity.components[i];
-                            c.enabled = false;
-                            c.entity = null;
+                            Component c = entity.Components[i];
+                            c.Enabled = false;
+                            c.Entity = null;
                             c.TryInvokeMethod("OnRemove");
                             c.UnregisterMethods();
                             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
@@ -134,7 +171,7 @@ namespace SolidCode.Atlas.ECS
                                 // We have to remove the component from the instance count limit
                             }
                         }
-                        entity.components.Clear();
+                        entity.Components.Clear();
 
                     }
                 }
@@ -162,11 +199,18 @@ namespace SolidCode.Atlas.ECS
                         _frameDelays[i] = (task.Item1 - (float)Time.deltaTime, task.Item2);
                     }
                 }
+            // Run through each of our Update Actions
+            lock(_updateActions)
+                foreach (var action in _updateActions)
+                {
+                    action.Invoke();
+                }
+
             lock (_updateMethods)
             {
-                foreach (KeyValuePair<Component, ComponentMethod> pair in _updateMethods)
+                foreach (KeyValuePair<Component, Action> pair in _updateMethods)
                 {
-                    if (!pair.Key.enabled || !pair.Key.entity!.enabled || pair.Key.isNew) continue;
+                    if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled || pair.Key.IsNew) continue;
                     try
                     {
                         pair.Value.Invoke();
@@ -188,6 +232,7 @@ namespace SolidCode.Atlas.ECS
             UpdateECS();
             lock (_tickMethods)
             {
+                // Run through each of our tick tasks
                 lock(_tickTasks)
                     for (int i = _tickTasks.Count - 1; i >= 0; i--)
                     {
@@ -202,18 +247,32 @@ namespace SolidCode.Atlas.ECS
                             _tickTasks[i] = (task.Item1 - 1, task.Item2);
                         }
                     }
-                foreach (KeyValuePair<Component, ComponentMethod> pair in _tickMethods)
-                {
-                    if (!pair.Key.enabled || !pair.Key.entity!.enabled) continue;
-                    if (pair.Key.isNew)
+                // Run through each of our Tick Actions
+                lock(_tickActions)
+                    foreach (var action in _tickActions)
                     {
-                        pair.Key.enabled = true; // This is done so that OnEnable() is called
+                        action.Invoke();
+                    }
+                foreach (KeyValuePair<Component, Action> pair in _tickMethods)
+                {
+                    if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled) continue;
+                    if (pair.Key.IsNew)
+                    {
+                        pair.Key.Enabled = true; // This is done so that OnEnable() is called
                         pair.Key.TryInvokeMethod("Start");
-                        pair.Key.isNew = false;
+                        pair.Key.IsNew = false;
                     }
                     try
                     {
+#if DEBUG
+                        Profiler.StartTimer(Profiler.TickType.Tick);
+#endif
+
                         pair.Value.Invoke();
+#if DEBUG
+                        Profiler.EndTimer(Profiler.TickType.Tick, pair.Key.GetType().FullName);
+#endif
+
                     }
                     catch (Exception e)
                     {
@@ -237,18 +296,23 @@ namespace SolidCode.Atlas.ECS
 
         public static void Dispose()
         {
-            foreach (Entity e in RootEntity.children)
+            foreach (Entity e in RootEntity.Children)
             {
                 if (e != null)
                 {
                     e.Destroy();
                 }
             }
+            // Force an update (so that OnRemove & OnDisable are called)
+            UpdateECS();
             _tickTasks.Clear();
             _tickMethods.Clear();
             _updateMethods.Clear();
             _dirtyEntities.Clear();
             _startMethods.Clear();
+            
+            _tickActions.Clear();
+            _updateActions.Clear();
         }
 
         public static void PrintHierarchy()
@@ -268,36 +332,36 @@ namespace SolidCode.Atlas.ECS
                 return ElementFromEntity("NULL ENTITY", new Component[0], new ECSElement[0]);
             }
             List<ECSElement> children = new List<ECSElement>();
-            for (int i = 0; i < e.children.Count; i++)
+            for (int i = 0; i < e.Children.Count; i++)
             {
-                children.Add(GetEntityECSElement(e.children[i]));
+                children.Add(GetEntityECSElement(e.Children[i]));
             }
             List<Component> components = new List<Component>();
-            for (int i = 0; i < e.components.Count; i++)
+            for (int i = 0; i < e.Components.Count; i++)
             {
-                components.Add(e.components[i]);
+                components.Add(e.Components[i]);
             }
-            return ElementFromEntity(e.name, components.ToArray(), children.ToArray());
+            return ElementFromEntity(e.Name, components.ToArray(), children.ToArray());
         }
 
         static void PrintEntity(Entity e, int layer)
         {
-            int children = e.children.Count;
-            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.name + " - (" + children + " children)");
+            int children = e.Children.Count;
+            Console.WriteLine(String.Concat(Enumerable.Repeat("   ", layer)) + e.Name + " - (" + children + " children)");
             for (int i = 0; i < children; i++)
             {
-                PrintEntity(e.children[i], layer + 1);
+                PrintEntity(e.Children[i], layer + 1);
             }
         }
 
         internal static ECSElement ElementFromEntity(string name, Component[] components, ECSElement[] children)
         {
-            List<ECSComponent> ecscomponents = new List<ECSComponent>();
+            List<ECSComponent> ecsComponents = new List<ECSComponent>();
             for (int i = 0; i < components.Length; i++)
             {
-                ecscomponents.Add(new ECSComponent(components[i]));
+                ecsComponents.Add(new ECSComponent(components[i]));
             }
-            return new ECSElement(name, ecscomponents.ToArray(), children);
+            return new ECSElement(name, ecsComponents.ToArray(), children);
         }
     }
 }

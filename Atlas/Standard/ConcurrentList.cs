@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace SolidCode.Atlas.Standard
 {
-    public class ManualConcurrentList<T> : ICollection<T>
+    public class ManualConcurrentList<T> : ICollection<T> where T : IComparable<T>
     {
         private List<T> list = new List<T>();
         private ConcurrentBag<T> toRemove = new ConcurrentBag<T>();
@@ -70,5 +70,33 @@ namespace SolidCode.Atlas.Standard
         {
             return list.GetEnumerator();
         }
+        
+        public void AddSorted(T item)
+        {
+            lock (this)
+            {
+                Update();
+                if (this.Count == 0)
+                {
+                    this.list.Add(item);
+                    return;
+                }
+                if (this.list[^1].CompareTo(item) <= 0)
+                {
+                    this.Add(item);
+                    return;
+                }
+                if (this.list[0].CompareTo(item) >= 0)
+                {
+                    this.list.Insert(0, item);
+                    return;
+                }
+                int index = this.list.BinarySearch(item);
+                if (index < 0)
+                    index = ~index;
+                this.list.Insert(index, item);
+            }
+        }
+
     }
 }

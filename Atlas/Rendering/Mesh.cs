@@ -4,13 +4,13 @@ namespace SolidCode.Atlas.Rendering
     public class Mesh<T> where T : struct
     {
         public T[] Vertices;
-        public ushort[] Indicies;
+        public ushort[] Indices;
         public VertexLayoutDescription VertexLayout;
 
-        public Mesh(T[] vertices, ushort[] indicies, VertexLayoutDescription vertexLayout)
+        public Mesh(T[] vertices, ushort[] indices, VertexLayoutDescription vertexLayout)
         {
             this.Vertices = vertices;
-            this.Indicies = indicies;
+            this.Indices = indices;
             this.VertexLayout = vertexLayout;
         }
 
@@ -18,7 +18,7 @@ namespace SolidCode.Atlas.Rendering
         {
 
             this.Vertices = (T[])mesh.Vertices.Clone();
-            this.Indicies = (ushort[])mesh.Indicies.Clone();
+            this.Indices = (ushort[])mesh.Indices.Clone();
             this.VertexLayout = mesh.VertexLayout;
         }
 
@@ -32,19 +32,19 @@ namespace SolidCode.Atlas.Rendering
             Vertices = z;
         }
 
-        public void AddIndicies(ushort[] indicies)
+        public void AddIndices(ushort[] indices)
         {
-            var a = (ushort[])Indicies.Clone();
-            var b = (ushort[])indicies.Clone();
+            var a = (ushort[])Indices.Clone();
+            var b = (ushort[])indices.Clone();
             var z = new ushort[a.Length + b.Length];
             a.CopyTo(z, 0);
             b.CopyTo(z, a.Length);
-            Indicies = z;
+            Indices = z;
         }
 
-        public void ClearIndicies()
+        public void ClearIndices()
         {
-            Indicies = new ushort[0];
+            Indices = new ushort[0];
         }
         public void ClearVertices()
         {

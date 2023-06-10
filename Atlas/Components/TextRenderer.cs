@@ -10,18 +10,18 @@ public class TextRenderer : RenderComponent
 {
     private TextDrawable? textDrawable;
     private string _text = "Hello World!";
-    public int Size = 100;
+    public float Size = 100f;
     public bool Centered = true;
     private Vector4 _color = new Vector4(1f, 1f, 1f, 1f);
-    private List<Font> _fonts = new List<Font>() { AssetManager.GetAsset<Font>("OpenSans-Regular") };
-    public List<Font> Fonts
+    private FontSet _fontSet = FontSet.GetDefault();
+    public FontSet Fonts
     {
-        get => _fonts;
+        get => _fontSet;
         set
         {
-            _fonts = value;
+            _fontSet = value;
             if (textDrawable != null)
-                textDrawable.UpdateFonts(_fonts.ToArray());
+                textDrawable.UpdateFontSet(_fontSet);
         }
     }
     public Vector4 Color
@@ -32,13 +32,13 @@ public class TextRenderer : RenderComponent
             {
                 return _color;
             }
-            return textDrawable.color;
+            return textDrawable.Color;
         }
         set
         {
             if (textDrawable != null)
             {
-                textDrawable.color = value;
+                textDrawable.Color = value;
             }
             else
             {
@@ -61,9 +61,15 @@ public class TextRenderer : RenderComponent
             }
         }
     }
+
+    public Vector2 Measure()
+    {
+        return _fontSet.MeasureString(Size, _text);
+    }
+    
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        textDrawable = new TextDrawable(Text, _fonts.ToArray(), Color, Centered, Size, entity.GetComponent<Transform>());
+        textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, Entity.GetComponent<Transform>(true));
         return new Drawable[] { textDrawable };
     }
 

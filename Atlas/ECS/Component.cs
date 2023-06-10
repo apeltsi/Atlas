@@ -5,9 +5,9 @@ namespace SolidCode.Atlas.ECS
 {
     public abstract class Component
     {
-        internal bool isNew = true;
+        internal bool IsNew = true;
         private bool _enabled = false;
-        public bool enabled
+        public bool Enabled
         {
             get
             {
@@ -33,18 +33,15 @@ namespace SolidCode.Atlas.ECS
 
         public void TryInvokeMethod(string method)
         {
-            try
-            {
-                this.GetType().GetMethod(method)?.Invoke(this, null);
-            }
-            catch (Exception _)
-            {
-
-            }
+            MethodInfo? methodToInvoke = this.GetType().GetMethod(method);
+            if (methodToInvoke == null) return;
+            
+            methodToInvoke.Invoke(this, null);
+            
         }
 
         [HideInInspector]
-        public Entity? entity;
+        public Entity? Entity;
 
         protected Component()
         {
@@ -53,11 +50,11 @@ namespace SolidCode.Atlas.ECS
 
             if (updateMethod != null)
             {
-                EntityComponentSystem.RegisterUpdateMethod(this, () => updateMethod.Invoke(this, null));
+                EntityComponentSystem.RegisterComponentUpdateMethod(this, () => updateMethod.Invoke(this, null));
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.RegisterTickMethod(this, () => tickMethod.Invoke(this, null));
+                EntityComponentSystem.RegisterComponentTickMethod(this, () => tickMethod.Invoke(this, null));
             }
         }
         internal void UnregisterMethods()
@@ -67,11 +64,11 @@ namespace SolidCode.Atlas.ECS
 
             if (updateMethod != null)
             {
-                EntityComponentSystem.UnregisterUpdateMethod(this);
+                EntityComponentSystem.UnregisterComponentUpdateMethod(this);
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.UnregisterTickMethod(this);
+                EntityComponentSystem.UnregisterComponentTickMethod(this);
             }
 
         }
