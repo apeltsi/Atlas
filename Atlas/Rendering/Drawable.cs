@@ -253,6 +253,12 @@ namespace SolidCode.Atlas.Rendering
 
         }
 
+        public void UpdateMesh(Mesh<T> mesh)
+        {
+            _mesh = mesh;
+            UpdateMeshBuffers();
+        }
+        
         public override void UpdateMeshBuffers()
         {
             if (vertexBuffer.SizeInBytes != (uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>())
