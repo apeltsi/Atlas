@@ -43,16 +43,14 @@ namespace SolidCode.Atlas
 
         static Window? _w;
         static bool _doTick = true;
-
-        public static void InitializeLogging(DebuggingMode mode = DebuggingMode.Auto)
+        internal static void InitializeLogging(DebuggingMode mode = DebuggingMode.Auto)
         {
             if(mode != DebuggingMode.Disabled)
-                Telescope.Debug.UseMultiProcessDebugging(Version);
+                Telescope.Debug.UseMultiProcessDebugging(Atlas.Version);
             Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
         }
-
         private static void ShowWindow()
         {
             Window.MoveToFront();
@@ -76,6 +74,7 @@ namespace SolidCode.Atlas
 
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
+            Debug.CheckLog();
             #if Windows
             ForceHighPerformance.InitializeDedicatedGraphics();
             #endif
