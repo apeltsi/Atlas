@@ -127,14 +127,10 @@ namespace SolidCode.Atlas.Rendering
         protected ResourceLayout? _uniformResourceLayout;
         protected PrimitiveTopology _topology;
 
-        [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor.")]
+        [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in DrawableOptions instead.")]
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
-            Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
-            if (shader == null)
-            {
-                Debug.Error("Drawable shader is null! Path: " + shaderPath);
-            }
+            this._shaders = AssetManager.GetAsset<Shader>(shaderPath).Shaders;
 
             if (mesh != null)
                 this._mesh = mesh;

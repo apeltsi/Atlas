@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 using Veldrid;
@@ -74,7 +75,20 @@ public class InstancedSpriteRenderer : SpriteRenderer
         List<Rendering.Texture> textures = new List<Rendering.Texture>();
         textures.Add(this.Sprite);
         Drawable[] ret = new Drawable[1];
-        drawable = new InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>("instanced-sprite/shader", mesh, Entity.GetComponent<Transform>(true), _data, desc, new ColorUniform(Color), ShaderStages.Fragment, textures);
+        InstancedDrawableOptions<VertexPositionUV, ColorUniform, InstanceData> options = new ()
+        {
+            Shader = AssetManager.GetShader("instanced-sprite/shader"),
+            Sampler = sampler,
+            Textures = textures,
+            Mesh = mesh,
+            Transform = Entity.GetComponent<Transform>(true),
+            Uniform = new ColorUniform(Color),
+            UniformShaderStages = ShaderStages.Fragment,
+            InstancedData =  _data,
+            InstanceLayoutDescription = desc
+        };
+
+        drawable = new InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>(options);
         ret[0] = drawable;
         return ret;
     }

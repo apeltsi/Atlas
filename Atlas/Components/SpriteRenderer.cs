@@ -58,7 +58,17 @@ public class SpriteRenderer : RenderComponent
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         List<SolidCode.Atlas.Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
         textures.Add(Sprite);
-        drawable = new Drawable<VertexPositionUV, ColorUniform>(_graphicsDevice, "sprite/shader", mesh, Entity.GetComponent<Transform>(true), new ColorUniform(Color), ShaderStages.Fragment, textures, ShaderStages.Vertex, sampler);
+        DrawableOptions<VertexPositionUV, ColorUniform> options = new ()
+        {
+            Shader = AssetManager.GetShader("sprite/shader"),
+            Sampler = sampler,
+            Textures = textures,
+            Mesh = mesh,
+            Transform = Entity.GetComponent<Transform>(true),
+            Uniform = new ColorUniform(Color),
+            UniformShaderStages = ShaderStages.Fragment
+        };
+        drawable = new Drawable<VertexPositionUV, ColorUniform>(options);
         List<Drawable> drawables = new List<Drawable>();
         drawables.Add(drawable);
         return drawables.ToArray();
