@@ -23,7 +23,7 @@ namespace SolidCode.Atlas.Rendering
         public Transform transform;
 
 
-        public virtual void CreateResources(GraphicsDevice _graphicsDevice)
+        public virtual void CreateResources()
         {
         }
 
@@ -95,14 +95,28 @@ namespace SolidCode.Atlas.Rendering
     }
 
 
-
-    public class Drawable<T, Uniform> : Drawable
-    where T : unmanaged
-    where Uniform : unmanaged
+    public struct DrawableOptions<T, TUniform>
+        where T : unmanaged
+        where TUniform : unmanaged
     {
-        protected string _shader;
+        public Shader Shader; 
+        public Mesh<T> Mesh;
+        public Transform Transform; 
+        public TUniform Uniform; 
+        public ShaderStages? UniformShaderStages;
+        public List<Texture>? Textures;
+        public ShaderStages? TransformShaderStages;
+        public Sampler? Sampler;
+        public PrimitiveTopology? Topology;
+    }
+    
+
+    public class Drawable<T, TUniform> : Drawable
+    where T : unmanaged
+    where TUniform : unmanaged
+    {
         protected Mesh<T> _mesh;
-        protected Uniform textUniform;
+        protected TUniform drawableUniform;
         protected Dictionary<string, DeviceBuffer> _uniformBuffers = new Dictionary<string, DeviceBuffer>();
         protected Dictionary<string, TextureView> _textures = new Dictionary<string, TextureView>();
         protected List<Texture> _textureAssets = new List<Texture>();
@@ -113,9 +127,15 @@ namespace SolidCode.Atlas.Rendering
         protected ResourceLayout? _uniformResourceLayout;
         protected PrimitiveTopology _topology;
 
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, Uniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
+        [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor.")]
+        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
-            this._shader = shaderPath;
+            Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
+            if (shader == null)
+            {
+                Debug.Error("Drawable shader is null! Path: " + shaderPath);
+            }
+
             if (mesh != null)
                 this._mesh = mesh;
             else
@@ -127,7 +147,7 @@ namespace SolidCode.Atlas.Rendering
 
             _topology = topology;
             this.transform = t;
-            this.textUniform = textUniform;
+            this.drawableUniform = drawableUniform;
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
             if (textures == null)
@@ -138,33 +158,48 @@ namespace SolidCode.Atlas.Rendering
             this._textureAssets = textures;
             this.sampler = sampler;
             if (mesh != null)
-                CreateResources(_graphicsDevice, shaderPath);
-        }
-        public override void CreateResources(GraphicsDevice _graphicsDevice)
-        {
-            CreateResources(_graphicsDevice, _shader);
+                CreateResources();
         }
 
-        protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
+        public Drawable(DrawableOptions<T, TUniform> o)
         {
+            this._shaders = o.Shader.Shaders;
+            this._mesh = o.Mesh ?? new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
+            if (o.Transform == null)
+            {
+                Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
+            }
+
+            _topology = o.Topology ?? PrimitiveTopology.TriangleStrip;
+            this.transform = o.Transform;
+            this.drawableUniform = o.Uniform;
+            this.uniformShaderStages = o.UniformShaderStages ?? ShaderStages.Vertex | ShaderStages.Fragment;
+            this.transformShaderStages = o.TransformShaderStages ?? ShaderStages.Vertex;
+            
+            
+            this._textureAssets = o.Textures ?? new List<Texture>();
+            this.sampler = sampler;
+            CreateResources();
+        }
+
+        
+
+        public override void CreateResources()
+        {
+            GraphicsDevice _graphicsDevice = Renderer.GraphicsDevice;
             // Make sure our transform knows us
             if (this.transform != null)
                 this.transform.RegisterDrawable(this);
 
-            Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
-            if (shader == null)
-            {
-                Debug.Error("Drawable shader is null! Path: " + shaderPath);
-            }
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
 
             // Uniform
-            _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(textUniform), BufferUsage.UniformBuffer)));
+            _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(drawableUniform), BufferUsage.UniformBuffer)));
 
-            _graphicsDevice.UpdateBuffer<Uniform>(_uniformBuffers["Default Uniform"], 0, textUniform);
+            _graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
 
 
             _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
@@ -179,9 +214,7 @@ namespace SolidCode.Atlas.Rendering
 
 
             VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
-
-            _shaders = shader.Shaders;
-
+            
             GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
             pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
             ResourceLayoutElementDescription[] elementDescriptions = new ResourceLayoutElementDescription[2 + _textures.Count];
@@ -274,7 +307,7 @@ namespace SolidCode.Atlas.Rendering
         {
             _textureAssets[index] = texture;
             SoftDispose();
-            CreateResources(Renderer.GraphicsDevice);
+            CreateResources();
         }
 
         public override void Draw(CommandList cl)

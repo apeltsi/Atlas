@@ -48,7 +48,7 @@ namespace SolidCode.Atlas.Rendering
             this._size = size;
             this._centered = centered;
             this.Color = color;
-            CreateResources(Renderer.GraphicsDevice);
+            CreateResources();
         }
 
         public void UpdateText(string text, float size)
@@ -61,7 +61,7 @@ namespace SolidCode.Atlas.Rendering
             dirty = true;
         }
 
-        public override void CreateResources(GraphicsDevice _graphicsDevice)
+        public override void CreateResources()
         {
             _renderer = new FontRenderer(Renderer.GraphicsDevice, this.Color, transform, new TextUniform(),  ShaderStages.Vertex | ShaderStages.Fragment, this._fontSet.TextureManager);
             if (_centered)
@@ -86,7 +86,7 @@ namespace SolidCode.Atlas.Rendering
         {
             Dispose();
             this._fontSet = set;
-            CreateResources(Renderer.GraphicsDevice);
+            CreateResources();
         }
 
         public override void Dispose()
@@ -171,7 +171,7 @@ namespace SolidCode.Atlas.Rendering
         float HorizontalOffset = 0f;
         DeviceBuffer colorBuffer;
         public Vector4 Color = new Vector4(1, 1, 1, 1f);
-        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, TextUniform textUniform, ShaderStages uniformShaderStages, FontTextureManager textureManager, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, textUniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
+        public FontRenderer(GraphicsDevice _graphicsDevice, Vector4 Color, Transform t, TextUniform drawableUniform, ShaderStages uniformShaderStages, FontTextureManager textureManager, ShaderStages transformShaderStages = ShaderStages.Vertex) : base(_graphicsDevice, "text", null, t, drawableUniform, uniformShaderStages, new List<Texture>(), transformShaderStages)
         {
             var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
@@ -181,7 +181,7 @@ namespace SolidCode.Atlas.Rendering
             this._mesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.virtualMesh = new Mesh<VertexPositionColorTexture>(new VertexPositionColorTexture[0], new ushort[0], layout);
             this.transform = t;
-            this.textUniform = textUniform;
+            this.drawableUniform = drawableUniform;
             this.uniformShaderStages = uniformShaderStages;
             this.transformShaderStages = transformShaderStages;
             this.Color = Color;

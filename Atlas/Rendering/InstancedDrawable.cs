@@ -65,9 +65,9 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
     }
 
-    public override void CreateResources(GraphicsDevice _graphicsDevice)
+    public override void CreateResources()
     {
-        CreateResources(_graphicsDevice, _shader);
+        CreateResources(Renderer.GraphicsDevice, _shader);
     }
 
     protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
@@ -228,7 +228,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     {
         _textureAssets[index] = texture;
         SoftDispose();
-        CreateResources(Renderer.GraphicsDevice);
+        CreateResources();
     }
 
     private bool _instancesDirty = false;
