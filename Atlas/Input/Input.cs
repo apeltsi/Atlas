@@ -293,6 +293,7 @@ namespace SolidCode.Atlas.Input
                     value += contribution;
                 }
             }
+            
             return Math.Clamp(value, -1f, 1f);
         }
     }
@@ -325,7 +326,21 @@ namespace SolidCode.Atlas.Input
                     value += contribution;
                 }
             }
-            return Vector2.Normalize(value);
+
+            Vector2 val = Vector2.Normalize(value);
+
+            // Remove any NANs
+            if (float.IsNaN(val.X))
+            {
+                val.X = 0;
+            }
+
+            if (float.IsNaN(val.Y))
+            {
+                val.Y = 0;
+            }
+            
+            return val;
         }
     }
 }

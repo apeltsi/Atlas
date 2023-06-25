@@ -10,6 +10,7 @@ internal static class ForceHighPerformance
 
     internal static void InitializeDedicatedGraphics()
     {
+        // On hybrid nvidia systems, this will force the dedicated graphics card to be used
         try
         {
             if (Environment.Is64BitProcess)

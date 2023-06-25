@@ -9,7 +9,6 @@ public class Basic
     [Fact]
     public void Start()
     {
-        Atlas.InitializeLogging(DebuggingMode.Disabled);
         Atlas.StartCoreFeatures("Atlas Start Test");
 
         Entity e = new Entity("Test entity");
@@ -19,7 +18,6 @@ public class Basic
     [Fact]
     public void TestConfirm()
     {
-        Atlas.InitializeLogging(DebuggingMode.Disabled);
         Atlas.StartCoreFeatures("Atlas Manual Confirm Test");
 
         Entity e = new Entity("Test entity");
