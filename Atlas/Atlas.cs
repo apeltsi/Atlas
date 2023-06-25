@@ -43,7 +43,15 @@ namespace SolidCode.Atlas
 
         static Window? _w;
         static bool _doTick = true;
-        internal static void InitializeLogging(DebuggingMode mode = DebuggingMode.Auto)
+        private static DebuggingMode mode = DebuggingMode.Auto;
+
+        public static void DisableMultiProcessDebugging()
+        {
+            if (Debug.LogsInitialized)
+                throw new NotSupportedException("Multi-Process Debugging can only be disabled before any logs have been printed.");
+            mode = DebuggingMode.Disabled;
+        }
+        internal static void InitializeLogging()
         {
             if(mode != DebuggingMode.Disabled)
                 Telescope.Debug.UseMultiProcessDebugging(Atlas.Version);

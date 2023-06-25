@@ -2,12 +2,12 @@ namespace SolidCode.Atlas
 {
     public static class Debug
     {
-        private static bool _initialized = false;
+        internal static bool LogsInitialized { get; private set; } = false;
         internal static void CheckLog()
         {
-            if (!_initialized)
+            if (!LogsInitialized)
             {
-                _initialized = true;
+                LogsInitialized = true;
                 Atlas.InitializeLogging();
             }
         }

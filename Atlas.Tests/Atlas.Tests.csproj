@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Atlas.Extras\Atlas.Extras.csproj" />
     <ProjectReference Include="..\Atlas\Atlas.csproj" />
   </ItemGroup>
 
