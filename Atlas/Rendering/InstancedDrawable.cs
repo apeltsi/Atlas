@@ -7,6 +7,23 @@ using Veldrid;
 
 namespace SolidCode.Atlas.Rendering;
 
+public struct InstancedDrawableOptions<T, TUniform, TInstanceData>
+    where T : unmanaged
+    where TUniform : unmanaged
+{
+    public Shader Shader; 
+    public Mesh<T> Mesh;
+    public Transform Transform; 
+    public TUniform Uniform; 
+    public ShaderStages? UniformShaderStages;
+    public List<Texture>? Textures;
+    public ShaderStages? TransformShaderStages;
+    public Sampler? Sampler;
+    public PrimitiveTopology? Topology;
+    public TInstanceData[] InstancedData;
+    public VertexLayoutDescription InstanceLayoutDescription;
+}
+
 public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     where T : unmanaged
     where TUniform : unmanaged
@@ -14,7 +31,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 {
     protected string _shader;
     protected Mesh<T> _mesh;
-    protected TUniform textUniform;
+    protected TUniform drawableUniform;
     protected Dictionary<string, DeviceBuffer> _uniformBuffers = new ();
     protected Dictionary<string, TextureView> _textures = new ();
     protected List<Texture> _textureAssets = new ();
@@ -26,14 +43,18 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     protected DeviceBuffer _instanceVB;
     protected TInstanceData[] _instanceData;
     protected ResourceLayout? _uniformResourceLayout;
+    protected PrimitiveTopology _topology;
 
+    [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in InstancedDrawableOptions instead.")]
     public InstancedDrawable(string shaderPath, Mesh<T> mesh, Transform t, TInstanceData[] instanceData,VertexLayoutDescription instanceLayoutDesc,
-        TUniform textUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null,
+        TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null,
         ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
     {
-        this._shader = shaderPath;
+        this._shaders = AssetManager.GetShader(shaderPath).Shaders;
         this.instanceLayoutDescription = instanceLayoutDesc;
         this._instanceData = instanceData;
+        this._instanceCount = (uint)instanceData.Length;
+
         if (mesh != null)
             this._mesh = mesh;
         else
@@ -44,39 +65,55 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         }
 
         this.transform = t;
-        this.textUniform = textUniform;
+        this.drawableUniform = drawableUniform;
         this.uniformShaderStages = uniformShaderStages;
         this.transformShaderStages = transformShaderStages;
         if (textures == null)
         {
             textures = new List<Texture>();
         }
+        
+        this._textureAssets = textures;
+        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
+        if (mesh != null)
+            CreateResources();
 
-        if (sampler == null)
+    }
+    
+    public InstancedDrawable(InstancedDrawableOptions<T, TUniform, TInstanceData> o)
+    {
+        this.instanceLayoutDescription = o.InstanceLayoutDescription;
+        this._instanceData = o.InstancedData;
+        this._instanceCount = (uint)o.InstancedData.Length;
+
+        
+        this._shaders = o.Shader.Shaders;
+        this._mesh = o.Mesh ?? new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
+        if (o.Transform == null)
         {
-            sampler = Renderer.GraphicsDevice.LinearSampler;
+            Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
         }
 
-        this._textureAssets = textures;
-        this.sampler = sampler;
-        this._instanceCount = (uint)instanceData.Length;
-        if (mesh != null)
-            CreateResources(Renderer.GraphicsDevice, shaderPath);
-
+        _topology = o.Topology ?? PrimitiveTopology.TriangleStrip;
+        this.transform = o.Transform;
+        this.drawableUniform = o.Uniform;
+        this.uniformShaderStages = o.UniformShaderStages ?? ShaderStages.Vertex | ShaderStages.Fragment;
+        this.transformShaderStages = o.TransformShaderStages ?? ShaderStages.Vertex;
+            
+            
+        this._textureAssets = o.Textures ?? new List<Texture>();
+        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
+        CreateResources();
     }
 
-    public override void CreateResources(GraphicsDevice _graphicsDevice)
+    
+    public void CreateResources()
     {
-        CreateResources(_graphicsDevice, _shader);
-    }
-
-    protected void CreateResources(GraphicsDevice _graphicsDevice, string shaderPath)
-    {
+        GraphicsDevice _graphicsDevice = Renderer.GraphicsDevice;
         // Make sure our transform knows us
         if (this.transform != null)
             this.transform.RegisterDrawable(this);
 
-        Shader shader = AssetManager.GetAsset<Shader>(shaderPath);
         ResourceFactory factory = _graphicsDevice.ResourceFactory;
         vertexBuffer =
             factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(),
@@ -90,9 +127,9 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         
         // Uniform
         _uniformBuffers.Add("Default Uniform",
-            factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(textUniform), BufferUsage.UniformBuffer)));
+            factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(drawableUniform), BufferUsage.UniformBuffer)));
 
-        _graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, textUniform);
+        _graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
 
 
         _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
@@ -109,7 +146,6 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
         VertexLayoutDescription vertexLayout = _mesh.VertexLayout;
 
-        _shaders = shader.Shaders;
 
         GraphicsPipelineDescription pipelineDescription = new GraphicsPipelineDescription();
         pipelineDescription.BlendState = BlendStateDescription.SingleAlphaBlend;
@@ -165,7 +201,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             depthClipEnabled: false,
             scissorTestEnabled: false);
 
-        pipelineDescription.PrimitiveTopology = PrimitiveTopology.TriangleStrip;
+        pipelineDescription.PrimitiveTopology = _topology;
         pipelineDescription.ResourceLayouts = System.Array.Empty<ResourceLayout>();
         pipelineDescription.ShaderSet = new ShaderSetDescription(
             vertexLayouts: new VertexLayoutDescription[] { vertexLayout, instanceLayoutDescription },
@@ -228,7 +264,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     {
         _textureAssets[index] = texture;
         SoftDispose();
-        CreateResources(Renderer.GraphicsDevice);
+        CreateResources();
     }
 
     private bool _instancesDirty = false;

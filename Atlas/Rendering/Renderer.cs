@@ -263,7 +263,7 @@ public static class Renderer
             foreach (var d in layer.Value)
             {
                 d.Dispose();
-                d.CreateResources(GraphicsDevice);
+                d.CreateResources();
             }
         }
 

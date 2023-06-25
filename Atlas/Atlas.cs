@@ -35,7 +35,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.1";
+        public const string Version = "iced-coffee@1.0-pre.2";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
@@ -43,16 +43,22 @@ namespace SolidCode.Atlas
 
         static Window? _w;
         static bool _doTick = true;
+        private static DebuggingMode mode = DebuggingMode.Auto;
 
-        public static void InitializeLogging(DebuggingMode mode = DebuggingMode.Auto)
+        public static void DisableMultiProcessDebugging()
+        {
+            if (Debug.LogsInitialized && mode == DebuggingMode.Auto)
+                throw new NotSupportedException("Multi-Process Debugging can only be disabled before any logs have been printed.");
+            mode = DebuggingMode.Disabled;
+        }
+        internal static void InitializeLogging()
         {
             if(mode != DebuggingMode.Disabled)
-                Telescope.Debug.UseMultiProcessDebugging(Version);
+                Telescope.Debug.UseMultiProcessDebugging(Atlas.Version);
             Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
         }
-
         private static void ShowWindow()
         {
             Window.MoveToFront();
@@ -76,6 +82,7 @@ namespace SolidCode.Atlas
 
         public static void StartCoreFeatures(string windowTitle, SDL_WindowFlags flags = 0)
         {
+            Debug.CheckLog();
             #if Windows
             ForceHighPerformance.InitializeDedicatedGraphics();
             #endif
