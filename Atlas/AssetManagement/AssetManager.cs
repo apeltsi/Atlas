@@ -45,6 +45,16 @@ namespace SolidCode.Atlas.AssetManagement
             return GetAsset<AudioTrack>(path, tryLoad);
         }
         /// <summary>
+        /// Shorthand for GetAsset&lt;Shader>(path, tryLoad)
+        /// </summary>
+        /// <param name="path">The path (excluding the extension) of the asset</param>
+        /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
+        /// <returns>The <c>Shader</c></returns>
+        public static Shader? GetShader(string path, bool tryLoad = true)
+        {
+            return GetAsset<Shader>(path, tryLoad);
+        }
+        /// <summary>
         /// Loads an asset into memory and returns it or alternatively if it's already loaded it will return the loaded asset.
         /// </summary>
         /// <param name="path">The path (excluding the extension) of the asset</param>
