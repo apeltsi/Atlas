@@ -35,7 +35,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.1";
+        public const string Version = "iced-coffee@1.0-pre.2";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
