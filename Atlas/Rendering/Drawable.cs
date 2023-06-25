@@ -130,7 +130,7 @@ namespace SolidCode.Atlas.Rendering
         [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in DrawableOptions instead.")]
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
-            this._shaders = AssetManager.GetAsset<Shader>(shaderPath).Shaders;
+            this._shaders = AssetManager.GetShader(shaderPath).Shaders;
 
             if (mesh != null)
                 this._mesh = mesh;

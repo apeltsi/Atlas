@@ -73,7 +73,7 @@ public class ShaderPass<TUniform> : ShaderPass
         GraphicsDevice graphicsDevice = Renderer.GraphicsDevice;
         
         // Get the shader
-        Shader shader = AssetManager.GetAsset<Shader>(_shaderName);
+        Shader shader = AssetManager.GetShader(_shaderName);
         // Get the resource factory
         ResourceFactory factory = Renderer.GraphicsDevice.ResourceFactory;
 

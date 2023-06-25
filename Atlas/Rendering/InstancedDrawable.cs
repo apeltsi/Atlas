@@ -50,7 +50,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null,
         ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
     {
-        this._shaders = AssetManager.GetAsset<Shader>(shaderPath).Shaders;
+        this._shaders = AssetManager.GetShader(shaderPath).Shaders;
         this.instanceLayoutDescription = instanceLayoutDesc;
         this._instanceData = instanceData;
         this._instanceCount = (uint)instanceData.Length;
@@ -72,14 +72,9 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         {
             textures = new List<Texture>();
         }
-
-        if (sampler == null)
-        {
-            sampler = Renderer.GraphicsDevice.LinearSampler;
-        }
-
+        
         this._textureAssets = textures;
-        this.sampler = sampler;
+        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
         if (mesh != null)
             CreateResources();
 
@@ -107,7 +102,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             
             
         this._textureAssets = o.Textures ?? new List<Texture>();
-        this.sampler = sampler;
+        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
         CreateResources();
     }
 

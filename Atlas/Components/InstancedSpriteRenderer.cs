@@ -84,8 +84,9 @@ public class InstancedSpriteRenderer : SpriteRenderer
             Transform = Entity.GetComponent<Transform>(true),
             Uniform = new ColorUniform(Color),
             UniformShaderStages = ShaderStages.Fragment,
-            InstancedData =  _data,
-            InstanceLayoutDescription = desc
+            InstancedData = _data,
+            InstanceLayoutDescription = desc,
+
         };
 
         drawable = new InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>(options);

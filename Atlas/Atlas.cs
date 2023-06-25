@@ -47,7 +47,7 @@ namespace SolidCode.Atlas
 
         public static void DisableMultiProcessDebugging()
         {
-            if (Debug.LogsInitialized)
+            if (Debug.LogsInitialized && mode == DebuggingMode.Auto)
                 throw new NotSupportedException("Multi-Process Debugging can only be disabled before any logs have been printed.");
             mode = DebuggingMode.Disabled;
         }

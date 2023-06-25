@@ -217,7 +217,7 @@ namespace SolidCode.Atlas.Rendering
 
         protected void CreateResources(GraphicsDevice _graphicsDevice, Veldrid.Texture texture)
         {
-            Shader shader = AssetManagement.AssetManager.GetAsset<Shader>("text");
+            Shader shader = AssetManagement.AssetManager.GetShader("text");
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
