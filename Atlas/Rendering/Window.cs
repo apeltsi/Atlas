@@ -333,6 +333,7 @@ namespace SolidCode.Atlas.Rendering
                 Time.time = Atlas.ecsStopwatch.Elapsed.TotalSeconds;
 
                 _frameTimes += (float)Time.deltaTime;
+                _frames++;
                 if (_frames >= 60)
                 {
                     _frames = 0;
@@ -340,7 +341,6 @@ namespace SolidCode.Atlas.Rendering
                     _frameTimes = 0f;
                 }
 
-                _frames++;
 
                 watch = System.Diagnostics.Stopwatch.StartNew();
 #if DEBUG

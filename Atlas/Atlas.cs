@@ -35,7 +35,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.2";
+        public const string Version = "iced-coffee@1.0-pre.3";
         public static int TickFrequency = 100;
         public static Timer? timer;
         internal static System.Diagnostics.Stopwatch? primaryStopwatch { get; private set; }
@@ -156,10 +156,10 @@ namespace SolidCode.Atlas
                 updateDuration.Stop();
                 if (TickFrequency == 0)
                     continue;
-                long delay = (1000 / TickFrequency - updateDuration.ElapsedMilliseconds);
+                int delay = (1000 / TickFrequency - (int)Math.Ceiling(updateDuration.Elapsed.TotalMilliseconds));
                 if (delay > 0)
                 {
-                    await Task.Delay((int)delay);
+                    Thread.Sleep(delay);
                 }
             }
         }
@@ -171,6 +171,8 @@ namespace SolidCode.Atlas
 
         private static readonly System.Diagnostics.Stopwatch TickCounterStopwatch = new System.Diagnostics.Stopwatch();
         private static readonly System.Diagnostics.Stopwatch TickDeltaStopwatch = new System.Diagnostics.Stopwatch();
+
+        private static int lastDataUpdate = 0;
         static void RunTick()
         {
             TickDeltaStopwatch.Stop();
@@ -207,7 +209,12 @@ namespace SolidCode.Atlas
             
             EntityComponentSystem.Tick();
 #if DEBUG
-            Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate), "TPS: " + Atlas.TicksPerSecond, "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", Version }, EntityComponentSystem.GetECSHierarchy());
+            lastDataUpdate++;
+            if (lastDataUpdate > 50)
+            {
+                lastDataUpdate = 0;
+                Telescope.Debug.LiveData = new LiveData(new [] { "FPS: " + Math.Round(Window.AverageFramerate) + "/" + (Window.MaxFramerate == 0 ? "VSYNC" : Window.MaxFramerate), "TPS: " + Atlas.TicksPerSecond + "/" + Atlas.TickFrequency, "Runtime: " + Atlas.GetTotalUptime().ToString("0.0") + "s", Version }, EntityComponentSystem.GetECSHierarchy());
+            }
             Profiler.SubmitTimes(Profiler.TickType.Tick);
 #endif
             TickScheduler.FreeThreads();
