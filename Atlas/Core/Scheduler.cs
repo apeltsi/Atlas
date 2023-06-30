@@ -3,6 +3,15 @@ namespace SolidCode.Atlas
 
     public static class TickScheduler
     {
+        private static bool _disableScheduling = false;
+        public static bool DisableScheduling 
+        {
+            get => _disableScheduling;
+            set {
+                Debug.Warning("Disabling the TickScheduler will likely lead to stability issues");
+                _disableScheduling = value;
+            }
+        }
         private static object runningLock = new Object();
         private static bool isRunning = false;
         public static PriorityQueue<Task, int> tickQueue = new PriorityQueue<Task, int>();
@@ -11,7 +20,7 @@ namespace SolidCode.Atlas
             Task t = new Task(TaskAction);
             lock (runningLock)
             {
-                if (isRunning)
+                if (isRunning && !DisableScheduling)
                 {
                     tickQueue.Enqueue(t, priority);
                 }
