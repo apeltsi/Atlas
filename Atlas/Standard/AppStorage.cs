@@ -1,4 +1,6 @@
-﻿namespace SolidCode.Atlas.Standard;
+﻿using System.Reflection;
+
+namespace SolidCode.Atlas.Standard;
 
 public static class AppStorage
 {
@@ -15,13 +17,21 @@ public static class AppStorage
         }
     } 
     private static bool isInitialized = false;
+    /// <summary>
+    /// Added between the AppData folder and the application name
+    /// <para />
+    /// So: AppData/Roaming/[PathPrefix]/[AppName]/[Path]
+    /// <para />
+    /// Defaults to "Atlas Framework"
+    /// </summary>
+    public static string PathPrefix = "Atlas Framework";
     private static void Initialize()
     {
         if (!isInitialized)
         {
-            var appName = System.Reflection.Assembly.GetEntryAssembly().FullName;
+            var appName = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
             var path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            path = Path.Combine(path, appName);
+            path = Path.Combine(path, PathPrefix, appName);
             _dataPath = path;
             isInitialized = true;
         }
