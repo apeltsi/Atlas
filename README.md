@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="500" height="500" src="https://solidcodegames.com/assets/Atlas-Logo.png" alt="Atlas Logo">
+  <img width="612" height="459" src="https://solidcodegames.com/assets/Atlas-Feature-Small.png" alt="Atlas Logo">
 </p>
 
 # Atlas
