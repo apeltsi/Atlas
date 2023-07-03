@@ -1,6 +1,3 @@
-![Work In Progress](https://github.com/apeltsi/Atlas/assets/49206921/7de57250-9913-40dc-bfa7-f38cfe40c2db)
-
-
 <p align="center">
   <img width="500" height="500" src="https://solidcodegames.com/assets/Atlas-Logo.png" alt="Atlas Logo">
 </p>
@@ -13,6 +10,10 @@ Atlas is a 2D game framework with the goal of being flexible,
 cross-platform, performant and developer friendly. The framework has a
 syntax similar to Unity and uses C# as its primary language, making it
 easy to learn for developers already familiar with Unity.
+
+## Getting Started
+
+[Check out the Getting Started Tutorial](https://github.com/apeltsi/Atlas/wiki/Getting-Started)
 
 ## IMPORTANT!
 
