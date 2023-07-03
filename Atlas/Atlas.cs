@@ -7,7 +7,6 @@ namespace SolidCode.Atlas
     using System.Timers;
     using SolidCode.Atlas.Rendering;
     using SolidCode.Atlas.ECS;
-    using SolidCode.Atlas.Components;
     using Veldrid.Sdl2;
     using SolidCode.Atlas.AssetManagement;
     using SolidCode.Atlas.Audio;
@@ -35,7 +34,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.4";
+        public const string Version = "iced-coffee@1.0-pre.5";
         private static Timer? _timer;
         internal static System.Diagnostics.Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
