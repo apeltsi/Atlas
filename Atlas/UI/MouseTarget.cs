@@ -6,14 +6,14 @@ namespace SolidCode.Atlas.UI;
 
 public class MouseTarget : Component
 {
-    private static double _lastCalc = 0.0;
+    private static double _lastCalc;
     private static Entity? _currentTarget;
     private static List<Entity> _currentTargets = new();
     public static Entity? CurrentTarget
     {
         get
         {
-            if (_lastCalc != Time.time)
+            if (_lastCalc.Equals(Time.time))
             {
                 CalculateTarget();
                 _lastCalc = Time.time;

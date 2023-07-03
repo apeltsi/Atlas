@@ -10,8 +10,8 @@ public class RelativeVector
     public bool XRelative;
     public bool YRelative;
     public RelativeVector? Parent;
-    private double cacheTime;
-    private Vector2 cachedValue;
+    private double _cacheTime;
+    private Vector2 _cachedValue;
     /// <param name="x">The X value</param>
     /// <param name="y">The Y value</param>
     public RelativeVector(float x, float y)
@@ -33,18 +33,18 @@ public class RelativeVector
 
     public Vector2 Evaluate()
     {
-        if (Time.time == cacheTime)
-            return cachedValue;
+        if (Time.time.Equals(_cacheTime))
+            return _cachedValue;
         Vector2 parentEval = Renderer.UnitScale;
         if (Parent != null)
         {
             parentEval = Parent.Evaluate();
         }
         Vector2 ret = new Vector2(XRelative ? parentEval.X * X : X, YRelative ? parentEval.Y * Y : Y);
-        if (Time.time != cacheTime)
+        if (!Time.time.Equals(_cacheTime))
         {
-            cacheTime = Time.time;
-            cachedValue = ret;
+            _cacheTime = Time.time;
+            _cachedValue = ret;
         }
         return ret;
     }

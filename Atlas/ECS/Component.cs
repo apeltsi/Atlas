@@ -54,7 +54,26 @@ namespace SolidCode.Atlas.ECS
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.RegisterComponentTickMethod(this, () => tickMethod.Invoke(this, null));
+                // We'll find our tick methods by looking for methods ending in "Tick"
+                // as these are prime candidates, if the ECS has a tick thread with that name. Then we'll add it.
+                // We'll also check if a tick by the name of "Tick()" exists, and add it to the Main tick thread
+
+                foreach (var m in this.GetType().GetMethods())
+                {
+                    if (m.Name.EndsWith("Tick"))
+                    {
+                        if (m.Name == "Tick")
+                        {
+                            EntityComponentSystem.RegisterComponentTickMethod(this, () => m.Invoke(this, null), "Main");
+                        }
+                        else
+                        {
+                            string tickName = m.Name.Substring(0, m.Name.Length - 4);
+                            EntityComponentSystem.RegisterComponentTickMethod(this, () => m.Invoke(this, null), tickName);
+                        }
+                    }
+                }
+                
             }
         }
         internal void UnregisterMethods()
@@ -68,7 +87,23 @@ namespace SolidCode.Atlas.ECS
             }
             if (tickMethod != null)
             {
-                EntityComponentSystem.UnregisterComponentTickMethod(this);
+                foreach (var m in this.GetType().GetMethods())
+                {
+                    if (m.Name.EndsWith("Tick"))
+                    {
+                        if (m.Name == "Tick")
+                        {
+                            EntityComponentSystem.UnregisterComponentTickMethod(this, "Main");
+                        }
+                        else
+                        {
+                            string tickName = m.Name.Substring(0, m.Name.Length - 4);
+                            EntityComponentSystem.UnregisterComponentTickMethod(this, tickName);
+                        }
+                    }
+                }
+
+                
             }
 
         }
