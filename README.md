@@ -20,6 +20,16 @@ easy to learn for developers already familiar with Unity.
 Atlas is still quite early in development and is very much subject to change.
 There is also still a lot of polish needed before Atlas is ready to be used for bigger projects. 
 
+## Quick Feature Rundown
+
+- Similar coding experience to Unity
+- Rendering with Vulkan or Direct3D11
+- Audio With OpenAL
+- Input with Mouse & Keyboard or Gamepad
+- Support for HLSL or GLSL Shaders
+- Multithreading
+- Windows & Linux support (Tested on SteamDeck) 
+
 ## Portability
 
 Atlas uses the .NET framework, this together with its support for the Direct3D11 and Vulkan backends makes it compatible with Linux & Windows. 
