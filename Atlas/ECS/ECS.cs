@@ -20,14 +20,13 @@ namespace SolidCode.Atlas.ECS
 
 
         private static ConcurrentQueue<Entity> _removeQueue = new ();
-        private static ConcurrentQueue<Entity> _addQueue = new ();
 
 
         private static List<(int, Action)> _tickTasks = new ();
         private static List<(float, Action)> _frameDelays = new ();
 
         private static ConcurrentDictionary<Component, Action> _updateMethods = new ();
-        private static ConcurrentDictionary<Component, Action> _tickMethods = new ();
+        private static ConcurrentDictionary<string, ConcurrentDictionary<Component, Action>> _tickMethods = new ();
         private static ConcurrentQueue<Action> _dirtyEntities = new ();
         private static ConcurrentBag<Component> _startMethods = new ();
         private static List<Action> _updateActions = new();
@@ -59,17 +58,43 @@ namespace SolidCode.Atlas.ECS
         {
             _updateMethods.TryAdd(c, method);
         }
-        internal static void RegisterComponentTickMethod(Component c, Action method)
+        internal static void RegisterComponentTickMethod(Component c, Action method, string thread)
         {
-            _tickMethods.TryAdd(c, method);
+            lock (_tickMethods)
+            {
+                ConcurrentDictionary<Component,Action> methods;
+                if (_tickMethods.TryGetValue(thread, out methods))
+                {
+                    lock (methods)
+                    {
+                        methods.TryAdd(c, method);
+                    }
+                }
+                else
+                {
+                    methods = new ConcurrentDictionary<Component, Action>();
+                    methods.TryAdd(c, method);
+                    _tickMethods.TryAdd(thread, methods);
+                }
+            }
         }
         internal static void UnregisterComponentUpdateMethod(Component c)
         {
             _updateMethods.Remove(c, out _);
         }
-        internal static void UnregisterComponentTickMethod(Component c)
+        internal static void UnregisterComponentTickMethod(Component c, string thread)
         {
-            _tickMethods.Remove(c, out _);
+            lock (_tickMethods)
+            {
+                ConcurrentDictionary<Component, Action> methods;
+                if (_tickMethods.TryGetValue(thread, out methods))
+                {
+                    lock (methods)
+                    {
+                        methods.Remove(c, out _);
+                    }
+                }
+            }
         }
         /// <summary>
         /// Registers a action to be invoked at every Tick
@@ -223,62 +248,74 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
-        public static void Tick()
+        public static void Tick(string name)
         {
             if (!HasStarted)
             {
                 HasStarted = true;
             }
-            UpdateECS();
+            if(name == "Main" || TickManager.ThreadIsSynced(name))
+                UpdateECS();
             lock (_tickMethods)
             {
-                // Run through each of our tick tasks
-                lock(_tickTasks)
-                    for (int i = _tickTasks.Count - 1; i >= 0; i--)
-                    {
-                        (int, Action) task = _tickTasks[i];
-                        if (task.Item1 <= 0)
-                        {
-                            task.Item2.Invoke();
-                            _tickTasks.RemoveAt(i);
-                        }
-                        else
-                        {
-                            _tickTasks[i] = (task.Item1 - 1, task.Item2);
-                        }
-                    }
-                // Run through each of our Tick Actions
-                lock(_tickActions)
-                    foreach (var action in _tickActions)
-                    {
-                        action.Invoke();
-                    }
-                foreach (KeyValuePair<Component, Action> pair in _tickMethods)
+                if (name == "Main")
                 {
-                    if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled) continue;
-                    if (pair.Key.IsNew)
+                    // Run through each of our tick tasks
+                    lock(_tickTasks)
+                        for (int i = _tickTasks.Count - 1; i >= 0; i--)
+                        {
+                            (int, Action) task = _tickTasks[i];
+                            if (task.Item1 <= 0)
+                            {
+                                task.Item2.Invoke();
+                                _tickTasks.RemoveAt(i);
+                            }
+                            else
+                            {
+                                _tickTasks[i] = (task.Item1 - 1, task.Item2);
+                            }
+                        }
+                    // Run through each of our Tick Actions
+                    lock(_tickActions)
+                        foreach (var action in _tickActions)
+                        {
+                            action.Invoke();
+                        }
+                }
+
+                ConcurrentDictionary<Component, Action> methods;
+                if (_tickMethods.TryGetValue(name, out methods))
+                {
+                    foreach (KeyValuePair<Component, Action> pair in methods)
                     {
-                        pair.Key.Enabled = true; // This is done so that OnEnable() is called
-                        pair.Key.TryInvokeMethod("Start");
-                        pair.Key.IsNew = false;
-                    }
-                    try
-                    {
+                        if (!pair.Key.Enabled || !pair.Key.Entity!.Enabled) continue;
+                        if (pair.Key.IsNew)
+                        {
+                            pair.Key.Enabled = true; // This is done so that OnEnable() is called
+                            pair.Key.TryInvokeMethod("Start");
+                            pair.Key.IsNew = false;
+                        }
+                        try
+                        {
 #if DEBUG
-                        Profiler.StartTimer(Profiler.TickType.Tick);
+                            if(name == "Main")
+                                Profiler.StartTimer(Profiler.TickType.Tick);
 #endif
 
-                        pair.Value.Invoke();
+                            pair.Value.Invoke();
 #if DEBUG
-                        Profiler.EndTimer(Profiler.TickType.Tick, pair.Key.GetType().FullName);
+                            if(name == "Main")
+                                Profiler.EndTimer(Profiler.TickType.Tick, pair.Key.GetType().FullName);
 #endif
 
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Error("Error while performing Tick(): " + e.ToString());
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.Error($"Error while performing Tick() (Thread: {name}): {e.ToString()}");
+                        }
                     }
                 }
+                
             }
         }
 
@@ -305,6 +342,7 @@ namespace SolidCode.Atlas.ECS
             }
             // Force an update (so that OnRemove & OnDisable are called)
             UpdateECS();
+            TickManager.Dispose();
             _tickTasks.Clear();
             _tickMethods.Clear();
             _updateMethods.Clear();
@@ -362,6 +400,13 @@ namespace SolidCode.Atlas.ECS
                 ecsComponents.Add(new ECSComponent(components[i]));
             }
             return new ECSElement(name, ecsComponents.ToArray(), children);
+        }
+
+        public class ECSException : Exception
+        {
+            public ECSException(string message) : base(message)
+            {
+            }
         }
     }
 }

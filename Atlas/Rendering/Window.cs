@@ -283,7 +283,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     _window.Visible = true;
                     _window.WindowState = WindowState.Normal;
-                    Atlas.StartTickLoop();
+                    TickManager.Initialize();
                     Input.Input.Initialize();
                 }
 
@@ -330,7 +330,7 @@ namespace SolidCode.Atlas.Rendering
                 EntityComponentSystem.Update();
                 // Update time
                 Time.deltaTime = frame < 3 ? 0f : watch.Elapsed.TotalSeconds;
-                Time.time = Atlas.ecsStopwatch.Elapsed.TotalSeconds;
+                Time.time = Atlas.ECSStopwatch.Elapsed.TotalSeconds;
 
                 _frameTimes += (float)Time.deltaTime;
                 _frames++;

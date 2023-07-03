@@ -1,3 +1,5 @@
+using SolidCode.Atlas.ECS;
+
 namespace SolidCode.Atlas
 {
     public static class Time
@@ -9,9 +11,10 @@ namespace SolidCode.Atlas
         public static double time { get; internal set; }
         /// <summary>
         /// Time between the current tick and the start of the application. Measured in seconds
+        /// NOTE: This can only be called from Tick() Threads created by the ECS
         /// </summary>
 
-        public static double tickTime { get; internal set; }
+        public static double tickTime => TickManager.GetThreadTime();
 
         /// <summary>
         /// The time between the current frame and the previous frame. Measured in seconds
@@ -21,14 +24,15 @@ namespace SolidCode.Atlas
 
         /// <summary>
         /// The time between the current tick and the previous tick. Measured in seconds
+        /// NOTE: This can only be called from Tick() Threads created by the ECS
         /// </summary>
 
-        public static double tickDeltaTime { get; internal set; }
+        public static double tickDeltaTime => TickManager.GetThreadDelta();
 
         /// <summary>
         /// The time since the start of the application. Measured in seconds
         /// </summary>
-        public static double trueTime => Atlas.ecsStopwatch.Elapsed.TotalSeconds;
+        public static double trueTime => Atlas.ECSStopwatch.Elapsed.TotalSeconds;
 
     }
 }
