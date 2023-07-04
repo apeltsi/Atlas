@@ -26,8 +26,14 @@ public static class Renderer
 
     /// <summary>
     /// The scale of the screen in units.
+    /// (Ignores camera scaling)
     /// </summary>
     public static Vector2 UnitScale = Vector2.One;
+    /// <summary>
+    /// The scale of a single pixel
+    /// (Ignores camera scaling)
+    /// </summary>
+    public static Vector2 PixelScale => UnitScale / Window.Size;
 
     public static List<PostProcessEffect> PostProcessEffects { get; set; } = new();
 
@@ -151,6 +157,11 @@ public static class Renderer
                 break;
         }
 
+#if DEBUG
+        CommandList.InsertDebugMarker("Drawing Debug Markers");
+        Debug.RenderMarkers(CommandList, _windowScalingMatrix);
+#endif
+        
         CommandList.InsertDebugMarker("Final Resolve shader");
 
         _resolvePass.Draw(CommandList);
