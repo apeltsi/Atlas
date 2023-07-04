@@ -102,7 +102,7 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             
             
         this._textureAssets = o.Textures ?? new List<Texture>();
-        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
+        this.sampler = o.Sampler ?? Renderer.GraphicsDevice.LinearSampler;
         CreateResources();
     }
 
