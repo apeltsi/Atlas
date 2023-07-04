@@ -46,15 +46,15 @@ public class SpriteRenderer : RenderComponent
     {
         VertexPositionUV[] quadVertices =
                {
-                new VertexPositionUV(new Vector2(-1f, 1f), new Vector4(0, 0,0,0)),
-                new VertexPositionUV(new Vector2(1f, 1f), new Vector4(1, 0,0,0)),
-                new VertexPositionUV(new Vector2(-1f, -1f), new Vector4(0, 1,0,0)),
-                new VertexPositionUV(new Vector2(1f, -1f), new Vector4(1, 1,0,0))
+                new VertexPositionUV(new Vector2(-1f, 1f), new Vector2(0, 0)),
+                new VertexPositionUV(new Vector2(1f, 1f), new Vector2(1, 0)),
+                new VertexPositionUV(new Vector2(-1f, -1f), new Vector2(0, 1)),
+                new VertexPositionUV(new Vector2(1f, -1f), new Vector2(1, 1))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-                        new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
+                        new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         List<SolidCode.Atlas.Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
         textures.Add(Sprite);
@@ -88,8 +88,8 @@ public class SpriteRenderer : RenderComponent
     protected struct VertexPositionUV
     {
         public Vector2 Position; // This is the position, in normalized device coordinates.
-        public Vector4 UV; // This is the color of the vertex.
-        public VertexPositionUV(Vector2 position, Vector4 uv)
+        public Vector2 UV; // This is the color of the vertex.
+        public VertexPositionUV(Vector2 position, Vector2 uv)
         {
             Position = position;
             UV = uv;
