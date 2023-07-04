@@ -38,7 +38,7 @@ namespace SolidCode.Atlas.ECS
             }
         }
         
-        private float _z = 1f;
+        private float _z = 0f;
 
         private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
         /// <summary>
