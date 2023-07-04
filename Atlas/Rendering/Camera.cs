@@ -36,15 +36,20 @@ namespace SolidCode.Atlas.Components
         {
             Matrix4x4 scale = new Matrix4x4(
                 1f / _scale.X, 0, 0, 0,
-                0, 1f / _scale.Y, 0, 0, // NOTE: These are inverted because we "move" the world, not the viewport
+                0, 1f / _scale.Y, 0, 0, 
                 0, 0, 1, 0,
                 0, 0, 0, 1);
             Matrix4x4 translate = new Matrix4x4(
-                1f, 0, 0, -_position.X,
-                0, 1f, 0, -_position.Y, // NOTE: These are inverted because we "move" the world, not the viewport
+                1f, 0, 0, -_position.X, // NOTE: These are inverted because we "move" the world, not the viewport
+                0, 1f, 0, -_position.Y, 
                 0, 0, 1f, 0,
                 0, 0, 0, 1f);
             return scale * translate;
+        }
+
+        public static Vector2 GetScaling()
+        {
+            return new Vector2(1f / _scale.X, 1f / _scale.Y);
         }
 
     }

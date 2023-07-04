@@ -174,7 +174,7 @@ namespace SolidCode.Atlas.Rendering
             
             
             this._textureAssets = o.Textures ?? new List<Texture>();
-            this.sampler = sampler;
+            this.sampler = o.Sampler;
             CreateResources();
         }
 

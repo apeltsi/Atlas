@@ -5,12 +5,10 @@ using SolidCode.Atlas.Rendering.Windows;
 namespace SolidCode.Atlas
 {
     using System.Timers;
-    using SolidCode.Atlas.Rendering;
-    using SolidCode.Atlas.ECS;
+    using Rendering;
+    using ECS;
     using Veldrid.Sdl2;
-    using SolidCode.Atlas.AssetManagement;
-    using SolidCode.Atlas.Audio;
-    using SolidCode.Atlas.Telescope;
+    using AssetManagement;
 
     public enum LogCategory
     {
@@ -28,15 +26,15 @@ namespace SolidCode.Atlas
 
     public static class Atlas
     {
-        public static string ActiveDirectory = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
+        public static string ActiveDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
         public static string DataDirectory = Path.Join(ActiveDirectory, "data" + Path.DirectorySeparatorChar);
         public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.5";
+        public const string Version = "iced-coffee@1.0-pre.6";
         private static Timer? _timer;
-        internal static System.Diagnostics.Stopwatch? PrimaryStopwatch { get; private set; }
+        internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
 
         static Window? _w;
@@ -88,8 +86,8 @@ namespace SolidCode.Atlas
             #if Windows
             ForceHighPerformance.InitializeDedicatedGraphics();
             #endif
-            PrimaryStopwatch = System.Diagnostics.Stopwatch.StartNew();
-            ECSStopwatch = new System.Diagnostics.Stopwatch();
+            PrimaryStopwatch = Stopwatch.StartNew();
+            ECSStopwatch = new Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
             Audio.Audio.InitializeAudio();
             AssetManager.LoadAssetMap();

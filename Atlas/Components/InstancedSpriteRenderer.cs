@@ -51,10 +51,10 @@ public class InstancedSpriteRenderer : SpriteRenderer
         
         VertexPositionUV[] quadVertices =
         {
-            new VertexPositionUV(new Vector2(-1f, 1f), new Vector4(0, 0,0,0)),
-            new VertexPositionUV(new Vector2(1f, 1f), new Vector4(1, 0,0,0)),
-            new VertexPositionUV(new Vector2(-1f, -1f), new Vector4(0, 1,0,0)),
-            new VertexPositionUV(new Vector2(1f, -1f), new Vector4(1, 1,0,0))
+            new VertexPositionUV(new Vector2(-1f, 1f), new Vector2(0, 0)),
+            new VertexPositionUV(new Vector2(1f, 1f), new Vector2(1, 0)),
+            new VertexPositionUV(new Vector2(-1f, -1f), new Vector2(0, 1)),
+            new VertexPositionUV(new Vector2(1f, -1f), new Vector2(1, 1))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(

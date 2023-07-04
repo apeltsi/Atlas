@@ -67,7 +67,7 @@ namespace SolidCode.Atlas.ECS
             {
                 if (Entity == null)
                 {
-                    return Vector2.Zero;
+                    return Position; // We might be a "dummy" transform
                 }
                 if (Entity.Parent != null)
                 {
@@ -113,7 +113,7 @@ namespace SolidCode.Atlas.ECS
             {
                 if (Entity == null)
                 {
-                    return Vector2.One;
+                    return Scale; // We might be a "dummy" transform
                 }
                 if (Entity.Parent != null)
                 {
@@ -138,7 +138,7 @@ namespace SolidCode.Atlas.ECS
             {
                 if (Entity == null)
                 {
-                    return 0;
+                    return Rotation; // We might be a "dummy" transform
                 }
                 if (Entity.Parent != null)
                 {
@@ -184,7 +184,7 @@ namespace SolidCode.Atlas.ECS
             {
                 if (Entity == null)
                 {
-                    return 0f;
+                    return Z; // We might be a "dummy" transform
                 }
                 if (Entity.Parent != null)
                 {
