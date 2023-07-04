@@ -72,7 +72,7 @@ namespace SolidCode.Atlas
         /// <param name="end">Ending Point</param>
         /// <param name="color">Color</param>
         /// <param name="width">Width of the line</param>
-        public static void Line(Vector2 start, Vector2 end, Vector4? color = null, float width = 4f)
+        public static void Line(Vector2 start, Vector2 end, Vector4? color = null, float width = 6f)
         {
 #if DEBUG
             if(color == null)
@@ -130,8 +130,8 @@ namespace SolidCode.Atlas
                 // To do this we can use the cross product of our vector and the vector pointing up (0, 1)
                 Vector2 norm = Vector2.Normalize(diff);
                 Vector2 scaling = cameraScaling;
-                Vector2 right = new Vector2(-norm.Y, norm.X) * line.Width * Renderer.ScalingIndex / scaling / 1000f;
-                Vector2 left = new Vector2(norm.Y, -norm.X) * line.Width * Renderer.ScalingIndex / scaling / 1000f;
+                Vector2 right = new Vector2(-norm.Y, norm.X) * line.Width / 2 * Renderer.ScalingIndex / scaling / 1000f;
+                Vector2 left = new Vector2(norm.Y, -norm.X) * line.Width / 2 * Renderer.ScalingIndex / scaling / 1000f;
                 
 
                 DrawableOptions<VertexPosition, ColorUniform> options = new()
