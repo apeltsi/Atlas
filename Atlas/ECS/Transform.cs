@@ -232,11 +232,11 @@ namespace SolidCode.Atlas.ECS
             this.Scale = Vector2.One;
         }
 
-        public void RegisterDrawable(Drawable d)
+        public virtual void RegisterDrawable(Drawable d)
         {
             _drawables.Add(d);
         }
-        public void UnregisterDrawable(Drawable d)
+        public virtual void UnregisterDrawable(Drawable d)
         {
             if (_drawables.Contains(d))
                 _drawables.Remove(d);
