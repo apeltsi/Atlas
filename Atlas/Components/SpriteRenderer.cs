@@ -69,9 +69,9 @@ public class SpriteRenderer : RenderComponent
             UniformShaderStages = ShaderStages.Fragment
         };
         drawable = new Drawable<VertexPositionUV, ColorUniform>(options);
-        List<Drawable> drawables = new List<Drawable>();
-        drawables.Add(drawable);
-        return drawables.ToArray();
+        Drawable[] drawables = new Drawable[1];
+        drawables[0] = drawable;
+        return drawables;
     }
     
     protected struct ColorUniform

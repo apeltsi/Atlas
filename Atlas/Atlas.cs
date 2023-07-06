@@ -32,7 +32,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(ActiveDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "iced-coffee@1.0-pre.6";
+        public const string Version = "iced-coffee@1.0-pre.7";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
@@ -122,7 +122,7 @@ namespace SolidCode.Atlas
             }
             catch (Exception ex)
             {
-                Debug.Error(ex.ToString());
+                Debug.Error(LogCategory.Framework, ex.ToString());
             }
             _doTick = false;
             Audio.Audio.Dispose();

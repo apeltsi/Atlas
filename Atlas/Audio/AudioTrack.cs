@@ -62,7 +62,7 @@ namespace SolidCode.Atlas.Audio
             }
             catch (Exception e)
             {
-                Debug.Error("Error parsing audio: " + e.ToString());
+                SolidCode.Atlas.Debug.Error(LogCategory.Framework, "Error parsing audio: " + e.ToString());
             }
         }
 

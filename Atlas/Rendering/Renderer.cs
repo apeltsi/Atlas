@@ -221,7 +221,7 @@ public static class Renderer
             0, 0, 0, 1);
     }
 
-    public static void AddDrawables(List<Drawable> drawables)
+    public static void AddDrawables(Drawable[] drawables)
     {
         foreach (var d in drawables)
         {
@@ -260,6 +260,7 @@ public static class Renderer
                     return;
                 }
             }
+            Debug.Warning(LogCategory.Framework, "Couldn't remove Drawable! ");
         }
     }
 
@@ -412,7 +413,7 @@ public static class Renderer
         lock (_layers)
         {
             RemoveDrawable(d, prevLayer);
-            AddDrawables(new List<Drawable>() { d });
+            AddDrawables(new [] { d });
         }
     }
 

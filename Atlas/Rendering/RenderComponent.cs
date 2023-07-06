@@ -19,7 +19,7 @@ namespace SolidCode.Atlas.Rendering
                 Renderer.RemoveDrawable(this._drawables[i]);
                 this._drawables[i].Dispose();
             }
-            this._drawables = new Drawable[0];
+            this._drawables = Array.Empty<Drawable>();
         }
 
         public void OnEnable()
@@ -27,7 +27,7 @@ namespace SolidCode.Atlas.Rendering
             try
             {
                 this._drawables = StartRender(Renderer.GraphicsDevice);
-                Renderer.AddDrawables(new List<Drawable>(this._drawables));
+                Renderer.AddDrawables(this._drawables);
             }
             catch (Exception e)
             {

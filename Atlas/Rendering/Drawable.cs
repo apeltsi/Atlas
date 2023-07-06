@@ -189,9 +189,12 @@ namespace SolidCode.Atlas.Rendering
 
             ResourceFactory factory = _graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
+            vertexBuffer.Name = "Vertex Buffer";
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
+            vertexBuffer.Name = "Index Buffer";
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TransformStruct>(), BufferUsage.UniformBuffer));
-
+            vertexBuffer.Name = "Transform Buffer";
+            
             // Uniform
             _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(drawableUniform), BufferUsage.UniformBuffer)));
 
@@ -342,8 +345,6 @@ namespace SolidCode.Atlas.Rendering
                 cmat = Camera.GetTransformMatrix();
             if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
-                // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
-                // Could the transformbuffer be updated during updatebuffer?
                 _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
             }
         }
@@ -352,7 +353,6 @@ namespace SolidCode.Atlas.Rendering
         {
             SoftDispose();
             this.transform.UnregisterDrawable(this);
-
         }
         
         public void SoftDispose()
@@ -385,5 +385,16 @@ namespace SolidCode.Atlas.Rendering
 
         }
 
-    }
+        ~Drawable()
+        {
+            // Sanity check
+            // We should dispose ourselves if we haven't already, just in case
+            if (!_transformSet.IsDisposed)
+            {
+                SoftDispose();
+                Debug.Warning("Drawable wasn't properly disposed! You might have a memory leak");
+            }
+        }
+
+}
 }

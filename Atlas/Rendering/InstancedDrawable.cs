@@ -272,6 +272,8 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
 
     public override void Draw(CommandList cl)
     {
+        if (_instanceData.Length == 0)
+            return;
         if (_instancesDirty)
         {
             if (_instanceData.Length != _instanceCount)

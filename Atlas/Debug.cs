@@ -88,7 +88,7 @@ namespace SolidCode.Atlas
             Vector2 cameraScaling = Camera.GetScaling();
             foreach (var marker in _markers)
             {
-                Transform tr = new Transform();
+                DummyTransform tr = new DummyTransform();
                 tr.Position = marker.Position;
                 tr.Layer = 0;
                 tr.Scale = Renderer.PixelScale * marker.Scale / cameraScaling;
@@ -114,13 +114,14 @@ namespace SolidCode.Atlas
                 d.SetGlobalMatrix(Renderer.GraphicsDevice!, scalingMatrix);
                 d.SetScreenSize(Renderer.GraphicsDevice!, Renderer.RenderResolution);
                 d.Draw(cl);
+                d.Dispose();
             }
             _markers.Clear();
             
             // Next lets render our lines
             foreach (var line in _lines)
             {
-                Transform tr = new Transform();
+                DummyTransform tr = new DummyTransform();
                 tr.Position = line.start;
                 tr.Layer = 0;
 
@@ -130,10 +131,9 @@ namespace SolidCode.Atlas
                 // To do this we can use the cross product of our vector and the vector pointing up (0, 1)
                 Vector2 norm = Vector2.Normalize(diff);
                 Vector2 scaling = cameraScaling;
-                Vector2 right = new Vector2(-norm.Y, norm.X) * line.Width / 2 * Renderer.ScalingIndex / scaling / 1000f;
-                Vector2 left = new Vector2(norm.Y, -norm.X) * line.Width / 2 * Renderer.ScalingIndex / scaling / 1000f;
+                Vector2 right = new Vector2(-norm.Y, norm.X) * line.Width / 2 * Renderer.PixelScale / scaling * 2f;
+                Vector2 left = new Vector2(norm.Y, -norm.X) * line.Width / 2 * Renderer.PixelScale / scaling * 2f;
                 
-
                 DrawableOptions<VertexPosition, ColorUniform> options = new()
                 {
                     Shader = AssetManager.GetShader("color/shader")!,
@@ -154,6 +154,7 @@ namespace SolidCode.Atlas
                 d.SetGlobalMatrix(Renderer.GraphicsDevice!, scalingMatrix);
                 d.SetScreenSize(Renderer.GraphicsDevice!, Renderer.RenderResolution);
                 d.Draw(cl);
+                d.Dispose();
             }
             _lines.Clear();
         }
