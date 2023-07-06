@@ -260,6 +260,7 @@ public static class Renderer
                     return;
                 }
             }
+            Debug.Warning(LogCategory.Framework, "Couldn't remove Drawable! ");
         }
     }
 

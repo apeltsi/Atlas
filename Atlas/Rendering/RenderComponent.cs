@@ -19,7 +19,7 @@ namespace SolidCode.Atlas.Rendering
                 Renderer.RemoveDrawable(this._drawables[i]);
                 this._drawables[i].Dispose();
             }
-            this._drawables = new Drawable[0];
+            this._drawables = Array.Empty<Drawable>();
         }
 
         public void OnEnable()

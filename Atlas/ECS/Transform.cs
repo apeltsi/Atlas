@@ -30,17 +30,17 @@ namespace SolidCode.Atlas.ECS
             {
                 uint prevValue = _layer;
                 _layer = value;
-                _drawables.Update();
-                foreach (Drawable d in _drawables)
-                {
-                    Renderer.ResortDrawable(d, prevValue);
-                }
+                lock(_drawables)
+                    foreach (Drawable d in _drawables)
+                    {
+                        Renderer.ResortDrawable(d, prevValue);
+                    }
             }
         }
         
         private float _z = 0f;
 
-        private ManualConcurrentList<Drawable> _drawables = new ManualConcurrentList<Drawable>();
+        private Drawable[] _drawables = new Drawable[0];
         /// <summary>
         /// Local z of entity
         /// </summary>
@@ -50,11 +50,11 @@ namespace SolidCode.Atlas.ECS
             set
             {
                 _z = value;
-                _drawables.Update();
-                foreach (Drawable d in _drawables)
-                {
-                    Renderer.ResortDrawable(d);
-                }
+                lock(_drawables)
+                    foreach (Drawable d in _drawables)
+                    {
+                        Renderer.ResortDrawable(d);
+                    }
             }
         }
         /// <summary>
@@ -234,12 +234,36 @@ namespace SolidCode.Atlas.ECS
 
         public virtual void RegisterDrawable(Drawable d)
         {
-            _drawables.Add(d);
+            lock (_drawables)
+            {
+                Drawable[] drawables = new Drawable[_drawables.Length + 1];
+                _drawables.CopyTo(drawables, 0);
+                drawables[^1] = d;
+                _drawables = drawables;
+            }
         }
+
         public virtual void UnregisterDrawable(Drawable d)
         {
-            if (_drawables.Contains(d))
-                _drawables.Remove(d);
+            lock (_drawables)
+            {
+                if (_drawables.Contains(d))
+                {
+                    Drawable[] newArray = new Drawable[_drawables.Length - 1];
+                    int index = 0;
+                    foreach (var drawable in _drawables)
+                    {
+                        if (drawable == d)
+                        {
+                            continue;
+                        }
+
+                        newArray[index] = drawable;
+                        index++;
+                    }
+                    _drawables = newArray;
+                }
+            }
         }
 
 
