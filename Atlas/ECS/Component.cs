@@ -40,8 +40,40 @@ namespace SolidCode.Atlas.ECS
             
         }
 
-        [HideInInspector]
-        public Entity? Entity;
+        private Entity? _entity;
+        public Entity Entity
+        {
+            get
+            {
+                if (_entity == null)
+                {
+                    throw new EntityComponentSystem.ECSException(
+                        "Entity is uninitialized. You can't access an Entity in the constructor of a component! Use Start() or OnEnable() instead.");
+                }
+                return _entity;
+            }
+            internal set => _entity = value;
+        }
+
+        protected T? GetComponent<T>(bool allowInheritedClasses) where T : Component
+        {
+            return Entity.GetComponent<T>(allowInheritedClasses);
+        }
+        
+        protected T? AddComponent<T>() where T : Component, new()
+        {
+            return Entity.AddComponent<T>();
+        }
+
+        protected void RemoveComponent<T>() where T : Component
+        {
+            Entity.RemoveComponent<T>();
+        }
+
+        protected void RemoveComponent(Component c)
+        {
+            Entity.RemoveComponent(c);
+        }
 
         protected Component()
         {
