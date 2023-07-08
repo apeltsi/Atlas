@@ -143,7 +143,7 @@
                     return (T)c;
                 }
             }
-            // It is possible, that the component the user is trying to access is still in the queue. lets check if thats the case
+            // It is possible, that the component the user is trying to access is still in the queue. lets check if that's the case
             foreach (Component c in queuedComponents)
             {
                 if (c == null)
