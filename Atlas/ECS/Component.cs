@@ -55,7 +55,7 @@ namespace SolidCode.Atlas.ECS
             internal set => _entity = value;
         }
 
-        protected T? GetComponent<T>(bool allowInheritedClasses) where T : Component
+        protected T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             return Entity.GetComponent<T>(allowInheritedClasses);
         }
