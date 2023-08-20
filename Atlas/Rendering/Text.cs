@@ -75,8 +75,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 if (_centered)
                     _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
-                this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White);
-                SetGlobalMatrix(Renderer.GraphicsDevice, _lastMatrix);
+                this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White, new Vector2(_size,_size));
                 dirty = false;
             }
             _renderer.Draw(cl);
@@ -284,7 +283,6 @@ namespace SolidCode.Atlas.Rendering
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 _textResourceLayout,
                 buffers));
-
         }
 
         public void SetHorizontalOffset(float offset)
@@ -300,19 +298,14 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            Matrix4x4 tmat = transform.GetTransformationMatrix();
             Matrix4x4 cmat = Matrix4x4.Identity;
             
             if(transform.GetType() != typeof(RectTransform)) 
                 cmat = Camera.GetTransformMatrix();
-
-            if (transformBuffer != null && _graphicsDevice != null)
+            if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
-                _graphicsDevice.UpdateBuffer(transformBuffer,
-                0,
-                new TextTransformStruct(matrix,
-                                        transform.GetTransformationMatrix(),
-                                        cmat,
-                                        HorizontalOffset));
+                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, tmat, cmat, HorizontalOffset));
             }
 
         }
