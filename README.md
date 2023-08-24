@@ -11,6 +11,9 @@ cross-platform, performant and developer friendly. The framework has a
 syntax similar to Unity and uses C# as its primary language, making it
 easy to learn for developers already familiar with Unity.
 
+> Atlas targets net7.0
+
+
 ## Getting Started
 
 [Check out the Getting Started Tutorial](https://github.com/apeltsi/Atlas/wiki/Getting-Started)
@@ -24,7 +27,7 @@ There is also still a lot of polish needed before Atlas is ready to be used for 
 
 - Similar coding experience to Unity
 - Rendering with Vulkan or Direct3D11
-- Audio With OpenAL
+- Audio with OpenAL
 - Input with Mouse & Keyboard or Gamepad
 - Support for HLSL or GLSL Shaders
 - Multithreading
