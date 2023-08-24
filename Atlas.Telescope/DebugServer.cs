@@ -163,7 +163,14 @@ class DebugServer
         // This is probably not smart, but the server sometimes outputs errors that don't really affect our app in any way, so lets just ignore them for now :/
         wssv.Log.Output = (_, __) => { };
         wssv.AddWebSocketService<DebuggerSocketBehaviour>("/ws");
-        wssv.Start();
+        try
+        {
+            wssv.Start();
+        }
+        catch (Exception e)
+        {
+            Debug.Error(0, "Couldn't Start Telescope Server! " + e.ToString());
+        }
     }
     public DebugServer()
     {

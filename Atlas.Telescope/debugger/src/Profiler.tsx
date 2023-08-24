@@ -11,6 +11,10 @@ interface Dataset {
 }
 
 let [series, setSeries] = createSignal<Dataset[]>([]);
+export function Reset() {
+  offset = 0;
+  setSeries([]);
+}
 function splitData() {
   let sets = [];
   // First lets generate our datasets

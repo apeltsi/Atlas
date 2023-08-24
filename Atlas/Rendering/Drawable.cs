@@ -126,10 +126,11 @@ namespace SolidCode.Atlas.Rendering
         protected ResourceLayout? _transformTextureResourceLayout;
         protected ResourceLayout? _uniformResourceLayout;
         protected PrimitiveTopology _topology;
-
+    
         [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in DrawableOptions instead.")]
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
+            Debug.Warning("Use of Deprecated Drawable constructor! Please use the other constructor that takes in DrawableOptions instead.");
             this._shaders = AssetManager.GetShader(shaderPath).Shaders;
 
             if (mesh != null)

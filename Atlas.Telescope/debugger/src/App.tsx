@@ -8,7 +8,7 @@ import Debugger, {
   UpdateTickDurations,
 } from "./Debugger";
 import { LiveData } from "./LiveHeader";
-import { addData } from "./Profiler";
+import {addData, Reset} from "./Profiler";
 import Loading from "./Loading";
 export const [debuggerState, setDebuggerState] = createStore<DebuggerData>({
   runDate: "N/A",
@@ -75,6 +75,8 @@ function StartListening() {
     }
     setLiveDataState({ connected: false });
     sendMessage = (data: string) => {};
+    Reset();
+    setLogState([]);
     setTimeout(StartListening, 500);
     returned = true;
   };
@@ -84,6 +86,8 @@ function StartListening() {
     }
     sendMessage = (data: string) => {};
     setLiveDataState({ connected: false });
+    Reset();
+    setLogState([]);
     setTimeout(StartListening, 1000);
     returned = true;
   };

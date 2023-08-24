@@ -87,14 +87,14 @@ public static class TickManager
         // We're going to determine the name of the current thread by looking at the thread name
         // If the thread name is "TickThread_Main", we're going to return "Main"
         
-        string name = Thread.CurrentThread.Name;
+        string name = Thread.CurrentThread.Name ?? "";
         if (name.StartsWith("TickThread_"))
         {
             name = name.Substring(11);
         }
         else
         {
-            throw new EntityComponentSystem.ECSException("Invalid Thread Name. Couldn't determine tick thread name from '" + name + "'. Are you calling this from a tick thread?");
+            return "Main";
         }
 
         return name;

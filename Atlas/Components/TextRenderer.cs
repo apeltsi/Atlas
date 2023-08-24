@@ -10,7 +10,21 @@ public class TextRenderer : RenderComponent
 {
     private TextDrawable? textDrawable;
     private string _text = "Hello World!";
-    public float Size = 100f;
+    private float _size = 100f;
+
+    public float Size
+    {
+        get => _size;
+        set
+        {
+            _size = value;
+            if (textDrawable != null)
+            {
+                textDrawable.UpdateText(_text, value);
+            }
+
+        }
+    }
     public bool Centered = true;
     private Vector4 _color = new Vector4(1f, 1f, 1f, 1f);
     private FontSet _fontSet = FontSet.GetDefault();

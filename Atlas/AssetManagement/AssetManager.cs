@@ -30,9 +30,10 @@ namespace SolidCode.Atlas.AssetManagement
         /// <param name="path">The path (excluding the extension) of the asset</param>
         /// <param name="tryLoad">Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to <c>true</c></param>
         /// <returns>The <c>Texture</c></returns>
-        public static Texture? GetTexture(string path, bool tryLoad = true)
+        public static Texture GetTexture(string path, bool tryLoad = true)
         {
-            return GetAsset<Texture>(path, tryLoad);
+            // We don't return a nullable here because worst case scenario we get the error texture. (Unless the internal AssetPack isn't loaded for whatever reason)
+            return GetAsset<Texture>(path, tryLoad)!;
         }
         /// <summary>
         /// Shorthand for GetAsset&lt;AudioTrack>(path, tryLoad)
