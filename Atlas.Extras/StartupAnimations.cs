@@ -25,7 +25,7 @@ public static class StartupAnimations
         LoadExtras();
         Entity star = new Entity("Star", new Vector2(1.2f, 1.5f), new Vector2(0.5f));
         SpriteRenderer sr = star.AddComponent<SpriteRenderer>();
-        sr.Sprite = AssetManager.GetAsset<Texture>("Atlas-Star");
+        sr.Sprite = AssetManager.GetTexture("Atlas-Star");
         Transform t = star.GetComponent<Transform>();
         star.AddComponent<ExecOnStart>().OnStart = () =>
         {
@@ -34,14 +34,14 @@ public static class StartupAnimations
             Animation.Animation.DoTween(new ValueRef<float>(() => t.Rotation, (val) => t.Rotation = val), 360f, 0.9f, () =>
             {
                 ParticleSystem ps = star.AddComponent<ParticleSystem>();
-                ps.Sprite = AssetManager.GetAsset<Texture>("Atlas-Triangle");
+                ps.Sprite = AssetManager.GetTexture("Atlas-Triangle");
                 ps.Burst = true;
                 ps.InitialPosition = () => ARandom.Vector2() * 0.75f - new Vector2(0f, 0.5f);
                 ps.InitialScale = () => new Vector2(0.2f);
                 ps.InitialRotation = () => ARandom.Value() * 3.14f;
                 ps.InitialVelocity = () => new Vector2(-(ARandom.Value() + 0.75f) * 3f, ARandom.Value() * -2f);
                 ps.InitialColor = () => new Vector4(1f, 1f, 1f, ARandom.Value());
-                sr.Sprite = AssetManager.GetAsset<Texture>("Atlas");
+                sr.Sprite = AssetManager.GetTexture("Atlas");
                 ps.ParticleUpdates[1] = (ref ParticleSystem.Particle particle) =>
                 {
                     particle.Rotation += (float)Time.deltaTime;
