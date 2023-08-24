@@ -10,14 +10,14 @@
     },
     "license": "MIT",
     "devDependencies": {
-        "typescript": "^4.7.4",
-        "vite": "^3.0.0",
-        "vite-plugin-singlefile": "^0.11.0",
-        "vite-plugin-solid": "^2.3.0"
+        "typescript": "^4.9.5",
+        "vite": "^3.2.7",
+        "vite-plugin-singlefile": "^0.11.1",
+        "vite-plugin-solid": "^2.7.0"
     },
     "dependencies": {
-        "apexcharts": "^3.37.1",
+        "apexcharts": "^3.41.1",
         "solid-apexcharts": "^0.2.4",
-        "solid-js": "^1.4.7"
+        "solid-js": "^1.7.11"
     }
 }
