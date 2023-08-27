@@ -166,7 +166,6 @@ public static class Renderer
 
         _resolvePass.Draw(CommandList);
         CommandList.End();
-        TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 
         // Now that we have done that, we need to bind the resources that we created in the last section, and issue a draw call.
 #if DEBUG
@@ -176,6 +175,7 @@ public static class Renderer
 
         GraphicsDevice.SubmitCommands(CommandList);
         GraphicsDevice.WaitForIdle();
+
         try
         {
             GraphicsDevice.SwapBuffers();
@@ -184,6 +184,7 @@ public static class Renderer
         {
             
         }
+        TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 #if DEBUG
         Profiler.EndTimer(Profiler.TickType.Update, "Render");
         Profiler.SubmitTimes(Profiler.TickType.Update);
