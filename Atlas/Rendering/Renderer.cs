@@ -17,7 +17,7 @@ public static class Renderer
     private static ShaderPass? _resolvePass;
     private static TextureView? _finalTextureView;
     public static GraphicsDevice? GraphicsDevice { get; internal set; }
-    internal static CommandList CommandList = null!;
+    public static CommandList CommandList = null!;
     private static ConcurrentDictionary<int, ManualConcurrentList<Drawable>> _layers = new();
     private static TextureView? _downSampledTextureView;
     private static bool _resourcesDirty = false;
