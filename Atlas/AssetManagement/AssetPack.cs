@@ -296,7 +296,12 @@ namespace SolidCode.Atlas.AssetManagement
             public static string[] HandleBytedata<T>(ZipArchive zip, ZipArchiveEntry entry, AssetMode mode) where T : Asset, new()
             {
                 int startLength = "assets/".Length;
-                string path = entry.FullName.Substring(startLength, entry.FullName.Length - ".ktx".Length - startLength);
+                if (entry.FullName.StartsWith("shaders/"))
+                {
+                    startLength = "shaders/".Length;
+                }
+                int extensionLength = entry.FullName.Split(".").Last().Length + 1;
+                string path = entry.FullName.Substring(startLength, entry.FullName.Length - extensionLength - startLength);
                 using (var mstream = new MemoryStream())
                 {
                     lock (zip)
