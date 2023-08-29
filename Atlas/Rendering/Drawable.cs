@@ -131,6 +131,7 @@ namespace SolidCode.Atlas.Rendering
         public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
         {
             Debug.Warning("Use of Deprecated Drawable constructor! Please use the other constructor that takes in DrawableOptions instead.");
+            Debug.Warning(new System.Diagnostics.StackTrace().ToString());
             this._shaders = AssetManager.GetShader(shaderPath).Shaders;
 
             if (mesh != null)
@@ -176,7 +177,8 @@ namespace SolidCode.Atlas.Rendering
             
             this._textureAssets = o.Textures ?? new List<Texture>();
             this.sampler = o.Sampler;
-            CreateResources();
+            if (o.Mesh != null) // Required for the text drawable
+                CreateResources();
         }
 
         

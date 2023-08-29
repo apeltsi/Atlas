@@ -51,15 +51,15 @@ public class InstancedSpriteRenderer : SpriteRenderer
         
         VertexPositionUV[] quadVertices =
         {
-            new VertexPositionUV(new Vector2(-1f, 1f), new Vector2(0, 0)),
-            new VertexPositionUV(new Vector2(1f, 1f), new Vector2(1, 0)),
-            new VertexPositionUV(new Vector2(-1f, -1f), new Vector2(0, 1)),
-            new VertexPositionUV(new Vector2(1f, -1f), new Vector2(1, 1))
+            new (new Vector2(-1f, 1f), new Vector2(0, 0)),
+            new (new Vector2(1f, 1f), new Vector2(1, 0)),
+            new (new Vector2(-1f, -1f), new Vector2(0, 1)),
+            new (new Vector2(1f, -1f), new Vector2(1, 1))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(
             new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
-            new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4));
+            new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
         Mesh<VertexPositionUV> mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
         
         

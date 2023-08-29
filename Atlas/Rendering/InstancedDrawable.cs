@@ -44,41 +44,6 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     protected TInstanceData[] _instanceData;
     protected ResourceLayout? _uniformResourceLayout;
     protected PrimitiveTopology _topology;
-
-    [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in InstancedDrawableOptions instead.")]
-    public InstancedDrawable(string shaderPath, Mesh<T> mesh, Transform t, TInstanceData[] instanceData,VertexLayoutDescription instanceLayoutDesc,
-        TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null,
-        ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null)
-    {
-        this._shaders = AssetManager.GetShader(shaderPath).Shaders;
-        this.instanceLayoutDescription = instanceLayoutDesc;
-        this._instanceData = instanceData;
-        this._instanceCount = (uint)instanceData.Length;
-
-        if (mesh != null)
-            this._mesh = mesh;
-        else
-            this._mesh = new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
-        if (t == null)
-        {
-            Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
-        }
-
-        this.transform = t;
-        this.drawableUniform = drawableUniform;
-        this.uniformShaderStages = uniformShaderStages;
-        this.transformShaderStages = transformShaderStages;
-        if (textures == null)
-        {
-            textures = new List<Texture>();
-        }
-        
-        this._textureAssets = textures;
-        this.sampler = sampler ?? Renderer.GraphicsDevice.LinearSampler;
-        if (mesh != null)
-            CreateResources();
-
-    }
     
     public InstancedDrawable(InstancedDrawableOptions<T, TUniform, TInstanceData> o)
     {
