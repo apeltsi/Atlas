@@ -113,7 +113,7 @@ public static class Renderer
 #endif
         if (_resourcesDirty)
         {
-            CreateResources();
+            CreateResources(null);
         }
         // We should begin by removing any stray drawables
 
@@ -280,12 +280,12 @@ public static class Renderer
             }
         }
 
-        CreateResources();
+        CreateResources(null);
         Debug.Log(LogCategory.Rendering, "All shaders have been reloaded...");
         TickScheduler.FreeThreads();
     }
 
-    internal static void CreateResources()
+    internal static void CreateResources(Task? waitTask)
     {
         lock (_resourcesLock)
         {
@@ -355,6 +355,7 @@ public static class Renderer
 
             _finalTextureView = previousView;
             _finalTextureView.Name += " - Final Texture View";
+            waitTask?.Wait();
             _resolvePass = new ShaderPass<EmptyStruct>("resolve/shader", null);
 
             _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new[] { _finalTextureView });

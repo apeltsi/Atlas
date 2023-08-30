@@ -192,6 +192,8 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static event Action OnResize;
 
+        private Task _builtinAssetsTask;
+        
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
@@ -241,20 +243,21 @@ namespace SolidCode.Atlas.Rendering
             _window.Title = GetAdjustedWindowTitle(_title);
 #endif
             // We have to load our builtin shaders now
-            AssetPack builtinAssets = new AssetPack("%ASSEMBLY%/atlas");
-            builtinAssets.Load();
-            Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
+            AssetPack coreAssets = new AssetPack("%ASSEMBLY%/core");
+            _builtinAssetsTask = new AssetPack("%ASSEMBLY%/atlas").LoadAsync();
 
+            Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
+            Task t = coreAssets.LoadAsync();
             _window.Resized += () =>
             {
                 PreResize?.Invoke();
                 Renderer.GraphicsDevice.ResizeMainWindow((uint)_window.Width, (uint)_window.Height);
                 Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
-                Renderer.CreateResources();
+                Renderer.CreateResources(t);
                 OnResize?.Invoke();
             };
 
-            Renderer.CreateResources();
+            Renderer.CreateResources(t);
         }
 
         public static void Close()
@@ -283,6 +286,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     _window.Visible = true;
                     _window.WindowState = WindowState.Normal;
+                    _builtinAssetsTask.Wait();
                     TickManager.Initialize();
                     Input.Input.Initialize();
                 }

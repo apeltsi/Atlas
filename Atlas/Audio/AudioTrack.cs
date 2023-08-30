@@ -1,5 +1,5 @@
 using NokitaKaze.WAVParser;
-using OpenTK.Audio.OpenAL;
+using Silk.NET.OpenAL;
 using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Telescope;
 namespace SolidCode.Atlas.Audio
@@ -11,12 +11,12 @@ namespace SolidCode.Atlas.Audio
 
         }
 
-        public int Buffer { get; protected set; }
+        public uint Buffer { get; protected set; }
         public double Duration { get; protected set; }
 
         public override void Dispose()
         {
-            AL.DeleteBuffer(this.Buffer);
+            Audio.ALApi.DeleteBuffer(this.Buffer);
         }
 
         public override void FromStreams(Stream[] stream, string name)
@@ -29,26 +29,31 @@ namespace SolidCode.Atlas.Audio
         private void SetAudioData(WAVParser parser)
         {
             Duration = parser.Duration.TotalSeconds;
-            ALFormat format = ALFormat.MonoDoubleExt;
-            double[] samples;
+            BufferFormat format = BufferFormat.Mono16;
+            ushort[] samples;
             if (parser.ChannelCount == 2)
             {
-                samples = new double[parser.SamplesCount * 2];
-                format = ALFormat.StereoDoubleExt;
+                samples = new ushort[parser.SamplesCount * 2];
+                format = BufferFormat.Stereo16;
                 for (int i = 0; i < samples.Length; i += 2)
                 {
-                    samples[i] = parser.Samples[0][i / 2];
-                    samples[i + 1] = parser.Samples[1][i / 2];
+                    // Lets convert the double samples to proper short samples
+                    samples[i] = (ushort) (parser.Samples[0][i / 2] * (double) ushort.MaxValue);
+                    samples[i + 1] = (ushort) (parser.Samples[1][i / 2] * (double) ushort.MaxValue);
                 }
             }
             else
             {
-                samples = parser.Samples[0].ToArray();
+                samples = new ushort[parser.SamplesCount];
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    samples[i] = (ushort) (parser.Samples[0][i] * (double) ushort.MaxValue);
+                }
             }
             lock (Audio.AudioLock)
             {
-                this.Buffer = AL.GenBuffer();
-                AL.BufferData<double>(Buffer, format, samples, (int)parser.SampleRate);
+                this.Buffer = Audio.ALApi.GenBuffer();
+                Audio.ALApi.BufferData<ushort>(Buffer, format, samples, (int)parser.SampleRate);
             }
         }
 

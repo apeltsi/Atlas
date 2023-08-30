@@ -46,17 +46,17 @@ public class SpriteRenderer : RenderComponent
     {
         VertexPositionUV[] quadVertices =
                {
-                new VertexPositionUV(new Vector2(-1f, 1f), new Vector2(0, 0)),
-                new VertexPositionUV(new Vector2(1f, 1f), new Vector2(1, 0)),
-                new VertexPositionUV(new Vector2(-1f, -1f), new Vector2(0, 1)),
-                new VertexPositionUV(new Vector2(1f, -1f), new Vector2(1, 1))
+                new (new Vector2(-1f, 1f), new Vector2(0, 0)),
+                new (new Vector2(1f, 1f), new Vector2(1, 0)),
+                new (new Vector2(-1f, -1f), new Vector2(0, 1)),
+                new (new Vector2(1f, -1f), new Vector2(1, 1))
         };
         ushort[] quadIndices = { 0, 1, 2, 3 };
         var layout = new VertexLayoutDescription(
                         new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
                         new VertexElementDescription("UV", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2));
         mesh = new Mesh<VertexPositionUV>(quadVertices, quadIndices, layout);
-        List<SolidCode.Atlas.Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
+        List<Rendering.Texture> textures = new List<SolidCode.Atlas.Rendering.Texture>();
         textures.Add(Sprite);
         DrawableOptions<VertexPositionUV, ColorUniform> options = new ()
         {
