@@ -83,6 +83,7 @@ public class TextRenderer : RenderComponent
     
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
+        AssetManager.RequireBuiltinAssets();
         textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, Entity.GetComponent<Transform>(true));
         return new Drawable[] { textDrawable };
     }

@@ -44,6 +44,7 @@ public class SpriteRenderer : RenderComponent
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
+        AssetManager.RequireBuiltinAssets();
         VertexPositionUV[] quadVertices =
                {
                 new (new Vector2(-1f, 1f), new Vector2(0, 0)),

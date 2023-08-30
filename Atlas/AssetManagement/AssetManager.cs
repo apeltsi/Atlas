@@ -203,6 +203,14 @@ namespace SolidCode.Atlas.AssetManagement
         }
 
         /// <summary>
+        /// Only returns when the main builtin assets are loaded.
+        /// </summary>
+        public static void RequireBuiltinAssets()
+        {
+            Window.RequireBuiltinAssets();
+        }
+
+        /// <summary>
         /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is advised to let the garbage collector decide when the time is ripe.
         /// </summary>
         static void ForceUnloadAssets()
