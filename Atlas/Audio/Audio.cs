@@ -1,7 +1,7 @@
 namespace SolidCode.Atlas.Audio
 {
     using System.Diagnostics;
-    using OpenTK.Audio.OpenAL;
+    using Silk.NET.OpenAL;
     
     public struct PlaybackSettings
     {
@@ -32,47 +32,45 @@ namespace SolidCode.Atlas.Audio
     
     public static class Audio
     {
-        internal static ALContext context;
-        static ALDevice device;
+        internal static ALContext ALC;
+        internal static AL ALApi;
         internal static object AudioLock = new Object();
         public static float MasterVolume
         {
             get
             {
+                
                 float vol = 0f;
-                AL.GetListener(ALListenerf.Gain, out vol);
-                if (!AL.IsExtensionPresent("AL_EXT_double"))
-                {
-                    SolidCode.Atlas.Telescope.Debug.Warning(LogCategory.Framework, "OpenAL Extension AL_EXT_double is not present.");
-                }
+                ALApi.GetListenerProperty(ListenerFloat.Gain, out vol);
+                
                 return vol;
             }
             set
             {
-                AL.Listener(ALListenerf.Gain, value);
+                ALApi.SetListenerProperty(ListenerFloat.Gain, value);
             }
         }
         internal static void InitializeAudio()
         {
             lock (AudioLock)
             {
-                List<string> devices = ALC.GetString(AlcGetStringList.AllDevicesSpecifier);
-              
+                ALC = ALContext.GetApi();
+                ALApi = AL.GetApi();
                 unsafe
                 {
-                    device = ALC.OpenDevice(null);
-                    context = ALC.CreateContext(device, (int*)null);
-                    bool valid = ALC.MakeContextCurrent(context);
-                    if (!valid)
+                    var device = ALC.OpenDevice("");
+                    if (device == null)
                     {
-                        SolidCode.Atlas.Telescope.Debug.Error(LogCategory.Framework, "Failed to create OpenAL context!");
+                        Console.WriteLine("Could not create device");
+                        return;
                     }
-                    else
-                    {
-                        SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "AudioManager active on " + ALC.GetString(device, AlcGetString.AllDevicesSpecifier) + "");
-                    }
+
+                    var context = ALC.CreateContext(device, null);
+                    ALC.MakeContextCurrent(context);
+                    ALApi.GetError();
                 }
             }
+            Telescope.Debug.Log(LogCategory.Framework, "AudioManager initialized");
         }
 
         /// <summary>
@@ -97,33 +95,27 @@ namespace SolidCode.Atlas.Audio
             settings.SetDefaults();
             lock (AudioLock)
             {
-                int source = AL.GenSource();
-                AL.Source(source, ALSourcei.Buffer, track.Buffer);
-                AL.Source(source, ALSourcef.Gain, settings.Volume!.Value);
-                AL.Source(source, ALSourcef.Pitch, settings.Pitch!.Value);
-                AL.SourcePlay(source);
+                uint source = ALApi.GenSource();
+                ALApi.SetSourceProperty(source, SourceInteger.Buffer, track.Buffer);
+                ALApi.SetSourceProperty(source, SourceFloat.Gain, settings.Volume!.Value);
+                ALApi.SetSourceProperty(source, SourceFloat.Pitch, settings.Pitch!.Value);
+                ALApi.SourcePlay(source);
                 PlayingAudio p = new PlayingAudio(track, source, settings.Pitch!.Value);
                 RemoveSource(source, (float)track.Duration);
                 return p;
             }
         }
-        static async void RemoveSource(int source, float wait)
+        static async void RemoveSource(uint source, float wait)
         {
             await Task.Delay((int)(wait * 1000) + 50);
-            AL.DeleteSource(source);
+            ALApi.DeleteSource(source);
         }
 
         internal static void Dispose()
         {
             lock (AudioLock)
             {
-
-                unsafe
-                {
-                    ALC.MakeContextCurrent(ALContext.Null);
-                    ALC.DestroyContext(context);
-                    ALC.CloseDevice(device);
-                }
+                ALApi.Dispose();
                 SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "AudioManager disposed");
             }
         }
@@ -131,10 +123,10 @@ namespace SolidCode.Atlas.Audio
         public class PlayingAudio
         {
             private Stopwatch stopwatch;
-            private int source;
+            private uint source;
             public double Duration { get; protected set; }
             public double TimePlayed => stopwatch.Elapsed.TotalSeconds;
-            internal PlayingAudio(AudioTrack t, int source, float pitch)
+            internal PlayingAudio(AudioTrack t, uint source, float pitch)
             {
                 this.Duration = t.Duration / pitch;
                 this.stopwatch = Stopwatch.StartNew();
@@ -143,7 +135,7 @@ namespace SolidCode.Atlas.Audio
 
             public void Stop()
             {
-                AL.SourceStop(this.source);
+                ALApi.SourceStop(this.source);
             }
         }
     }
