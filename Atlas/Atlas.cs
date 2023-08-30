@@ -32,7 +32,7 @@ namespace SolidCode.Atlas
 
         public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
         public static string AssetPackDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "1.0.0-pre.11";
+        public const string Version = "1.0.0-pre.12";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
