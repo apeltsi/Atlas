@@ -1,6 +1,6 @@
 {
     "version": "1.0",
     "optimizeFor": "speed",
-    "include": ["assets/*.*", "shaders/*.*", "shaders/instanced-sprite/*.*", "shaders/sprite/*.*", "shaders/color/*.*", "shaders/resolve/*.*"],
+    "include": ["assets/*.*", "shaders/*.*", "shaders/instanced-sprite/*.*", "shaders/sprite/*.*", "shaders/color/*.*"],
     "excludeExtensions": ["png"]
 }
