@@ -213,7 +213,8 @@ public static class Debug
 
         actions = new Dictionary<string, TelescopeAction>();
 #if DEBUG
-        ds.Stop();
+        if(ds != null)
+            ds.Stop();
 #endif
     }
 
