@@ -44,6 +44,10 @@ public class FontSet
     {
         if (_default == null)
         {
+            if (!AssetManager.IsAssetLoaded("OpenSans-Regular"))
+            {
+                new AssetPack("%ASSEMBLY%/default-font").Load();
+            }
             _default = new FontSet(new Font[] { AssetManager.GetAsset<Font>("OpenSans-Regular")! });
         }
         return _default;
