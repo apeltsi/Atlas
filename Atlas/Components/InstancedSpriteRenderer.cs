@@ -13,9 +13,9 @@ public class InstancedSpriteRenderer : SpriteRenderer
         public Vector2 InstancePosition;
         public float InstanceRotation;
         public Vector2 InstanceScale;
-        public Vector4 InstanceColor;
+        public Color InstanceColor;
 
-        public InstanceData(Vector2 instancePosition, float instanceRotation, Vector2 instanceScale, Vector4 instanceColor)
+        public InstanceData(Vector2 instancePosition, float instanceRotation, Vector2 instanceScale, Color instanceColor)
         {
             InstancePosition = instancePosition;
             InstanceRotation = instanceRotation;

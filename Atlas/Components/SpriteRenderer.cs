@@ -23,9 +23,9 @@ public class SpriteRenderer : RenderComponent
             }
         }
     }
-    private Vector4 _color = Vector4.One;
+    private Color _color = SolidCode.Atlas.Color.White;
     protected Drawable drawable;
-    public Vector4 Color
+    public Color Color
     {
         get
         {
