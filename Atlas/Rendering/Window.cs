@@ -375,6 +375,21 @@ namespace SolidCode.Atlas.Rendering
             _builtinAssetsTask.Wait();
         }
 
+        public static void Fullscreen()
+        {
+            State = WindowState.FullScreen;
+        }
+
+        public static void BorderlessFullscreen()
+        {
+            State = WindowState.BorderlessFullScreen;
+        }
+
+        public static void Windowed()
+        {
+            State = WindowState.Normal;
+        }
+
         public static void MoveToFront()
         {
             if (_window == null) return;

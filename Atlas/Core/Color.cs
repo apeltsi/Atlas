@@ -21,6 +21,12 @@ namespace SolidCode.Atlas
         public static Color Blue => new (0f, 0f, 1f, 1f);
         public static Color TransparentWhite => new (1f, 1f, 1f, 0f);
         public static Color TransparentBlack => new (0f, 0f, 0f, 0f);
+        /// <summary>
+        /// Creates a color from a RGB value
+        /// </summary>
+        /// <param name="r">A float representing the red channel</param>
+        /// <param name="g">A float representing the green channel</param>
+        /// <param name="b">A float representing the blue channel</param>
         public Color(float r, float g, float b)
         {
             R = r;
@@ -28,7 +34,14 @@ namespace SolidCode.Atlas
             B = b;
             A = 1f;
         }
-
+        
+        /// <summary>
+        /// Creates a color from a RGBA value
+        /// </summary>
+        /// <param name="r">A float representing the red channel</param>
+        /// <param name="g">A float representing the green channel</param>
+        /// <param name="b">A float representing the blue channel</param>
+        /// <param name="a">A float representing the alpha channel</param>
         public Color(float r, float g, float b, float a)
         {
             R = r;
@@ -37,6 +50,10 @@ namespace SolidCode.Atlas
             A = a;
         }
         
+        /// <summary>
+        /// Creates a color from a hex string
+        /// </summary>
+        /// <param name="hex"></param>
         public Color(string hex)
         {
             Color c = HexToColor(hex);
