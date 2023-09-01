@@ -25,6 +25,7 @@ easy to learn for developers already familiar with Unity.
 - Audio with OpenAL
 - Input with Mouse & Keyboard or Gamepad
 - Support for HLSL or GLSL Shaders
+- Support for post-processing effects
 - Multithreading
 - Windows & Linux* support
 
