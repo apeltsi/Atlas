@@ -153,7 +153,7 @@ class DebugServer
     private HttpListener _listener;
     private byte[] bytesToSend = new byte[0];
     public static DebugServer instance;
-    WebSocketServer wssv;
+    WebSocketServer? wssv;
     int listenerID = 0;
     public static int Connections = 0;
     ConcurrentDictionary<int, DebuggerSocketBehaviour> listeners = new ConcurrentDictionary<int, DebuggerSocketBehaviour>();
@@ -218,7 +218,7 @@ class DebugServer
 
     public void Stop()
     {
-        wssv.Stop();
+        wssv?.Stop();
         _listener.Stop();
     }
 

@@ -26,7 +26,7 @@ public class TextRenderer : RenderComponent
         }
     }
     public bool Centered = true;
-    private Vector4 _color = new Vector4(1f, 1f, 1f, 1f);
+    private Color _color = SolidCode.Atlas.Color.White;
     private FontSet _fontSet = FontSet.GetDefault();
     public FontSet Fonts
     {
@@ -38,7 +38,7 @@ public class TextRenderer : RenderComponent
                 textDrawable.UpdateFontSet(_fontSet);
         }
     }
-    public Vector4 Color
+    public Color Color
     {
         get
         {
@@ -83,6 +83,7 @@ public class TextRenderer : RenderComponent
     
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
+        AssetManager.RequireBuiltinAssets();
         textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, Entity.GetComponent<Transform>(true));
         return new Drawable[] { textDrawable };
     }

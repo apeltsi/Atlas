@@ -23,9 +23,9 @@ public class SpriteRenderer : RenderComponent
             }
         }
     }
-    private Vector4 _color = Vector4.One;
+    private Color _color = SolidCode.Atlas.Color.White;
     protected Drawable drawable;
-    public Vector4 Color
+    public Color Color
     {
         get
         {
@@ -44,6 +44,7 @@ public class SpriteRenderer : RenderComponent
     }
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
+        AssetManager.RequireBuiltinAssets();
         VertexPositionUV[] quadVertices =
                {
                 new (new Vector2(-1f, 1f), new Vector2(0, 0)),

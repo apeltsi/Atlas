@@ -45,7 +45,7 @@ public static class StartupAnimations
                 ps.ParticleUpdates[1] = (ref ParticleSystem.Particle particle) =>
                 {
                     particle.Rotation += (float)Time.deltaTime;
-                    particle.Color = new Vector4(particle.Color.X, particle.Color.Y, particle.Color.Z,
+                    particle.Color = new Vector4(particle.Color.R, particle.Color.G, particle.Color.B,
                         1f - particle.Age / particle.Lifetime);
                     particle.Scale -= new Vector2(0.5f, 0.5f) * (float)Time.deltaTime;
                     if (particle.Scale.X < 0)

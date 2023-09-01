@@ -13,9 +13,9 @@ public class InstancedSpriteRenderer : SpriteRenderer
         public Vector2 InstancePosition;
         public float InstanceRotation;
         public Vector2 InstanceScale;
-        public Vector4 InstanceColor;
+        public Color InstanceColor;
 
-        public InstanceData(Vector2 instancePosition, float instanceRotation, Vector2 instanceScale, Vector4 instanceColor)
+        public InstanceData(Vector2 instancePosition, float instanceRotation, Vector2 instanceScale, Color instanceColor)
         {
             InstancePosition = instancePosition;
             InstanceRotation = instanceRotation;
@@ -48,7 +48,8 @@ public class InstancedSpriteRenderer : SpriteRenderer
     
     public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
     {
-        
+        AssetManager.RequireBuiltinAssets();
+
         VertexPositionUV[] quadVertices =
         {
             new (new Vector2(-1f, 1f), new Vector2(0, 0)),

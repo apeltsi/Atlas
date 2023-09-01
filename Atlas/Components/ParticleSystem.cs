@@ -53,8 +53,8 @@ public class ParticleSystem : InstancedSpriteRenderer
         }
         public Vector2 Velocity;
         public Vector2 Acceleration;
-        private Vector4 _color;
-        public Vector4 Color
+        private Color _color;
+        public Color Color
         {
             get => _color;
             set
@@ -125,7 +125,7 @@ public class ParticleSystem : InstancedSpriteRenderer
         },
         (ref Particle particle) =>
         {
-            particle.Color = new Vector4(particle.Color.X, particle.Color.Y, particle.Color.Z, 1f - particle.Age / particle.Lifetime);
+            particle.Color = new Color(particle.Color.R, particle.Color.G, particle.Color.B, 1f - particle.Age / particle.Lifetime);
             particle.Scale += new Vector2(0.5f, 0.5f) * (float)Time.deltaTime;
         } 
     };

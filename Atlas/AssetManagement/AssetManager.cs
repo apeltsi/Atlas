@@ -201,11 +201,30 @@ namespace SolidCode.Atlas.AssetManagement
                 }
             }
         }
+        
+        /// <summary>
+        /// Returns true if the asset specified is currently loaded.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool IsAssetLoaded(string path)
+        {
+            Cleanup();
+            return loadedAssets.ContainsKey(path);
+        }
+
+        /// <summary>
+        /// Only returns when the main builtin assets are loaded.
+        /// </summary>
+        public static void RequireBuiltinAssets()
+        {
+            Window.RequireBuiltinAssets();
+        }
 
         /// <summary>
         /// WARNING: This method runs garbage collection. IT CAN BE VERY EXPENSIVE. Generally it is advised to let the garbage collector decide when the time is ripe.
         /// </summary>
-        static void ForceUnloadAssets()
+        public static void ForceUnloadAssets()
         {
             GC.Collect();
             Cleanup();

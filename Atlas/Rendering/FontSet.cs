@@ -13,7 +13,13 @@ public class FontSet
     public FontSet(Font[] fonts)
     {
         Fonts = fonts;
-        System = new FontSystem();
+        System = new FontSystem(new FontSystemSettings()
+        {
+            TextureWidth = 2048, // Defaults to 1024, but 2048 gives more space for more & larger characters
+            TextureHeight = 2048,
+        });
+        // When the atlas is full, reset the font system so that it can create a new atlas.
+        System.CurrentAtlasFull += (e, a) => System.Reset();
         foreach (var font in Fonts)
         {
             System.AddFont(font.Data);
@@ -38,6 +44,10 @@ public class FontSet
     {
         if (_default == null)
         {
+            if (!AssetManager.IsAssetLoaded("OpenSans-Regular"))
+            {
+                new AssetPack("%ASSEMBLY%/default-font").Load();
+            }
             _default = new FontSet(new Font[] { AssetManager.GetAsset<Font>("OpenSans-Regular")! });
         }
         return _default;

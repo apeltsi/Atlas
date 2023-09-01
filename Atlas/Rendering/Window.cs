@@ -192,7 +192,7 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static event Action OnResize;
 
-        private Task _builtinAssetsTask;
+        private static Task? _builtinAssetsTask;
         
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
@@ -361,6 +361,33 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
 
+        }
+        
+        internal static void RequireBuiltinAssets() {
+            if (_builtinAssetsTask == null)
+            {
+                Telescope.Debug.Warning(LogCategory.Framework,
+                    "Builtin Assets have not started loading yet. Has Atlas been properly initialized?");
+            }
+            while(_builtinAssetsTask == null) {
+                Thread.Sleep(10);
+            }
+            _builtinAssetsTask.Wait();
+        }
+
+        public static void Fullscreen()
+        {
+            State = WindowState.FullScreen;
+        }
+
+        public static void BorderlessFullscreen()
+        {
+            State = WindowState.BorderlessFullScreen;
+        }
+
+        public static void Windowed()
+        {
+            State = WindowState.Normal;
         }
 
         public static void MoveToFront()

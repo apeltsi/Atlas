@@ -15,6 +15,11 @@ namespace SolidCode.Atlas
         private static object runningLock = new Object();
         private static bool isRunning = false;
         public static PriorityQueue<Task, int> tickQueue = new PriorityQueue<Task, int>();
+        /// <summary>
+        /// Returns a Task which will complete when no synced (normal) ECS threads are executing
+        /// </summary>
+        /// <param name="priority"></param>
+        /// <returns></returns>
         public static Task RequestTick(int priority = 0)
         {
             Task t = new Task(TaskAction);
@@ -38,6 +43,9 @@ namespace SolidCode.Atlas
 
         }
 
+        /// <summary>
+        /// Tells the TickScheduler that the current thread is done executing, allowing the next thread in the queue to run
+        /// </summary>
         public static void FreeThreads()
         {
             lock (runningLock)

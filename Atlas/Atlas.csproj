@@ -1,58 +1,59 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RootNamespace>SolidCode.Atlas</RootNamespace>
-    <AssemblyName>SolidCode.Atlas</AssemblyName>
-    <TargetFrameworks>net7.0</TargetFrameworks>
-    <Title>Atlas</Title>
-    <Authors>Amos Peltonen</Authors>
-    <Copyright>Copyright (c) Amos Peltonen 2023</Copyright>
-    <PackageProjectUrl>https://github.com/apeltsi/Atlas</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/apeltsi/Atlas/blob/stable/LICENSE</PackageLicenseUrl>
-    <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
-    <Product>Atlas</Product>
-    <AssemblyVersion>1.0.0</AssemblyVersion>
-    <Version>1.0.0-pre12</Version>
-    <PackRelease>true</PackRelease>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-  </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj" />
-  </ItemGroup>
-  <ItemGroup Label="Package References">
-    <PackageReference Include="FontStashSharp" Version="1.2.8" />
-    <PackageReference Include="NokitaKaze.WAVParser" Version="0.1.0" />
-    <PackageReference Include="Silk.NET.OpenAL" Version="2.17.1" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="Veldrid" Version="4.9.0" />
-    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
-    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
-  </ItemGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
-    <DefineConstants>Windows</DefineConstants>
-  </PropertyGroup>
-  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <DefineConstants>Linux</DefineConstants>
-  </PropertyGroup>
-  <ItemGroup Label="Resources"> 
-      <EmbeddedResource Include="assets\atlas.assetpack" />
-      <EmbeddedResource Include="assets\atlas-post.assetpack" />
-      <EmbeddedResource Include="assets\core.assetpack" />
-  </ItemGroup>
-  <ItemGroup Label="Native Libraries">
-    <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="native/libopenal.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
-      <Link>%(Filename)%(Extension)</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <RootNamespace>SolidCode.Atlas</RootNamespace>
+        <AssemblyName>SolidCode.Atlas</AssemblyName>
+        <TargetFrameworks>net7.0</TargetFrameworks>
+        <Title>Atlas</Title>
+        <Authors>Amos Peltonen</Authors>
+        <Copyright>Copyright (c) Amos Peltonen 2023</Copyright>
+        <PackageProjectUrl>https://github.com/apeltsi/Atlas</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/apeltsi/Atlas/blob/stable/LICENSE</PackageLicenseUrl>
+        <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
+        <Product>Atlas</Product>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+        <Version>1.0.0-pre13</Version>
+        <PackRelease>true</PackRelease>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+    <ItemGroup Label="Project References">
+        <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
+    </ItemGroup>
+    <ItemGroup Label="Package References">
+        <PackageReference Include="FontStashSharp" Version="1.2.8"/>
+        <PackageReference Include="NokitaKaze.WAVParser" Version="0.1.0"/>
+        <PackageReference Include="Silk.NET.OpenAL" Version="2.17.1"/>
+        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0"/>
+        <PackageReference Include="Veldrid" Version="4.9.0"/>
+        <PackageReference Include="Veldrid.SPIRV" Version="1.0.15"/>
+        <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0"/>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+    </ItemGroup>
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        <DefineConstants>Windows</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+        <DefineConstants>Linux</DefineConstants>
+    </PropertyGroup>
+    <ItemGroup Label="Resources">
+        <EmbeddedResource Include="assets\atlas.assetpack"/>
+        <EmbeddedResource Include="assets\atlas-post.assetpack"/>
+        <EmbeddedResource Include="assets\core.assetpack"/>
+        <EmbeddedResource Include="assets\default-font.assetpack"/>
+    </ItemGroup>
+    <ItemGroup Label="Native Libraries">
+        <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <Content Include="native/libopenal.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
+            <Link>%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
 </Project>
