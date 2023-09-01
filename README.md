@@ -11,17 +11,12 @@ cross-platform, performant and developer friendly. The framework has a
 syntax similar to Unity and uses C# as its primary language, making it
 easy to learn for developers already familiar with Unity.
 
-> Atlas targets net7.0
+> Atlas currently targets net7.0
 
 
 ## Getting Started
 
 [Check out the Getting Started Tutorial](https://github.com/apeltsi/Atlas/wiki/Getting-Started)
-
-## IMPORTANT!
-
-Atlas is still quite early in development and is very much subject to change.
-There is also still a lot of polish needed before Atlas is ready to be used for bigger projects. 
 
 ## Quick Feature Rundown
 
@@ -31,7 +26,10 @@ There is also still a lot of polish needed before Atlas is ready to be used for 
 - Input with Mouse & Keyboard or Gamepad
 - Support for HLSL or GLSL Shaders
 - Multithreading
-- Windows & Linux support (Tested on SteamDeck) 
+- Windows & Linux* support
+
+
+\* Currently, there are some issues on certain distros of Linux
 
 ## Portability
 
