@@ -290,7 +290,7 @@ namespace SolidCode.Atlas.Rendering
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
             buffers[1] = texView;
-            buffers[2] = _graphicsDevice.Aniso4xSampler;
+            buffers[2] = _graphicsDevice.LinearSampler;
             buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(

@@ -232,6 +232,7 @@ namespace SolidCode.Atlas.AssetManagement
 
         internal static void Dispose()
         {
+            Debug.Log(LogCategory.Framework, "Disposing AssetManager...");
             foreach (var asset in loadedAssets)
             {
                 Asset? a = null;

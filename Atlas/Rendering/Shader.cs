@@ -86,5 +86,10 @@ namespace SolidCode.Atlas.Rendering
                 Shaders[i].Dispose();
             }
         }
+        
+        ~Shader()
+        {
+            this.Dispose();
+        }
     }
 }

@@ -179,5 +179,10 @@ namespace SolidCode.Atlas.Audio
                 return false;
             }
         }
+        
+        ~AudioTrack()
+        {
+            this.Dispose();
+        }
     }
 }

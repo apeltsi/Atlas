@@ -81,5 +81,10 @@ namespace SolidCode.Atlas.Rendering
                 this.IsValid = false;
             }
         }
+        
+        ~Texture()
+        {
+            this.Dispose();
+        }
     }
 }
