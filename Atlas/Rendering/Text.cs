@@ -103,6 +103,11 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            if (dirty)
+            {
+                if (_centered)
+                    _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+            }
             _renderer.SetGlobalMatrix(_graphicsDevice, matrix);
             _lastMatrix = matrix;
         }
