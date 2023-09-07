@@ -150,10 +150,11 @@ namespace SolidCode.Atlas
                 Debug.Error(LogCategory.Framework, ex.ToString());
             }
             _doTick = false;
-            Audio.Audio.Dispose();
+            Audio.Audio.DisposeAllSources();
             EntityComponentSystem.Dispose();
             Renderer.Dispose();
             Input.Input.Dispose();
+            Audio.Audio.Dispose();
             PrimaryStopwatch?.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((PrimaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");
             Telescope.Debug.Dispose();

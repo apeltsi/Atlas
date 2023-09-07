@@ -35,6 +35,8 @@ namespace SolidCode.Atlas.Audio
         internal static ALContext ALC;
         internal static AL ALApi;
         internal static object AudioLock = new Object();
+        private static bool _isDisposed = false;
+        private static List<uint> _sources = new List<uint>();
         public static float MasterVolume
         {
             get
@@ -52,6 +54,7 @@ namespace SolidCode.Atlas.Audio
         }
         internal static void InitializeAudio()
         {
+            _isDisposed = false;
             lock (AudioLock)
             {
                 ALC = ALContext.GetApi();
@@ -95,11 +98,14 @@ namespace SolidCode.Atlas.Audio
             settings.SetDefaults();
             lock (AudioLock)
             {
+                if (_isDisposed)
+                    return null!;
                 uint source = ALApi.GenSource();
                 ALApi.SetSourceProperty(source, SourceInteger.Buffer, track.Buffer);
                 ALApi.SetSourceProperty(source, SourceFloat.Gain, settings.Volume!.Value);
                 ALApi.SetSourceProperty(source, SourceFloat.Pitch, settings.Pitch!.Value);
                 ALApi.SourcePlay(source);
+                _sources.Add(source);
                 PlayingAudio p = new PlayingAudio(track, source, settings.Pitch!.Value);
                 RemoveSource(source, (float)track.Duration);
                 return p;
@@ -108,13 +114,35 @@ namespace SolidCode.Atlas.Audio
         static async void RemoveSource(uint source, float wait)
         {
             await Task.Delay((int)(wait * 1000) + 50);
-            ALApi.DeleteSource(source);
+            lock (AudioLock)
+            {
+                if (!_isDisposed)
+                {
+                    _sources.Remove(source);
+                    ALApi.DeleteSource(source);
+                }
+            }
         }
 
+        internal static void DisposeAllSources()
+        {
+            lock (AudioLock)
+            {
+                _isDisposed = true;
+                foreach (uint source in _sources)
+                {
+                    ALApi.DeleteSource(source);
+                }
+                SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "All audio sources disposed");
+            }
+        }
+        
         internal static void Dispose()
         {
             lock (AudioLock)
             {
+                _isDisposed = true;
+                
                 ALApi.Dispose();
                 SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "AudioManager disposed");
             }
