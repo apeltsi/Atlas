@@ -30,30 +30,30 @@ namespace SolidCode.Atlas.Audio
         {
             Duration = parser.Duration.TotalSeconds;
             BufferFormat format = BufferFormat.Mono16;
-            ushort[] samples;
+            short[] samples;
             if (parser.ChannelCount == 2)
             {
-                samples = new ushort[parser.SamplesCount * 2];
+                samples = new short[parser.SamplesCount * 2];
                 format = BufferFormat.Stereo16;
                 for (int i = 0; i < samples.Length; i += 2)
                 {
                     // Lets convert the double samples to proper short samples
-                    samples[i] = (ushort) (parser.Samples[0][i / 2] * (double) ushort.MaxValue);
-                    samples[i + 1] = (ushort) (parser.Samples[1][i / 2] * (double) ushort.MaxValue);
+                    samples[i] = (short) (parser.Samples[0][i / 2] * (double) short.MaxValue);
+                    samples[i + 1] = (short) (parser.Samples[1][i / 2] * (double) short.MaxValue);
                 }
             }
             else
             {
-                samples = new ushort[parser.SamplesCount];
+                samples = new short[parser.SamplesCount];
                 for (int i = 0; i < samples.Length; i++)
                 {
-                    samples[i] = (ushort) (parser.Samples[0][i] * (double) ushort.MaxValue);
+                    samples[i] = (short) (parser.Samples[0][i] * (double) short.MaxValue);
                 }
             }
             lock (Audio.AudioLock)
             {
                 this.Buffer = Audio.ALApi.GenBuffer();
-                Audio.ALApi.BufferData<ushort>(Buffer, format, samples, (int)parser.SampleRate);
+                Audio.ALApi.BufferData<short>(Buffer, format, samples, (int)parser.SampleRate);
             }
         }
 
