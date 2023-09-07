@@ -75,10 +75,12 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            if (TextureData != null && _autoDispose)
-            {
+            TickScheduler.RequestTick().Wait();
+            if (TextureData != null && _autoDispose) {
+                Renderer.GraphicsDevice!.WaitForIdle();
                 this.TextureData.Dispose();
                 this.IsValid = false;
+                TickScheduler.FreeThreads();
             }
         }
         
