@@ -184,7 +184,6 @@ namespace SolidCode.Atlas.ECS
                         {
                             Component c = entity.Components[i];
                             c.Enabled = false;
-                            c.Entity = null;
                             c.TryInvokeMethod("OnRemove");
                             c.UnregisterMethods();
                             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(c.GetType(), typeof(LimitInstanceCountAttribute));
