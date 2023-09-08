@@ -96,6 +96,9 @@ namespace SolidCode.Atlas.Audio
         {
             if (track == null) return null;
             settings.SetDefaults();
+            if (!Atlas.AudioEnabled)
+                return new PlayingAudio(track, 0, settings.Pitch!.Value);
+
             lock (AudioLock)
             {
                 if (_isDisposed)
@@ -163,7 +166,8 @@ namespace SolidCode.Atlas.Audio
 
             public void Stop()
             {
-                ALApi.SourceStop(this.source);
+                if(Atlas.AudioEnabled)
+                    ALApi.SourceStop(this.source);
             }
         }
     }

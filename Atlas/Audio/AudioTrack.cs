@@ -17,7 +17,7 @@ namespace SolidCode.Atlas.Audio
         private bool _isDisposed = false;
         public override void Dispose()
         {
-            if (!_isDisposed)
+            if (!_isDisposed && Atlas.AudioEnabled)
             {
                 Audio.ALApi.DeleteBuffer(this.Buffer);
                 _isDisposed = true;
@@ -55,6 +55,9 @@ namespace SolidCode.Atlas.Audio
                     samples[i] = (short) (parser.Samples[0][i] * (double) short.MaxValue);
                 }
             }
+
+            if (!Atlas.AudioEnabled)
+                return;
             lock (Audio.AudioLock)
             {
                 this.Buffer = Audio.ALApi.GenBuffer();
