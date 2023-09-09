@@ -47,7 +47,7 @@ namespace SolidCode.Atlas.Rendering
             this.Name = name;
             try
             {
-                this.TextureData = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, System.IO.Path.Join(Atlas.AssetsDirectory, this.Path), PixelFormat.R8_G8_B8_A8_UNorm);
+                this.TextureData = KtxFile.LoadTexture(Renderer.GraphicsDevice, Renderer.GraphicsDevice.ResourceFactory, System.IO.Path.Join(Atlas.AssetsDirectory, "assets", this.Path), PixelFormat.R8_G8_B8_A8_UNorm);
                 this.IsValid = true;
             }
             catch (Exception e)
@@ -75,11 +75,18 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            if (TextureData != null && _autoDispose)
-            {
+            TickScheduler.RequestTick().Wait();
+            if (TextureData != null && _autoDispose) {
+                Renderer.GraphicsDevice!.WaitForIdle();
                 this.TextureData.Dispose();
                 this.IsValid = false;
+                TickScheduler.FreeThreads();
             }
+        }
+        
+        ~Texture()
+        {
+            this.Dispose();
         }
     }
 }

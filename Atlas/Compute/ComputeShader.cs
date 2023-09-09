@@ -43,4 +43,9 @@ public class ComputeShader : Asset
     {
         Shader?.Dispose();
     }
+    
+    ~ComputeShader()
+    {
+        this.Dispose();
+    }
 }

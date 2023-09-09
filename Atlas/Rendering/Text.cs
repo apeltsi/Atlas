@@ -103,6 +103,11 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
+            if (dirty)
+            {
+                if (_centered)
+                    _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+            }
             _renderer.SetGlobalMatrix(_graphicsDevice, matrix);
             _lastMatrix = matrix;
         }
@@ -285,7 +290,7 @@ namespace SolidCode.Atlas.Rendering
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
             buffers[1] = texView;
-            buffers[2] = _graphicsDevice.Aniso4xSampler;
+            buffers[2] = _graphicsDevice.LinearSampler;
             buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(

@@ -15,7 +15,7 @@
         <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
         <Product>Atlas</Product>
         <AssemblyVersion>1.0.0</AssemblyVersion>
-        <Version>1.0.0-pre13</Version>
+        <Version>1.0.0-pre14</Version>
         <PackRelease>true</PackRelease>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -41,10 +41,10 @@
         <DefineConstants>Linux</DefineConstants>
     </PropertyGroup>
     <ItemGroup Label="Resources">
-        <EmbeddedResource Include="assets\atlas.assetpack"/>
-        <EmbeddedResource Include="assets\atlas-post.assetpack"/>
-        <EmbeddedResource Include="assets\core.assetpack"/>
-        <EmbeddedResource Include="assets\default-font.assetpack"/>
+        <EmbeddedResource Include="assetpacks\atlas.assetpack" />
+        <EmbeddedResource Include="assetpacks\atlas-post.assetpack" />
+        <EmbeddedResource Include="assetpacks\core.assetpack" />
+        <EmbeddedResource Include="assetpacks\default-font.assetpack" />
     </ItemGroup>
     <ItemGroup Label="Native Libraries">
         <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">

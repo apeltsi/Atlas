@@ -14,9 +14,14 @@ namespace SolidCode.Atlas.Audio
         public uint Buffer { get; protected set; }
         public double Duration { get; protected set; }
 
+        private bool _isDisposed = false;
         public override void Dispose()
         {
-            Audio.ALApi.DeleteBuffer(this.Buffer);
+            if (!_isDisposed && Atlas.AudioEnabled)
+            {
+                Audio.ALApi.DeleteBuffer(this.Buffer);
+                _isDisposed = true;
+            }
         }
 
         public override void FromStreams(Stream[] stream, string name)
@@ -30,30 +35,33 @@ namespace SolidCode.Atlas.Audio
         {
             Duration = parser.Duration.TotalSeconds;
             BufferFormat format = BufferFormat.Mono16;
-            ushort[] samples;
+            short[] samples;
             if (parser.ChannelCount == 2)
             {
-                samples = new ushort[parser.SamplesCount * 2];
+                samples = new short[parser.SamplesCount * 2];
                 format = BufferFormat.Stereo16;
                 for (int i = 0; i < samples.Length; i += 2)
                 {
                     // Lets convert the double samples to proper short samples
-                    samples[i] = (ushort) (parser.Samples[0][i / 2] * (double) ushort.MaxValue);
-                    samples[i + 1] = (ushort) (parser.Samples[1][i / 2] * (double) ushort.MaxValue);
+                    samples[i] = (short) (parser.Samples[0][i / 2] * (double) short.MaxValue);
+                    samples[i + 1] = (short) (parser.Samples[1][i / 2] * (double) short.MaxValue);
                 }
             }
             else
             {
-                samples = new ushort[parser.SamplesCount];
+                samples = new short[parser.SamplesCount];
                 for (int i = 0; i < samples.Length; i++)
                 {
-                    samples[i] = (ushort) (parser.Samples[0][i] * (double) ushort.MaxValue);
+                    samples[i] = (short) (parser.Samples[0][i] * (double) short.MaxValue);
                 }
             }
+
+            if (!Atlas.AudioEnabled)
+                return;
             lock (Audio.AudioLock)
             {
                 this.Buffer = Audio.ALApi.GenBuffer();
-                Audio.ALApi.BufferData<ushort>(Buffer, format, samples, (int)parser.SampleRate);
+                Audio.ALApi.BufferData<short>(Buffer, format, samples, (int)parser.SampleRate);
             }
         }
 
@@ -61,7 +69,7 @@ namespace SolidCode.Atlas.Audio
         {
             try
             {
-                WAVParser parser = new WAVParser(Path.Join(Atlas.AssetsDirectory, path + ".wav"));
+                WAVParser parser = new WAVParser(Path.Join(Atlas.AssetsDirectory, "assets", path + ".wav"));
                 SetAudioData(parser);
                 this.IsValid = true;
             }
@@ -71,113 +79,10 @@ namespace SolidCode.Atlas.Audio
             }
         }
 
-        internal static class WavHelper
+        
+        ~AudioTrack()
         {
-            internal static bool readWav(byte[] _bytes, out float[] L, out float[] R)
-            {
-                L = R = null;
-
-                try
-                {
-                    using (MemoryStream ms = new MemoryStream(_bytes))
-                    {
-                        BinaryReader reader = new BinaryReader(ms);
-
-                        // chunk 0
-                        int chunkID = reader.ReadInt32();
-                        int fileSize = reader.ReadInt32();
-                        int riffType = reader.ReadInt32();
-
-
-                        // chunk 1
-                        int fmtID = reader.ReadInt32();
-                        int fmtSize = reader.ReadInt32(); // bytes for this chunk (expect 16 or 18)
-
-                        // 16 bytes coming...
-                        int fmtCode = reader.ReadInt16();
-                        int channels = reader.ReadInt16();
-                        int sampleRate = reader.ReadInt32();
-                        int byteRate = reader.ReadInt32();
-                        int fmtBlockAlign = reader.ReadInt16();
-                        int bitDepth = reader.ReadInt16();
-
-                        if (fmtSize == 18)
-                        {
-                            // Read any extra values
-                            int fmtExtraSize = reader.ReadInt16();
-                            reader.ReadBytes(fmtExtraSize);
-                        }
-
-                        // chunk 2
-                        int dataID = reader.ReadInt32();
-                        int bytes = reader.ReadInt32();
-
-                        // DATA!
-                        byte[] byteArray = reader.ReadBytes(bytes);
-
-                        int bytesForSamp = bitDepth / 8;
-                        int nValues = bytes / bytesForSamp;
-
-
-                        float[] asFloat = null;
-
-                        switch (bitDepth)
-                        {
-                            case 64:
-                                double[]
-                                    asDouble = new double[nValues];
-                                System.Buffer.BlockCopy(byteArray, 0, asDouble, 0, bytes);
-                                asFloat = Array.ConvertAll(asDouble, e => (float)e);
-                                break;
-                            case 32:
-                                asFloat = new float[nValues];
-                                System.Buffer.BlockCopy(byteArray, 0, asFloat, 0, bytes);
-                                break;
-                            case 16:
-                                Int16[]
-                                    asInt16 = new Int16[nValues];
-                                System.Buffer.BlockCopy(byteArray, 0, asInt16, 0, bytes);
-                                asFloat = Array.ConvertAll(asInt16, e => e / (float)(Int16.MaxValue + 1));
-                                break;
-                            case 8:
-                                byte[]
-                                    asBytes = new byte[nValues];
-                                System.Buffer.BlockCopy(byteArray, 0, asBytes, 0, bytes);
-                                asFloat = Array.ConvertAll(asBytes, e => (e / (float)(sbyte.MaxValue + 1)) - 1f);
-                                break;
-                            default:
-                                return false;
-                        }
-                        switch (channels)
-                        {
-                            case 1:
-                                L = asFloat;
-                                R = null;
-                                return true;
-                            case 2:
-                                // de-interleave
-                                int nSamps = nValues / 2;
-                                L = new float[nSamps];
-                                R = new float[nSamps];
-                                for (int s = 0, v = 0; s < nSamps; s++)
-                                {
-                                    L[s] = asFloat[v++];
-                                    R[s] = asFloat[v++];
-                                }
-                                return true;
-                            default:
-                                return false;
-                        }
-                    }
-                }
-                catch
-                {
-                    Debug.Log("Failed to load");
-                    return false;
-                }
-
-                return false;
-            }
+            this.Dispose();
         }
     }
 }

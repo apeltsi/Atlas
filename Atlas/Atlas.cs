@@ -27,12 +27,11 @@ namespace SolidCode.Atlas
     public static class Atlas
     {
         public static string AppDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
-        public static string DataDirectory = Path.Join(AppDirectory, "data" + Path.DirectorySeparatorChar);
-        public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
+        public static string AssetsDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar); // 
+        public static string ShaderDirectory = Path.Join(AssetsDirectory, "shaders" + Path.DirectorySeparatorChar);
 
-        public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
-        public static string AssetPackDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar);
-        public const string Version = "1.0.0-pre.13";
+        public static string AssetPackDirectory = Path.Join(AppDirectory, "assetpacks" + Path.DirectorySeparatorChar);
+        public const string Version = "1.0.0-pre.14";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
@@ -41,6 +40,7 @@ namespace SolidCode.Atlas
         static bool _doTick = true;
         private static DebuggingMode _mode = DebuggingMode.Auto;
         private static FrameworkConfiguration? _config;
+        internal static bool AudioEnabled = true;
         public static FrameworkConfiguration Configuration => _config ?? new FrameworkConfiguration();
 
         public static void DisableMultiProcessDebugging()
@@ -52,7 +52,7 @@ namespace SolidCode.Atlas
         internal static void InitializeLogging()
         {
             if(_mode != DebuggingMode.Disabled)
-                Telescope.Debug.UseMultiProcessDebugging(Atlas.Version);
+                Telescope.Debug.UseMultiProcessDebugging(Version);
             Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
@@ -102,6 +102,8 @@ namespace SolidCode.Atlas
         /// <param name="flags">Any flags for SDL</param>
         public static void StartCoreFeatures(string windowTitle = "Atlas", FrameworkConfiguration? configuration = null, SDL_WindowFlags flags = 0)
         {
+            if(StartupArgumentExists("--no-audio"))
+                AudioEnabled = false;
             _config = configuration;
 
             Debug.CheckLog();
@@ -111,7 +113,8 @@ namespace SolidCode.Atlas
             PrimaryStopwatch = Stopwatch.StartNew();
             ECSStopwatch = new Stopwatch();
             Debug.Log(LogCategory.Framework, "Atlas/" + Version + " starting up...");
-            Audio.Audio.InitializeAudio();
+            if(AudioEnabled)
+                Audio.Audio.InitializeAudio();
             AssetManager.LoadAssetMap();
 #if DEBUG
             if (Directory.Exists("./data/shaders"))
@@ -150,10 +153,13 @@ namespace SolidCode.Atlas
                 Debug.Error(LogCategory.Framework, ex.ToString());
             }
             _doTick = false;
-            Audio.Audio.Dispose();
+            if(AudioEnabled)
+                Audio.Audio.DisposeAllSources();
             EntityComponentSystem.Dispose();
             Renderer.Dispose();
             Input.Input.Dispose();
+            if(AudioEnabled)
+                Audio.Audio.Dispose();
             PrimaryStopwatch?.Stop();
             Debug.Log(LogCategory.Framework, "Atlas shutting down after " + (Math.Round((PrimaryStopwatch?.ElapsedMilliseconds ?? 0) / 100f) / 10) + "s...");
             Telescope.Debug.Dispose();

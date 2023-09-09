@@ -28,7 +28,7 @@ namespace SolidCode.Atlas.Rendering
         {
             try
             {
-                Data = File.ReadAllBytes(Path.Join(Atlas.AssetsDirectory, path));
+                Data = File.ReadAllBytes(Path.Join(Atlas.AssetsDirectory, "assets", path));
                 IsValid = true;
             }
             finally
