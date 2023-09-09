@@ -62,16 +62,16 @@ namespace Atlas.Tools.AssetCompiler
             Program.ColoredText("Atlas Asset Compiler", ConsoleColor.Green);
             Program.ColoredText("--------------------", ConsoleColor.DarkGreen);
             string curDir = Directory.GetCurrentDirectory();
-            string dataDir = Path.Join(curDir, "data");
+            string assetsDir = Path.Join(curDir, "assets");
             doReadTest = args.ContainsCaseInsensitive("--readtest") || args.ContainsCaseInsensitive("-r");
-            if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assets")))
+            if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assetpacks")))
             {
-                Directory.CreateDirectory(Path.Join(Directory.GetCurrentDirectory(), "assets"));
+                Directory.CreateDirectory(Path.Join(Directory.GetCurrentDirectory(), "assetpacks"));
             }
 
-            if (Directory.Exists(dataDir))
+            if (Directory.Exists(assetsDir))
             {
-                foreach (string file in Directory.EnumerateFiles(dataDir, "*.*", SearchOption.AllDirectories))
+                foreach (string file in Directory.EnumerateFiles(assetsDir, "*.*", SearchOption.AllDirectories))
                 {
                     Match match = assetpackexp.Match(Path.GetFileName(file));
                     if (match.Length > 0)
@@ -117,7 +117,7 @@ namespace Atlas.Tools.AssetCompiler
                 {
                     Program.ColoredText("Writing Asset Map...", ConsoleColor.Gray);
                     string map = JsonConvert.SerializeObject(assetMap);
-                    File.WriteAllText(Path.Join(curDir, "assets/.assetmap"), map);
+                    File.WriteAllText(Path.Join(curDir, "assetpacks/.assetmap"), map);
                 }
                 else
                 {
@@ -137,7 +137,7 @@ namespace Atlas.Tools.AssetCompiler
             }
             else
             {
-                Program.ColoredText("Error: Couldn't find data directory", ConsoleColor.Red);
+                Program.ColoredText("Error: Couldn't find assets directory", ConsoleColor.Red);
             }
         }
 
@@ -299,7 +299,7 @@ namespace Atlas.Tools.AssetCompiler
             fastZip.CompressionLevel = GetCompressionLevel(aPack.optimizeFor);
             bool recurse = true;  // Include all files by recursing through the directory structure
             string filter = null; // Dont filter any files at all
-            if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assets")))
+            if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assetpacks")))
             {
                 // Lets clean up return before anything goes wrong
                 RecursiveDelete(dir);
@@ -309,7 +309,7 @@ namespace Atlas.Tools.AssetCompiler
                 Interlocked.Decrement(ref currentlyCompiling);
                 return;
             }
-            string path = Path.Join(Directory.GetCurrentDirectory(), "assets/" + pack + extension);
+            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + extension);
             fastZip.CreateZip(path, dir.FullName, recurse, filter);
             lock (assetPackProgress)
                 assetPackProgress[pack] = Progress.Finalizing;
@@ -345,7 +345,7 @@ namespace Atlas.Tools.AssetCompiler
             if (!assetPacks.ContainsKey(pack))
                 return;
             assetPackProgress[pack] = Progress.ReadTest;
-            string path = Path.Join(Directory.GetCurrentDirectory(), "assets/" + pack + extension);
+            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + extension);
             if (File.Exists(path))
             {
                 Stopwatch s = new Stopwatch();

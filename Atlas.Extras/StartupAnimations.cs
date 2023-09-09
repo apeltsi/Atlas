@@ -12,23 +12,34 @@ namespace SolidCode.Atlas.Extras;
 
 public static class StartupAnimations
 {
-    public static void LoadExtras()
+    public static Task LoadExtras()
     {
         if (!AssetPack.CheckIfLoaded("%ASSEMBLY%/atlas-extras"))
         {
-            new AssetPack("%ASSEMBLY%/atlas-extras", Assembly.GetExecutingAssembly()).Load();
+            return new AssetPack("%ASSEMBLY%/atlas-extras", Assembly.GetExecutingAssembly()).LoadAsync();
         }
+
+        Task t = new Task(NoTask);
+        t.Start();
+        return t;
+    }
+
+    private static void NoTask()
+    {
+        
     }
     
     public static Entity DefaultSplash(Action onDone)
     {
-        LoadExtras();
+        Task task = LoadExtras();
         Entity star = new Entity("Star", new Vector2(1.2f, 1.5f), new Vector2(0.5f));
         SpriteRenderer sr = star.AddComponent<SpriteRenderer>();
-        sr.Sprite = AssetManager.GetTexture("Atlas-Star");
         Transform t = star.GetComponent<Transform>();
         star.AddComponent<ExecOnStart>().OnStart = () =>
         {
+            task.Wait();
+            sr.Sprite = AssetManager.GetTexture("Atlas-Star");
+
             Audio.Audio.Play(AssetManager.GetAsset<AudioTrack>("Atlas-Impact"));
             Animation.Animation.DoTween(new ValueRef<Vector2>(() => t.Position, (val) => t.Position = val), Vector2.Zero, 0.9f, null, TimingFunction.EaseInQuint);
             Animation.Animation.DoTween(new ValueRef<float>(() => t.Rotation, (val) => t.Rotation = val), 360f, 0.9f, () =>

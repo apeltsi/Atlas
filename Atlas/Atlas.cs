@@ -27,11 +27,10 @@ namespace SolidCode.Atlas
     public static class Atlas
     {
         public static string AppDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
-        public static string DataDirectory = Path.Join(AppDirectory, "data" + Path.DirectorySeparatorChar);
-        public static string ShaderDirectory = Path.Join(DataDirectory, "shaders" + Path.DirectorySeparatorChar);
+        public static string AssetsDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar); // 
+        public static string ShaderDirectory = Path.Join(AssetsDirectory, "shaders" + Path.DirectorySeparatorChar);
 
-        public static string AssetsDirectory = Path.Join(DataDirectory, "assets" + Path.DirectorySeparatorChar);
-        public static string AssetPackDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar);
+        public static string AssetPackDirectory = Path.Join(AppDirectory, "assetpacks" + Path.DirectorySeparatorChar);
         public const string Version = "1.0.0-pre.13";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
