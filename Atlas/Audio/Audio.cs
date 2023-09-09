@@ -56,27 +56,35 @@ namespace SolidCode.Atlas.Audio
         }
         internal static void InitializeAudio()
         {
-            _isDisposed = false;
-            lock (AudioLock)
+            try
             {
-                ALC = ALContext.GetApi();
-                ALApi = AL.GetApi();
-                unsafe
+                _isDisposed = false;
+                lock (AudioLock)
                 {
-                    _device = ALC.OpenDevice("");
-                    if (_device == null)
+                    ALC = ALContext.GetApi();
+                    ALApi = AL.GetApi();
+                    unsafe
                     {
-                        Console.WriteLine("Could not create device");
-                        return;
+                        _device = ALC.OpenDevice("");
+                        if (_device == null)
+                        {
+                            Console.WriteLine("Could not create device");
+                            return;
+                        }
+
+
+                        _context = ALC.CreateContext(_device, null);
+                        ALC.MakeContextCurrent(_context);
+                        ALApi.GetError();
                     }
-                    
-                    
-                    _context = ALC.CreateContext(_device, null);
-                    ALC.MakeContextCurrent(_context);
-                    ALApi.GetError();
                 }
+
+                Telescope.Debug.Log(LogCategory.Framework, "AudioManager initialized");
             }
-            Telescope.Debug.Log(LogCategory.Framework, "AudioManager initialized");
+            catch (Exception e)
+            {
+                Telescope.Debug.Log(LogCategory.Framework, "Error while initializing AudioManager: " + e.ToString());
+            }
         }
 
         /// <summary>
