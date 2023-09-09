@@ -31,7 +31,7 @@ namespace SolidCode.Atlas
         public static string ShaderDirectory = Path.Join(AssetsDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetPackDirectory = Path.Join(AppDirectory, "assetpacks" + Path.DirectorySeparatorChar);
-        public const string Version = "1.0.0-pre.13";
+        public const string Version = "1.0.0-pre.14";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
