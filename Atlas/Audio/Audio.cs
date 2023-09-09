@@ -37,6 +37,8 @@ namespace SolidCode.Atlas.Audio
         internal static object AudioLock = new Object();
         private static bool _isDisposed = false;
         private static List<uint> _sources = new List<uint>();
+        private static unsafe Context* _context;
+        private static unsafe Device* _device;
         public static float MasterVolume
         {
             get
@@ -61,15 +63,16 @@ namespace SolidCode.Atlas.Audio
                 ALApi = AL.GetApi();
                 unsafe
                 {
-                    var device = ALC.OpenDevice("");
-                    if (device == null)
+                    _device = ALC.OpenDevice("");
+                    if (_device == null)
                     {
                         Console.WriteLine("Could not create device");
                         return;
                     }
-
-                    var context = ALC.CreateContext(device, null);
-                    ALC.MakeContextCurrent(context);
+                    
+                    
+                    _context = ALC.CreateContext(_device, null);
+                    ALC.MakeContextCurrent(_context);
                     ALApi.GetError();
                 }
             }
@@ -145,8 +148,13 @@ namespace SolidCode.Atlas.Audio
             lock (AudioLock)
             {
                 _isDisposed = true;
-                
+                unsafe
+                {
+                    ALC.DestroyContext(_context);
+                    ALC.CloseDevice(_device);
+                }
                 ALApi.Dispose();
+                ALC.Dispose();
                 SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, "AudioManager disposed");
             }
         }
