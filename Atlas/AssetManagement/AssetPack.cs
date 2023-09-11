@@ -247,7 +247,8 @@ namespace SolidCode.Atlas.AssetManagement
                             Thread.Sleep(5);
                     }
                 }
-            SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) + "s)");
+            if(paths == null)
+                SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) + "s)");
         }
 
         private void LoadAssetFromPack(ZipArchive zip, ZipArchiveEntry entry, string extension, AssetMode mode)
