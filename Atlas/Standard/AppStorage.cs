@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-
-namespace SolidCode.Atlas.Standard;
+﻿namespace SolidCode.Atlas.Standard;
 
 public static class AppStorage
 {

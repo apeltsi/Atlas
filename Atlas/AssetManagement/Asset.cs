@@ -1,6 +1,3 @@
-using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Rendering;
-
 namespace SolidCode.Atlas.AssetManagement
 {
     public enum AssetMode

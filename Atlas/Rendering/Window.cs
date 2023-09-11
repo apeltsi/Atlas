@@ -1,14 +1,10 @@
 using System.Numerics;
 using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Input;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.Rendering.PostProcess;
-using SolidCode.Atlas.Standard;
 using SolidCode.Atlas.Telescope;
 using Action = System.Action;
 

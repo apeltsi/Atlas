@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Telescope;
 namespace SolidCode.Atlas.AssetManagement
 {
     /*

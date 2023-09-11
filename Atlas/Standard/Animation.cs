@@ -1,10 +1,7 @@
 using System.Numerics;
 using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Mathematics;
-using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Telescope;
 using SolidCode.Atlas.UI;
-using static SolidCode.Atlas.Animation.Animation;
 
 namespace SolidCode.Atlas.Animation
 {

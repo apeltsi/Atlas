@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.ECS
 {

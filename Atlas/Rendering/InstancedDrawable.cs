@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using Veldrid;

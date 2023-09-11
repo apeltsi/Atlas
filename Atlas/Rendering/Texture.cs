@@ -1,9 +1,9 @@
 
 namespace SolidCode.Atlas.Rendering
 {
-    using SolidCode.Atlas.AssetManagement;
+    using AssetManagement;
     using Veldrid;
-    using SolidCode.Atlas.Telescope;
+    using Telescope;
 
     public class Texture : Asset
     {
