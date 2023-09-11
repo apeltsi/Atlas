@@ -14,4 +14,12 @@ public static class Util
         tr.Color = new Vector4(1, 1, 1, 1);
         return e;
     }
+
+    public static Entity ManualConfirm(float y = 0f)
+    {
+        Entity e = new Entity("Test entity");
+        e.AddComponent<UserConfirm>();
+        Util.TextEntity("Space = Pass | Backspace = Fail", new Vector2(0f, y));
+        return e;
+    }
 }

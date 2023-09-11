@@ -1,16 +1,17 @@
 namespace SolidCode.Atlas.Components;
 
 using System.Numerics;
-using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Rendering;
+using AssetManagement;
+using ECS;
+using Rendering;
 using Veldrid;
 
 public class TextRenderer : RenderComponent
 {
-    private TextDrawable? textDrawable;
+    private TextDrawable? _textDrawable;
     private string _text = "Hello World!";
-    private float _size = 100f;
+    private float _size = 50f;
+    private float _resolutionScale = 1f;
 
     public float Size
     {
@@ -18,15 +19,28 @@ public class TextRenderer : RenderComponent
         set
         {
             _size = value;
-            if (textDrawable != null)
+            if (_textDrawable != null)
             {
-                textDrawable.UpdateText(_text, value);
+                _textDrawable.UpdateText(_text, value, _resolutionScale);
             }
 
         }
     }
+
+    public float ResolutionScale
+    {
+        get => _resolutionScale;
+        set
+        {
+            _resolutionScale = value;
+            if (_textDrawable != null)
+            {
+                _textDrawable.UpdateText(_text, value, _resolutionScale);
+            }
+        }
+    }
     public bool Centered = true;
-    private Color _color = SolidCode.Atlas.Color.White;
+    private Color _color = Color.White;
     private FontSet _fontSet = FontSet.GetDefault();
     public FontSet Fonts
     {
@@ -34,25 +48,25 @@ public class TextRenderer : RenderComponent
         set
         {
             _fontSet = value;
-            if (textDrawable != null)
-                textDrawable.UpdateFontSet(_fontSet);
+            if (_textDrawable != null)
+                _textDrawable.UpdateFontSet(_fontSet);
         }
     }
     public Color Color
     {
         get
         {
-            if (textDrawable == null)
+            if (_textDrawable == null)
             {
                 return _color;
             }
-            return textDrawable.Color;
+            return _textDrawable.Color;
         }
         set
         {
-            if (textDrawable != null)
+            if (_textDrawable != null)
             {
-                textDrawable.Color = value;
+                _textDrawable.Color = value;
             }
             else
             {
@@ -62,16 +76,13 @@ public class TextRenderer : RenderComponent
     }
     public string Text
     {
-        get
-        {
-            return _text;
-        }
+        get => _text;
         set
         {
             _text = value;
-            if (textDrawable != null)
+            if (_textDrawable != null)
             {
-                textDrawable.UpdateText(value, Size);
+                _textDrawable.UpdateText(value, Size, _resolutionScale);
             }
         }
     }
@@ -81,11 +92,11 @@ public class TextRenderer : RenderComponent
         return _fontSet.MeasureString(Size, _text);
     }
     
-    public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
+    public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();
-        textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, Entity.GetComponent<Transform>(true));
-        return new Drawable[] { textDrawable };
+        _textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, _resolutionScale, Entity.GetComponent<Transform>(true)!);
+        return new Drawable[] { _textDrawable };
     }
 
 }

@@ -6,31 +6,30 @@ using SolidCode.Atlas.UI;
 namespace SolidCode.Atlas.Rendering
 {
     using System.Collections.Generic;
-    using System.Drawing;
     using System.Numerics;
     using System.Runtime.InteropServices;
     using FontStashSharp;
     using FontStashSharp.Interfaces;
-    using SolidCode.Atlas.Components;
+    using Components;
     using Veldrid;
-    using SolidCode.Atlas.ECS;
+    using ECS;
 
     public class TextDrawable : Drawable
     {
-        bool dirty = false;
-        string _text;
-        float _size;
-        FontSet _fontSet;
-        FontRenderer _renderer;
-        Matrix4x4 _lastMatrix;
-        bool _centered = true;
+        private bool _dirty;
+        private bool _transformDirty;
+        private string _text;
+        private float _size;
+        private FontSet _fontSet;
+        private FontRenderer _renderer;
+        private Matrix4x4 _lastMatrix;
+        private bool _centered;
         private Vector4 _color;
+        private float _resolutionFactor;
+        private Vector2 _lastScaleEval = Vector2.Zero;
         public Vector4 Color
         {
-            get
-            {
-                return _color;
-            }
+            get => _color;
             set
             {
                 _color = value;
@@ -41,7 +40,7 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
-        public TextDrawable(string text, FontSet fonts, Vector4 color, bool centered, float size, Transform transform)
+        public TextDrawable(string text, FontSet fonts, Vector4 color, bool centered, float size, float _resolutionScale, Transform transform)
         {
             this._text = text;
             this.transform = transform;
@@ -49,17 +48,19 @@ namespace SolidCode.Atlas.Rendering
             this._size = size;
             this._centered = centered;
             this.Color = color;
+            _resolutionFactor = _resolutionScale;
             CreateResources();
         }
 
-        public void UpdateText(string text, float size)
+        public void UpdateText(string text, float size, float resolutionScale)
         {
             if (text == this._text && size == this._size)
                 return; // Lets not waste our precious time updating text that is already up to date
             _renderer.ClearAllQuads();
             this._size = size;
             this._text = text;
-            dirty = true;
+            _dirty = true;
+            _resolutionFactor = resolutionScale;
         }
 
         public override void CreateResources()
@@ -72,21 +73,95 @@ namespace SolidCode.Atlas.Rendering
                 Uniform = new TextUniform(),
                 UniformShaderStages = ShaderStages.Vertex | ShaderStages.Fragment,
             },this.Color, this._fontSet.TextureManager);
-            if (_centered)
-                _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
-            this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White, new Vector2(_size,_size));
+            DrawText();
         }
         
         public override void Draw(CommandList cl)
         {
-            if (dirty)
+            if (transform.GetType() == typeof(RectTransform))
             {
-                if (_centered)
-                    _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
-                this._fontSet.System.GetFont(_size).DrawText(_renderer, new StringBuilder(_text), Vector2.Zero,FSColor.White, new Vector2(_size,_size));
-                dirty = false;
+                Vector2 eval = ((RectTransform)transform).Scale.Evaluate();
+                if (eval != _lastScaleEval)
+                {
+                    _transformDirty = true;
+                    _lastScaleEval = eval;
+                }
+            }
+            else
+            {
+                Vector2 scale = transform.GlobalScale;
+                if (scale != _lastScaleEval)
+                {
+                    _transformDirty = true;
+                    _lastScaleEval = scale;
+                }
+            }
+            if (_dirty || _transformDirty)
+            {
+                DrawText();
+                _dirty = false;
+                _transformDirty = false;
             }
             _renderer.Draw(cl);
+        }
+
+        private void DrawText()
+        {
+            string[] splits = SplitSections(this._text);
+            // if (_centered)
+            //     _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
+            float totHeights = 0f;
+            for (int i = 0; i < splits.Length; i++)
+            {
+                _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(0f, totHeights),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                totHeights += _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).Y * _size / _resolutionFactor;
+            }
+        }
+
+        private string[] SplitSections(string text)
+        {
+            List<string> sections = new List<string>();
+            int lastSplit = 0;
+            float maxWidth = transform.GlobalScale.X;
+            if(transform.GetType() == typeof(RectTransform))
+                maxWidth = ((RectTransform)transform).Scale.X;
+            maxWidth *= 100f;
+            for (int i = 0; i < text.Length; i++)
+            {
+                // Check for newline
+                if (text[i] == '\n')
+                {
+                    sections.Add(text.Substring(lastSplit, i - lastSplit));
+                    lastSplit = i + 1;
+                    continue;
+                }
+                
+                // Now lets check if we need to split the text
+                
+                // First we'll get the text so far
+                string textSoFar = text.Substring(lastSplit, i - lastSplit);
+                // Now lets get the width of the text so far
+                float width = _fontSet.System.GetFont(_size).MeasureString(textSoFar).X;
+                if (width > maxWidth)
+                {
+                    // Our text is overflowing, lets see if we can nicely split it up at the last word
+                    int lastSpace = textSoFar.LastIndexOf(' ');
+                    if (lastSpace == -1)
+                    {
+                        // There is no space, lets just split it up
+                        sections.Add(text.Substring(lastSplit, i - lastSplit));
+                        lastSplit = i;
+                    }
+                    else
+                    {
+                        // There is a space, lets split it up there
+                        sections.Add(text.Substring(lastSplit, lastSpace));
+                        lastSplit = lastSpace + 1;
+                    }
+                }
+            }
+            sections.Add(text.Substring(lastSplit, text.Length - lastSplit));
+            return sections.ToArray();
         }
 
         public void UpdateFontSet(FontSet set)
@@ -103,7 +178,7 @@ namespace SolidCode.Atlas.Rendering
 
         public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
         {
-            if (dirty)
+            if (_dirty)
             {
                 if (_centered)
                     _renderer.SetHorizontalOffset(this._fontSet.System.GetFont(_size).MeasureString(_text).X / 2f);
