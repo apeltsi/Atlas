@@ -36,7 +36,7 @@ namespace SolidCode.Atlas.Rendering
             {
                 KtxHeader header = ReadStruct<KtxHeader>(br);
 
-                KtxKeyValuePair[] kvps = null;
+                KtxKeyValuePair[] kvps = Array.Empty<KtxKeyValuePair>();
                 if (readKeyValuePairs)
                 {
                     int keyValuePairBytesRead = 0;

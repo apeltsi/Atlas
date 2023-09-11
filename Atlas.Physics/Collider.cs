@@ -8,7 +8,7 @@ public abstract class Collider : Component
     private PhysicsObject? _physicsObject;
     public void OnEnable()
     {
-        _physicsObject = new PhysicsObject(true, Shape, Entity.GetComponent<Transform>());
+        _physicsObject = new PhysicsObject(true, Shape, Entity.GetComponent<Transform>()!);
     }
 
     public void OnDisable()
