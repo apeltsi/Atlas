@@ -188,7 +188,7 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static event Action OnResize;
 
-        private static Task? _builtinAssetsTask;
+        internal static Task? BuiltinAssetsTask;
         
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
@@ -240,7 +240,7 @@ namespace SolidCode.Atlas.Rendering
 #endif
             // We have to load our builtin shaders now
             AssetPack coreAssets = new AssetPack("%ASSEMBLY%/core");
-            _builtinAssetsTask = new AssetPack("%ASSEMBLY%/atlas").LoadAsync();
+            BuiltinAssetsTask = new AssetPack("%ASSEMBLY%/atlas").LoadAsync();
 
             Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
             Task t = coreAssets.LoadAsync();
@@ -282,7 +282,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     _window.Visible = true;
                     _window.WindowState = WindowState.Normal;
-                    _builtinAssetsTask.Wait();
+                    BuiltinAssetsTask.Wait();
                     TickManager.Initialize();
                     Input.Input.Initialize();
                 }
@@ -360,15 +360,15 @@ namespace SolidCode.Atlas.Rendering
         }
         
         internal static void RequireBuiltinAssets() {
-            if (_builtinAssetsTask == null)
+            if (BuiltinAssetsTask == null)
             {
                 Telescope.Debug.Warning(LogCategory.Framework,
                     "Builtin Assets have not started loading yet. Has Atlas been properly initialized?");
             }
-            while(_builtinAssetsTask == null) {
+            while(BuiltinAssetsTask == null) {
                 Thread.Sleep(10);
             }
-            _builtinAssetsTask.Wait();
+            BuiltinAssetsTask.Wait();
         }
 
         public static void Fullscreen()

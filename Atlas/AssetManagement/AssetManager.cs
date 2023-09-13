@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Rendering;
+
 namespace SolidCode.Atlas.AssetManagement
 {
     /*
@@ -86,6 +87,7 @@ namespace SolidCode.Atlas.AssetManagement
                 // Okay so we still don't have an asset, lets see if we have a default available
                 if (typeof(T) == typeof(Texture))
                 {
+                    Window.BuiltinAssetsTask?.Wait();
                     return GetAsset<T>("error");
                 }
             }
