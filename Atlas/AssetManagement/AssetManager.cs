@@ -87,6 +87,10 @@ namespace SolidCode.Atlas.AssetManagement
                 // Okay so we still don't have an asset, lets see if we have a default available
                 if (typeof(T) == typeof(Texture))
                 {
+                    while (Window.BuiltinAssetsTask == null)
+                    {
+                        Thread.Sleep(10);
+                    }
                     Window.BuiltinAssetsTask?.Wait();
                     return GetAsset<T>("error");
                 }
