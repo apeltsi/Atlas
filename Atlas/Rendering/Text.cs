@@ -126,7 +126,15 @@ namespace SolidCode.Atlas.Rendering
             float totHeights = 0f;
             for (int i = 0; i < splits.Length; i++)
             {
-                _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(-20000f * xScale, totHeights - 20000f * yScale),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                if (_centered)
+                {
+                    float width = _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).X * _size / _resolutionFactor;
+                
+                    _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(-width / 2f, totHeights - 20000f * yScale),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                } else
+                {
+                    _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(-20000f * xScale, totHeights - 20000f * yScale),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                }
                 totHeights += _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).Y * _size / _resolutionFactor;
             }
         }
