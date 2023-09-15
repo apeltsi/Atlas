@@ -20,8 +20,8 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <PackageTags>2D Graphics DirectX Direct3D Vulkan Game App</PackageTags>
     </PropertyGroup>
     <ItemGroup Label="Project References">
         <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
@@ -62,23 +62,27 @@
         <When Condition=" '$(Configuration)'=='Debug' ">
             <PropertyGroup>
                 <PackageIcon>AtlasIconDebug.png</PackageIcon>
+                <PackageId>SolidCode.Atlas.Development</PackageId>
+                <Description>Development version of Atlas</Description>
+                <PackageReadmeFile>DEVREADME.md</PackageReadmeFile>
             </PropertyGroup>
             <ItemGroup Label="Package">
                 <None Include="AtlasIconDebug.png" Pack="true" PackagePath="\"/>
+                <None Include="DEVREADME.md" Pack="true" PackagePath="\"/>
             </ItemGroup>
         </When>
         <When Condition=" '$(Configuration)'=='Release' ">
             <PropertyGroup>
                 <PackageIcon>AtlasIcon.png</PackageIcon>
+                <PackageId>SolidCode.Atlas</PackageId>
+                <Description>A 2D .NET Game/App Framework for Windows and Linux</Description>
+                <PackageReadmeFile>README.md</PackageReadmeFile>
             </PropertyGroup>
             <ItemGroup Label="Package">
                 <None Include="AtlasIcon.png" Pack="true" PackagePath="\"/>
+                <None Include="README.md" Pack="true" PackagePath="\"/>
             </ItemGroup>
 
         </When>
     </Choose>
-
-    <ItemGroup Label="Package">
-        <None Include="$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildThisFileDirectory)../'))" Pack="true" PackagePath="\"/>
-    </ItemGroup>
 </Project>
