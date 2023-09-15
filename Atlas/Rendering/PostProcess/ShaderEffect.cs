@@ -1,7 +1,10 @@
 ﻿using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
-
+/// <summary>
+/// A simple shader effect that renders the shader with the provided textures & uniform
+/// </summary>
+/// <typeparam name="TUniform"></typeparam>
 public class ShaderEffect<TUniform> : PostProcessEffect where TUniform : unmanaged
 {
     private Veldrid.Texture? _tex;

@@ -5,10 +5,12 @@ using System.Resources;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Compute;
 using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.AssetManagement
 {
+    /// <summary>
+    /// Represents a group of assets loaded from a assetpack file. Assetpack files can be generated with the atlastools utility.
+    /// </summary>
     public class AssetPack
     {
         internal static Dictionary<string, AssetPack> loadedAssetPacks = new Dictionary<string, AssetPack>();
@@ -247,7 +249,8 @@ namespace SolidCode.Atlas.AssetManagement
                             Thread.Sleep(5);
                     }
                 }
-            SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) + "s)");
+            if(paths == null)
+                SolidCode.Atlas.Telescope.Debug.Log(LogCategory.Framework, assetsLoaded.Count + " asset(s) loaded from AssetPack '" + relativePath + "' (" + Math.Round(s.ElapsedMilliseconds / 1000.0, 2) + "s)");
         }
 
         private void LoadAssetFromPack(ZipArchive zip, ZipArchiveEntry entry, string extension, AssetMode mode)

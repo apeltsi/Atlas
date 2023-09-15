@@ -9,14 +9,14 @@ public abstract class RigidBody : Component
     private PhysicsObject? _physicsObject;
     public void OnEnable()
     {
-        _physicsObject = new PhysicsObject(false, Shape, Entity.GetComponent<Transform>());
+        _physicsObject = new PhysicsObject(false, Shape, Entity.GetComponent<Transform>()!);
     }
 
     
 
     public void AddForce(Vector2 force)
     {
-        _physicsObject.Body.ApplyForce(force.AsVec2(), _physicsObject.Body.GetWorldCenter());
+        _physicsObject?.Body?.ApplyForce(force.AsVec2(), _physicsObject.Body.GetWorldCenter());
     }
 
     public void OnDisable()

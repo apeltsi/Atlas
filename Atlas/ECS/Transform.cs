@@ -1,10 +1,7 @@
 namespace SolidCode.Atlas.ECS
 {
-    using System.Collections.Concurrent;
     using System.Numerics;
-    using SolidCode.Atlas.ECS;
-    using SolidCode.Atlas.Rendering;
-    using SolidCode.Atlas.Standard;
+    using Rendering;
 
     public class Transform : Component
     {

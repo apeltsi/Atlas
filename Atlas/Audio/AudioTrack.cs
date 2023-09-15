@@ -1,7 +1,6 @@
 using NokitaKaze.WAVParser;
 using Silk.NET.OpenAL;
 using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.Telescope;
 namespace SolidCode.Atlas.Audio
 {
     public class AudioTrack : Asset

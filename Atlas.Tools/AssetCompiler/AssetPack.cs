@@ -129,7 +129,7 @@ public class AssetPack
         List<string> filesToRemove = new List<string>();
         foreach (string file in collectedFiles)
         {
-            if (Compiler.assetpackexp.Match(file).Success)
+            if (Compiler.Assetpackexp.Match(file).Success)
             {
                 filesToRemove.Add(file);
                 continue;

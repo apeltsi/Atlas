@@ -1,7 +1,6 @@
-using Atlas.Tools;
 using Atlas.Tools.AssetCompiler;
 
-namespace AtlasTools
+namespace Atlas.Tools
 {
     public static class Program
     {

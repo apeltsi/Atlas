@@ -5,6 +5,9 @@ using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
 
+/// <summary>
+/// A customizable bloom effect
+/// </summary>
 public class BloomEffect : PostProcessEffect
 {
     List<ShaderPass> _passes = new List<ShaderPass>();

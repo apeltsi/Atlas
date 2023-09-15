@@ -1,14 +1,10 @@
 using System.Numerics;
 using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Input;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
-using System.Collections.Concurrent;
 using SolidCode.Atlas.Mathematics;
 using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.Rendering.PostProcess;
-using SolidCode.Atlas.Standard;
 using SolidCode.Atlas.Telescope;
 using Action = System.Action;
 
@@ -17,8 +13,14 @@ namespace SolidCode.Atlas.Rendering
     public class Window
     {
         private static Sdl2Window? _window;
+        /// <summary>
+        /// The maximum framerate the window will render at. Set to 0 to render at VSYNC.
+        /// </summary>
         public static int MaxFramerate { get; set; }
 
+        /// <summary>
+        /// The background color of the window.
+        /// </summary>
         public static RgbaFloat ClearColor = RgbaFloat.Black;
 
         /// <summary>
@@ -192,12 +194,12 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public static event Action OnResize;
 
-        private static Task? _builtinAssetsTask;
+        internal static Task? BuiltinAssetsTask;
         
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
+        internal Window(string title = "Atlas", SDL_WindowFlags flags = 0)
         {
             _title = title;
             string modifiedTitle = GetAdjustedWindowTitle(_title);
@@ -244,7 +246,7 @@ namespace SolidCode.Atlas.Rendering
 #endif
             // We have to load our builtin shaders now
             AssetPack coreAssets = new AssetPack("%ASSEMBLY%/core");
-            _builtinAssetsTask = new AssetPack("%ASSEMBLY%/atlas").LoadAsync();
+            BuiltinAssetsTask = new AssetPack("%ASSEMBLY%/atlas").LoadAsync();
 
             Renderer.UpdateGetScalingMatrix(new Vector2(_window.Width, _window.Height));
             Task t = coreAssets.LoadAsync();
@@ -260,6 +262,9 @@ namespace SolidCode.Atlas.Rendering
             Renderer.CreateResources(t);
         }
 
+        /// <summary>
+        /// Closes the window & Atlas
+        /// </summary>
         public static void Close()
         {
             _window?.Close();
@@ -286,7 +291,7 @@ namespace SolidCode.Atlas.Rendering
                 {
                     _window.Visible = true;
                     _window.WindowState = WindowState.Normal;
-                    _builtinAssetsTask.Wait();
+                    BuiltinAssetsTask.Wait();
                     TickManager.Initialize();
                     Input.Input.Initialize();
                 }
@@ -364,32 +369,44 @@ namespace SolidCode.Atlas.Rendering
         }
         
         internal static void RequireBuiltinAssets() {
-            if (_builtinAssetsTask == null)
+            if (BuiltinAssetsTask == null)
             {
                 Telescope.Debug.Warning(LogCategory.Framework,
                     "Builtin Assets have not started loading yet. Has Atlas been properly initialized?");
             }
-            while(_builtinAssetsTask == null) {
+            while(BuiltinAssetsTask == null) {
                 Thread.Sleep(10);
             }
-            _builtinAssetsTask.Wait();
+            BuiltinAssetsTask.Wait();
         }
 
+        /// <summary>
+        /// Makes the window fullscreen
+        /// </summary>
         public static void Fullscreen()
         {
             State = WindowState.FullScreen;
         }
 
+        /// <summary>
+        /// Makes the window borderless fullscreen
+        /// </summary>
         public static void BorderlessFullscreen()
         {
             State = WindowState.BorderlessFullScreen;
         }
 
+        /// <summary>
+        /// Makes the window windowed
+        /// </summary>
         public static void Windowed()
         {
             State = WindowState.Normal;
         }
 
+        /// <summary>
+        /// Moves the window to the front of the screen
+        /// </summary>
         public static void MoveToFront()
         {
             if (_window == null) return;

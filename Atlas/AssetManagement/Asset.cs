@@ -1,11 +1,17 @@
-using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Rendering;
-
 namespace SolidCode.Atlas.AssetManagement
 {
+    /// <summary>
+    /// Determines how Atlas should handle the asset after it is loaded
+    /// </summary>
     public enum AssetMode
     {
+        /// <summary>
+        /// Atlas won't automatically unload the asset
+        /// </summary>
         KeepAlive,
+        /// <summary>
+        /// Atlas will automatically unload the asset when it is no longer in use
+        /// </summary>
         Unload,
     }
 

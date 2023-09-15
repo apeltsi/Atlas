@@ -1,13 +1,15 @@
 ﻿namespace SolidCode.Atlas.Components;
 
-using System.Numerics;
-using AssetManagement;
-using ECS;
 using Rendering;
-using Veldrid;
 
+/// <summary>
+/// A sprite renderer that uses point sampling instead of linear sampling
+/// </summary>
 public class PixelSpriteRenderer : SpriteRenderer
 {
+    /// <summary>
+    /// Creates a new pixel sprite renderer
+    /// </summary>
     public PixelSpriteRenderer()
     {
         sampler = Renderer.GraphicsDevice.PointSampler;

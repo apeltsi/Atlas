@@ -1,6 +1,4 @@
-﻿using AtlasTools;
-using Vortice.Dxc;
-using Vortice.SpirvCross;
+﻿using Vortice.Dxc;
 namespace Atlas.Tools.AssetCompiler;
 
 public static class AssetBuilder
@@ -16,8 +14,8 @@ public static class AssetBuilder
         startInfo.FileName = "toktx.exe";
         startInfo.Arguments = "\"" + Path.Join(dirPath, ktxPath) + "\" \"" + pngPath + "\"";
         process.StartInfo = startInfo;
-        process.OutputDataReceived += (sender, args) => Compiler.errors.Add(args.Data);
-        process.ErrorDataReceived += (sender, args) => Compiler.errors.Add(args.Data);
+        process.OutputDataReceived += (sender, args) => Compiler.Errors.Add(args.Data);
+        process.ErrorDataReceived += (sender, args) => Compiler.Errors.Add(args.Data);
         process.Start();
         process.WaitForExit();
         File.Delete(pngPath);
@@ -53,7 +51,7 @@ public static class AssetBuilder
         string error = result.GetErrors();
         if (error != "")
         {
-            Compiler.errors.Add("Shader compilation on stage '" + shaderStage +  "' failed: \n" + error);
+            Compiler.Errors.Add("Shader compilation on stage '" + shaderStage +  "' had some error(s): \n" + error);
         }
         return result.GetObjectBytecodeArray();
     }
@@ -79,7 +77,7 @@ public static class AssetBuilder
 
             foreach (var asset in assetFiles)    
             {
-                Compiler.assetMap.TryAdd(asset.Replace("\\", "/"), pack);
+                Compiler.AssetMap.TryAdd(asset.Replace("\\", "/"), pack);
             }
         }
     }

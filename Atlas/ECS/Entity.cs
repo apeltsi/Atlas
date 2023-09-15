@@ -2,9 +2,13 @@
 {
     using System.Collections.Concurrent;
     using System.Numerics;
-    using SolidCode.Atlas.Components;
-    using SolidCode.Atlas.Rendering;
-    using SolidCode.Atlas.Telescope;
+    using Rendering;
+    using Telescope;
+    /// <summary>
+    /// Represents an entity in the Entity Component System.
+    /// Entities can have components attached to them, to add functionality & keep track of data.
+    /// By default, entities are created with a <c>Transform</c> component attached to them
+    /// </summary>
     public class Entity
     {
 
@@ -19,6 +23,12 @@
         private ConcurrentQueue<Component> _componentsToAdd = new ConcurrentQueue<Component>();
         private ConcurrentQueue<Component> _componentsToRemove = new ConcurrentQueue<Component>();
 
+        /// <summary>
+        /// Creates a new <c>Entity</c> with a <c>Transform</c> component attached to it. The entity will be added as a child of the <c>RootEntity</c>.
+        /// </summary>
+        /// <param name="name">The name of the entity</param>
+        /// <param name="position">The position of the entity</param>
+        /// <param name="scale">The scale of the entity</param>
         public Entity(string name, Vector2? position = null, Vector2? scale = null)
         {
             this.Children = new List<Entity>();
@@ -41,6 +51,11 @@
             t.Position = pos;
             t.Scale = sca;
         }
+        /// <summary>
+        /// Creates a new <c>Entity</c>
+        /// </summary>
+        /// <param name="name">The name of the entity</param>
+        /// <param name="transform">Should the entity be initialized with a transform</param>
         public Entity(string name, bool transform)
         {
             this.Children = new List<Entity>();
@@ -63,16 +78,29 @@
             }
         }
 
+        /// <summary>
+        /// Sets the parent
+        /// </summary>
+        /// <param name="e"></param>
         public void SetParent(Entity e)
         {
             e.AddChildren(this);
         }
-
+        
+        /// <summary>
+        /// Forces the parent to be set. This should only be used internally, unless you know what you're doing.
+        /// </summary>
+        /// <param name="e"></param>
         public void ForceParent(Entity e)
         {
             Parent = e;
         }
 
+        /// <summary>
+        /// Returns the first child with the given name, or null if no child with the given name exists
+        /// </summary>
+        /// <param name="childName">Name of the child, case-sensitive</param>
+        /// <returns>The child entity, if found</returns>
         public Entity? GetChildByName(string childName)
         {
             for (int i = 0; i < this.Children.Count; i++)
@@ -86,6 +114,11 @@
             return null;
         }
 
+        /// <summary>
+        /// Adds a component to the entity
+        /// </summary>
+        /// <typeparam name="T">The type of component to add</typeparam>
+        /// <returns>The component</returns>
         public T AddComponent<T>() where T : Component, new()
         {
             LimitInstanceCountAttribute? attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(typeof(T), typeof(LimitInstanceCountAttribute));
@@ -111,6 +144,11 @@
 
             return (T)component;
         }
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="component">The component to be removed</param>
+        /// <returns>This entity</returns>
         public Entity RemoveComponent(Component component)
         {
             _componentsToRemove.Enqueue(component);
@@ -118,6 +156,12 @@
             return this;
         }
 
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+        /// <typeparam name="T">The type of component to be removed</typeparam>
+        /// <returns>This entity</returns>
         public Entity RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             Component? c = GetComponent<T>(allowInheritedClasses);
@@ -126,6 +170,12 @@
             return this;
         }
         
+        /// <summary>
+        /// Gets a component from the entity
+        /// </summary>
+        /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+        /// <typeparam name="T">The type of component to get</typeparam>
+        /// <returns>The component, if found</returns>
         public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             Component[] queuedComponents = _componentsToAdd.ToArray();
@@ -303,10 +353,17 @@
         }
 
 
+        /// <summary>
+        /// Destroy this entity
+        /// </summary>
         public void Destroy()
         {
             EntityComponentSystem.RemoveEntity(this);
         }
+        /// <summary>
+        /// The name of the entity
+        /// </summary>
+        /// <returns></returns>
         public override string ToString()
         {
             return this.Name;

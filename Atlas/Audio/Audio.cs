@@ -2,16 +2,34 @@ namespace SolidCode.Atlas.Audio
 {
     using System.Diagnostics;
     using Silk.NET.OpenAL;
-    
+    /// <summary>
+    /// Settings for how the audio should be played
+    /// </summary>
     public struct PlaybackSettings
     {
+        /// <summary>
+        /// Volume of the track
+        /// </summary>
         public float? Volume;
+        /// <summary>
+        /// The pitch of the track
+        /// </summary>
         public float? Pitch;
+        
+        /// <summary>
+        /// Creates a new playback settings with the given volume
+        /// </summary>
+        /// <param name="volume"></param>
         public PlaybackSettings(float volume)
         {
             this.Volume = volume;
             this.Pitch = 1f;
         }
+        /// <summary>
+        /// Creates a new playback settings with the given volume and pitch
+        /// </summary>
+        /// <param name="volume"></param>
+        /// <param name="pitch"></param>
         public PlaybackSettings(float volume, float pitch)
         {
             this.Volume = volume;
@@ -29,7 +47,9 @@ namespace SolidCode.Atlas.Audio
             return $"Volume: {Volume}, Pitch {Pitch}";
         }
     }
-    
+    /// <summary>
+    /// The audio system.
+    /// </summary>
     public static class Audio
     {
         internal static ALContext ALC;

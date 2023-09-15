@@ -1,20 +1,29 @@
-using System.Text;
 using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 using Veldrid.SPIRV;
 
 namespace SolidCode.Atlas.Rendering
 {
+    /// <summary>
+    /// A vertex & fragment shader that can be used to render objects
+    /// </summary>
     public class Shader : Asset
     {
         public Veldrid.Shader[] Shaders { get; protected set; }
 
+        /// <summary>
+        /// Creates a new blank shader
+        /// </summary>
         public Shader()
         {
             this.Shaders = new Veldrid.Shader[0];
         }
 
-
+        /// <summary>
+        /// Loads a shader from disk
+        /// </summary>
+        /// <param name="path">The path to the shader relative to the shader directory</param>
+        /// <param name="name">The name of the shader</param>
         public override void Load(string path, string name)
         {
             string vertPath = Path.Join(Atlas.ShaderDirectory, path + ".vert");
@@ -59,6 +68,11 @@ namespace SolidCode.Atlas.Rendering
                    && bytes[3] == 0x07;
         }
 
+        /// <summary>
+        /// Creates a shader from a set of two streams
+        /// </summary>
+        /// <param name="streams">An array of two streams: 0 = Vertex shader 1 = Fragment Shader</param>
+        /// <param name="name"></param>
         public override void FromStreams(Stream[] streams, string name)
         {
             FromSource(ReadFully(streams[0]), ReadFully(streams[1]));
@@ -79,6 +93,9 @@ namespace SolidCode.Atlas.Rendering
         }
 
 
+        /// <summary>
+        /// Disposes the shader
+        /// </summary>
         public override void Dispose()
         {
             for (int i = 0; i < Shaders.Length; i++)

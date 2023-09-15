@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Text.RegularExpressions;
-using Atlas.Tools;
-using AtlasTools;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
-using static ICSharpCode.SharpZipLib.Zip.Compression.Deflater;
 
 namespace Atlas.Tools.AssetCompiler
 {
@@ -23,6 +19,7 @@ namespace Atlas.Tools.AssetCompiler
                     return true;
                 }
             }
+
             return false;
         }
     }
@@ -39,22 +36,24 @@ namespace Atlas.Tools.AssetCompiler
         Failed,
         Completed
     }
+
     public static class Compiler
     {
-        static Dictionary<string, string> assetPacks = new Dictionary<string, string>();
-        static Dictionary<string, Progress> assetPackProgress = new Dictionary<string, Progress>();
-        static Dictionary<string, long> assetPackSpeeds = new Dictionary<string, long>();
-        static Dictionary<string, long> assetPackSizes = new Dictionary<string, long>();
-        internal static ConcurrentDictionary<string, string> assetMap = new ConcurrentDictionary<string, string>();
-        public static List<string> errors = new List<string>();
-        static int currentlyCompiling = 0;
-        static bool ongoingReadTest = false;
-        public static Regex assetpackexp = new Regex(@"(.*?)\.assetpack\.json$");
-        static bool doReadTest = false;
-        static bool renderDirty = true;
-        static bool isDone = false;
-        static Queue<string> readTestQueue = new Queue<string>();
-        const string extension = ".assetpack";
+        static Dictionary<string, string> _assetPacks = new();
+        static Dictionary<string, Progress> _assetPackProgress = new();
+        static Dictionary<string, long> _assetPackSpeeds = new();
+        static Dictionary<string, long> _assetPackSizes = new();
+        internal static ConcurrentDictionary<string, string> AssetMap = new();
+        public static List<string> Errors = new();
+        static int _currentlyCompiling;
+        static bool _ongoingReadTest;
+        public static Regex Assetpackexp = new Regex(@"(.*?)\.assetpack\.json$");
+        static bool _doReadTest;
+        static bool _renderDirty = true;
+        static bool _isDone;
+        static Queue<string> _readTestQueue = new();
+        const string Extension = ".assetpack";
+
         public static void Compile(string[] args)
         {
             Stopwatch s = new Stopwatch();
@@ -63,7 +62,7 @@ namespace Atlas.Tools.AssetCompiler
             Program.ColoredText("--------------------", ConsoleColor.DarkGreen);
             string curDir = Directory.GetCurrentDirectory();
             string assetsDir = Path.Join(curDir, "assets");
-            doReadTest = args.ContainsCaseInsensitive("--readtest") || args.ContainsCaseInsensitive("-r");
+            _doReadTest = args.ContainsCaseInsensitive("--readtest") || args.ContainsCaseInsensitive("-r");
             if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assetpacks")))
             {
                 Directory.CreateDirectory(Path.Join(Directory.GetCurrentDirectory(), "assetpacks"));
@@ -73,66 +72,74 @@ namespace Atlas.Tools.AssetCompiler
             {
                 foreach (string file in Directory.EnumerateFiles(assetsDir, "*.*", SearchOption.AllDirectories))
                 {
-                    Match match = assetpackexp.Match(Path.GetFileName(file));
+                    Match match = Assetpackexp.Match(Path.GetFileName(file));
                     if (match.Length > 0)
                     {
                         string packName = match.Groups[1].Value;
 
-                        assetPacks.Add(packName, file);
+                        _assetPacks.Add(packName, file);
                     }
                 }
-                if (assetPacks.Count == 0)
+
+                if (_assetPacks.Count == 0)
                 {
                     Program.ColoredText("Error: No assetpacks to compile", ConsoleColor.Red);
                     return;
                 }
+
                 Program.ColoredText("--------------------", ConsoleColor.DarkGray);
 
-                foreach (KeyValuePair<string, string> item in assetPacks)
+                foreach (KeyValuePair<string, string> item in _assetPacks)
                 {
-                    assetPackProgress.Add(item.Key, Progress.Queued);
+                    _assetPackProgress.Add(item.Key, Progress.Queued);
                     Thread t = new Thread(() => CompileAssetPack(item.Key, item.Value));
                     t.Start();
                 }
 
-                while (!isDone)
+                while (!_isDone)
                 {
-                    if (currentlyCompiling == 0 && doReadTest && ongoingReadTest == false && readTestQueue.Count > 0)
+                    if (_currentlyCompiling == 0 && _doReadTest && _ongoingReadTest == false &&
+                        _readTestQueue.Count > 0)
                     {
                         // Lets perform the read test now that all processes have completed
-                        ongoingReadTest = true;
-                        Thread t = new Thread(() => DoReadTest(readTestQueue.Dequeue()));
+                        _ongoingReadTest = true;
+                        Thread t = new Thread(() => DoReadTest(_readTestQueue.Dequeue()));
                         t.Start();
                     }
-                    if (renderDirty)
+
+                    if (_renderDirty)
                     {
-                        renderDirty = false;
+                        _renderDirty = false;
                         RenderStatus();
                     }
 
                     Thread.Sleep(100);
                 }
 
-                if (!args.ContainsCaseInsensitive("--no-map") )
+                if (!args.ContainsCaseInsensitive("--no-map"))
                 {
                     Program.ColoredText("Writing Asset Map...", ConsoleColor.Gray);
-                    string map = JsonConvert.SerializeObject(assetMap);
+                    string map = JsonConvert.SerializeObject(AssetMap);
                     File.WriteAllText(Path.Join(curDir, "assetpacks/.assetmap"), map);
                 }
                 else
                 {
                     Program.ColoredText("AssetMap will not be generated.", ConsoleColor.Gray);
                 }
+
                 RecursiveDelete(new DirectoryInfo(Path.Combine(Path.GetTempPath(), "atlastools-temp")));
 
                 s.Stop();
-                if (errors.Count == 0)
+                if (Errors.Count == 0)
                 {
-                    Console.WriteLine("All assets compiled successfully (" + Math.Round(s.ElapsedMilliseconds / 100f) / 10f + "s)");
+                    Console.WriteLine("All assets compiled successfully (" +
+                                      Math.Round(s.ElapsedMilliseconds / 100f) / 10f + "s)");
                 }
                 else
                 {
-                    Program.ColoredText("All assets compiled with errors (" + Math.Round(s.ElapsedMilliseconds / 100f) / 10f + "s)", ConsoleColor.Yellow);
+                    Program.ColoredText(
+                        "All assets compiled with errors (" + Math.Round(s.ElapsedMilliseconds / 100f) / 10f + "s)",
+                        ConsoleColor.Yellow);
                 }
             }
             else
@@ -141,53 +148,64 @@ namespace Atlas.Tools.AssetCompiler
             }
         }
 
-        static bool firstRun = true;
-        static int prevErrors = 0;
+        static bool _firstRun = true;
+        static int _prevErrors;
+
         static void RenderStatus()
         {
-            if (firstRun)
+            if (_firstRun)
             {
-                firstRun = false;
+                _firstRun = false;
             }
             else
             {
-                Console.CursorTop -= (assetPacks.Count + 2 + prevErrors);
+                Console.CursorTop -= (_assetPacks.Count + 2 + _prevErrors);
             }
+
             int processing = 0;
             Console.WriteLine("Compiling Assetpacks:                   ");
-            foreach (KeyValuePair<string, string> item in assetPacks)
+            foreach (KeyValuePair<string, string> item in _assetPacks)
             {
-                (string text, ConsoleColor color) = GetProgressText(assetPackProgress[item.Key]);
-                if (assetPackSpeeds.ContainsKey(item.Key) && assetPackProgress[item.Key] == Progress.Completed)
+                (string text, ConsoleColor color) = GetProgressText(_assetPackProgress[item.Key]);
+                lock (_assetPackSizes)
                 {
-                    Program.ColoredText("- AssetPack " + item.Key + ": " + text + " (" + SimpleTimeFormat(assetPackSpeeds[item.Key]) + ") (" + FormatSize(assetPackSizes[item.Key]) + ")                    ", color);
+                    if (_assetPackSpeeds.ContainsKey(item.Key) && _assetPackProgress[item.Key] == Progress.Completed)
+                    {
+                        Program.ColoredText(
+                            "- AssetPack " + item.Key + ": " + text + " (" +
+                            SimpleTimeFormat(_assetPackSpeeds[item.Key]) + ") (" +
+                            FormatSize(_assetPackSizes[item.Key]) + ")                    ", color);
+                    }
+                    else if (_assetPackSizes.ContainsKey(item.Key))
+                    {
+                        Program.ColoredText(
+                            "- AssetPack " + item.Key + ": " + text + " (" + FormatSize(_assetPackSizes[item.Key]) +
+                            ")                    ", color);
+                    }
+                    else
+                    {
+                        Program.ColoredText("- AssetPack " + item.Key + ": " + text + "                        ",
+                            color);
+                    }
                 }
-                else if (assetPackSizes.ContainsKey(item.Key))
-                {
-                    Program.ColoredText("- AssetPack " + item.Key + ": " + text + " (" + FormatSize(assetPackSizes[item.Key]) + ")                    ", color);
-                }
-                else
-                {
-                    Program.ColoredText("- AssetPack " + item.Key + ": " + text + "                        ", color);
-                }
-                if (assetPackProgress[item.Key] != Progress.Completed)
+
+                if (_assetPackProgress[item.Key] != Progress.Completed)
                 {
                     processing++;
                 }
-
             }
 
-            for (int i = 0; i < errors.Count; i++)
+            for (int i = 0; i < Errors.Count; i++)
             {
-                Program.ColoredText("Error: " + errors[i], ConsoleColor.Red);
+                Program.ColoredText("Error: " + Errors[i], ConsoleColor.Red);
             }
-            prevErrors = errors.Count;
+
+            _prevErrors = Errors.Count;
             Program.ColoredText("--------------------", ConsoleColor.DarkGray);
             if (processing == 0)
             {
-                isDone = true;
+                _isDone = true;
             }
-
         }
 
         static string SimpleTimeFormat(long ms)
@@ -196,10 +214,12 @@ namespace Atlas.Tools.AssetCompiler
             {
                 return "Read Failed";
             }
+
             if (ms > 1000)
             {
                 return (float)ms / 1000 + "s";
             }
+
             return ms + "ms";
         }
 
@@ -252,14 +272,15 @@ namespace Atlas.Tools.AssetCompiler
 
         static void CompileAssetPack(string pack, string assetPack)
         {
-            while (currentlyCompiling > 10)
+            while (_currentlyCompiling > 10)
             {
                 Thread.Sleep(100);
             }
-            Interlocked.Increment(ref currentlyCompiling);
-            lock (assetPackProgress)
-                assetPackProgress[pack] = Progress.CollectingFiles;
-            renderDirty = true;
+
+            Interlocked.Increment(ref _currentlyCompiling);
+            lock (_assetPackProgress)
+                _assetPackProgress[pack] = Progress.CollectingFiles;
+            _renderDirty = true;
 
             AssetPack? aPack = JsonConvert.DeserializeObject<AssetPack>(File.ReadAllText(assetPack));
 
@@ -267,9 +288,10 @@ namespace Atlas.Tools.AssetCompiler
             {
                 return;
             }
+
             string[] paths = aPack.GetAllPaths(assetPack);
-            string assetPackPath = Path.GetDirectoryName(assetPack);
-            renderDirty = true;
+            string assetPackPath = Path.GetDirectoryName(assetPack)!;
+            _renderDirty = true;
             DirectoryInfo dir = Directory.CreateDirectory(GetTemporaryDirectory());
             if (!dir.Exists)
             {
@@ -279,79 +301,82 @@ namespace Atlas.Tools.AssetCompiler
             List<string> buildableFiles = new List<string>();
             foreach (string file in paths)
             {
-                string filepath = Path.GetDirectoryName(file);
-                
+                string filepath = Path.GetDirectoryName(file)!;
+
                 string dirPath = Path.Join(dir.FullName, filepath);
                 if (!Directory.Exists(dirPath))
                 {
                     Directory.CreateDirectory(dirPath);
                 }
+
                 buildableFiles.Add(file);
                 File.Copy(Path.Join(assetPackPath, file), Path.Join(dirPath, Path.GetFileName(file)));
             }
-            lock (assetPackProgress)
-                assetPackProgress[pack] = Progress.Building;
+
+            lock (_assetPackProgress)
+                _assetPackProgress[pack] = Progress.Building;
             AssetBuilder.BuildFiles(dir.FullName, buildableFiles.ToArray(), pack);
-            lock (assetPackProgress)
-                assetPackProgress[pack] = Progress.Compiling;
+            lock (_assetPackProgress)
+                _assetPackProgress[pack] = Progress.Compiling;
 
             FastZip fastZip = new FastZip();
             fastZip.CompressionLevel = GetCompressionLevel(aPack.optimizeFor);
-            bool recurse = true;  // Include all files by recursing through the directory structure
-            string filter = null; // Dont filter any files at all
+            bool recurse = true; // Include all files by recursing through the directory structure
+            string? filter = null; // Dont filter any files at all
             if (!Directory.Exists(Path.Join(Directory.GetCurrentDirectory(), "assetpacks")))
             {
                 // Lets clean up return before anything goes wrong
                 RecursiveDelete(dir);
-                lock (assetPackProgress)
-                    assetPackProgress[pack] = Progress.Failed;
-                renderDirty = true;
-                Interlocked.Decrement(ref currentlyCompiling);
+                lock (_assetPackProgress)
+                    _assetPackProgress[pack] = Progress.Failed;
+                _renderDirty = true;
+                Interlocked.Decrement(ref _currentlyCompiling);
                 return;
             }
-            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + extension);
+
+            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + Extension);
             fastZip.CreateZip(path, dir.FullName, recurse, filter);
-            lock (assetPackProgress)
-                assetPackProgress[pack] = Progress.Finalizing;
-            renderDirty = true;
+            lock (_assetPackProgress)
+                _assetPackProgress[pack] = Progress.Finalizing;
+            _renderDirty = true;
             if (File.Exists(path))
             {
-                lock (assetPackSizes)
-                    assetPackSizes.Add(pack, new System.IO.FileInfo(path).Length);
+                lock (_assetPackSizes)
+                    _assetPackSizes.Add(pack, new FileInfo(path).Length);
             }
             else
             {
-                lock (assetPackSizes)
-                    assetPackSizes.Add(pack, 0);
+                lock (_assetPackSizes)
+                    _assetPackSizes.Add(pack, 0);
             }
+
             // Delete temp folder
-            if (doReadTest)
+            if (_doReadTest)
             {
-                lock (assetPackProgress)
-                    assetPackProgress[pack] = Progress.ReadQueue;
-                readTestQueue.Enqueue(pack);
+                lock (_assetPackProgress)
+                    _assetPackProgress[pack] = Progress.ReadQueue;
+                _readTestQueue.Enqueue(pack);
             }
             else
             {
-                lock (assetPackProgress)
-                    assetPackProgress[pack] = Progress.Completed;
+                lock (_assetPackProgress)
+                    _assetPackProgress[pack] = Progress.Completed;
             }
-            renderDirty = true;
-            Interlocked.Decrement(ref currentlyCompiling);
+
+            _renderDirty = true;
+            Interlocked.Decrement(ref _currentlyCompiling);
         }
 
         static void DoReadTest(string pack)
         {
-            if (!assetPacks.ContainsKey(pack))
+            if (!_assetPacks.ContainsKey(pack))
                 return;
-            assetPackProgress[pack] = Progress.ReadTest;
-            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + extension);
+            _assetPackProgress[pack] = Progress.ReadTest;
+            string path = Path.Join(Directory.GetCurrentDirectory(), "assetpacks/" + pack + Extension);
             if (File.Exists(path))
             {
                 Stopwatch s = new Stopwatch();
                 s.Start();
-                int files = 0;
-                string data = "";
                 using (FileStream fs = new FileStream(path, FileMode.Open))
                 using (ZipArchive zip = new ZipArchive(fs))
                 {
@@ -360,23 +385,22 @@ namespace Atlas.Tools.AssetCompiler
                     using (StreamReader sr = new StreamReader(entry.Open()))
                     {
                         // Lets just act like we're doing something with this data
-                        files++;
-                        data += sr.ReadToEnd();
                     }
                 }
+
                 s.Stop();
-                assetPackSpeeds[pack] = s.ElapsedMilliseconds;
-                assetPackProgress[pack] = Progress.Completed;
-                ongoingReadTest = false;
-                renderDirty = true;
+                _assetPackSpeeds[pack] = s.ElapsedMilliseconds;
+                _assetPackProgress[pack] = Progress.Completed;
+                _ongoingReadTest = false;
+                _renderDirty = true;
             }
             else
             {
-                errors.Add("Couldn't complete read test. File not found.");
-                assetPackSpeeds[pack] = -1;
-                assetPackProgress[pack] = Progress.Completed;
-                ongoingReadTest = false;
-                renderDirty = true;
+                Errors.Add("Couldn't complete read test. File not found.");
+                _assetPackSpeeds[pack] = -1;
+                _assetPackProgress[pack] = Progress.Completed;
+                _ongoingReadTest = false;
+                _renderDirty = true;
             }
         }
 
@@ -393,7 +417,7 @@ namespace Atlas.Tools.AssetCompiler
                 case "standard":
                     return ICSharpCode.SharpZipLib.Zip.Compression.Deflater.CompressionLevel.DEFAULT_COMPRESSION;
                 default:
-                    errors.Add("Couldn't parse optimizeFor '" + optimizeFor + "'. Using standard compression.");
+                    Errors.Add("Couldn't parse optimizeFor '" + optimizeFor + "'. Using standard compression.");
                     return ICSharpCode.SharpZipLib.Zip.Compression.Deflater.CompressionLevel.DEFAULT_COMPRESSION;
             }
         }
@@ -407,8 +431,10 @@ namespace Atlas.Tools.AssetCompiler
             {
                 RecursiveDelete(dir);
             }
+
             baseDir.Delete(true);
         }
+
         static string GetTemporaryDirectory()
         {
             string tempDirectory = Path.Combine(Path.GetTempPath(), "atlastools-temp", Path.GetRandomFileName());

@@ -1,5 +1,4 @@
 ﻿using System.Numerics;
-using SolidCode.Atlas.ECS;
 using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.UI;

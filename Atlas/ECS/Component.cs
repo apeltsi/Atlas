@@ -1,8 +1,11 @@
 ﻿using System.Reflection;
-using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.ECS
 {
+    /// <summary>
+    /// Represents a component that can be attached to an entity.
+    /// Components are the main way to add functionality to an entity.
+    /// </summary>
     public abstract class Component
     {
         internal bool IsNew = true;
@@ -55,26 +58,50 @@ namespace SolidCode.Atlas.ECS
             internal set => _entity = value;
         }
 
+        /// <summary>
+        /// Gets a component from the entity
+        /// </summary>
+        /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+        /// <typeparam name="T">The type of component to get</typeparam>
+        /// <returns>The component, if found</returns>
         protected T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
             return Entity.GetComponent<T>(allowInheritedClasses);
         }
         
+        /// <summary>
+        /// Adds a component to the entity
+        /// </summary>
+        /// <typeparam name="T">The type of component to add</typeparam>
+        /// <returns>The component</returns>
         protected T? AddComponent<T>() where T : Component, new()
         {
             return Entity.AddComponent<T>();
         }
-
-        protected void RemoveComponent<T>() where T : Component
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+        /// <typeparam name="T">The type of component to be removed</typeparam>
+        /// <returns>This entity</returns>
+        protected void RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
         {
-            Entity.RemoveComponent<T>();
+            Entity.RemoveComponent<T>(allowInheritedClasses);
         }
-
+        
+        /// <summary>
+        /// Removes a component from an entity
+        /// </summary>
+        /// <param name="c">The component to be removed</param>
+        /// <returns>This entity</returns>
         protected void RemoveComponent(Component c)
         {
             Entity.RemoveComponent(c);
         }
 
+        /// <summary>
+        /// Runs some important initialization code for the component.
+        /// </summary>
         protected Component()
         {
             MethodInfo? updateMethod = this.GetType().GetMethod("Update");

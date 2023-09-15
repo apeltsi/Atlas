@@ -45,8 +45,12 @@ public class InstancedSpriteRenderer : SpriteRenderer
             ((InstancedDrawable<VertexPositionUV, ColorUniform, InstanceData>)drawable).UpdateInstanceData(_data);
         }
     }
-    
-    public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
+    /// <summary>
+    /// THIS METHOD SHOULD ONLY BE CALLED BY THE RENDERER UNLESS YOU KNOW WHAT YOU'RE DOING
+    /// </summary>
+    /// <param name="graphicsDevice">The graphics device</param>
+    /// <returns>A drawable array</returns>
+    public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();
 

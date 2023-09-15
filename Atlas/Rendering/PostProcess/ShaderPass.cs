@@ -4,7 +4,9 @@ using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
-
+/// <summary>
+/// A simple effect pass that renders the shader with the provided textures & uniform
+/// </summary>
 public abstract class ShaderPass : PostProcessPass
 {
     public abstract void CreateResources(Framebuffer? targetBuffer, TextureView[] textureViews);

@@ -10,8 +10,10 @@ namespace SolidCode.Atlas.Input
     {
         private static List<Key> _keys = new();
         private static List<Key> _downKeys = new();
+        private static List<Key> _upKeys = new();
         private static List<MouseButton> _mouseButtons = new();
         private static List<MouseButton> _downMouseButtons = new();
+        private static List<MouseButton> _upMouseButtons = new();
         public static string ControllerName { get; private set; } 
         public static float WheelDelta { get; internal set; }
         public static Vector2 MousePosition = Vector2.Zero;
@@ -40,6 +42,8 @@ namespace SolidCode.Atlas.Input
                 
             }
             _downKeys.Clear();
+            _upKeys.Clear();
+            _upMouseButtons.Clear();
             _keys.Clear();
             _axisValues.Clear();
             _buttonValues.Clear();
@@ -52,6 +56,8 @@ namespace SolidCode.Atlas.Input
         {
             Sdl2Events.ProcessEvents();
             _downKeys.Clear();
+            _upKeys.Clear();
+            _upMouseButtons.Clear();
             WheelDelta = snapshot.WheelDelta;
             for (int i = 0; i < snapshot.KeyEvents.Count; i++)
             {
@@ -68,6 +74,7 @@ namespace SolidCode.Atlas.Input
                 else
                 {
                     _keys.Remove(e.Key);
+                    _upKeys.Add(e.Key);
                 }
             }
             MousePosition = snapshot.MousePosition;
@@ -82,6 +89,7 @@ namespace SolidCode.Atlas.Input
                 else
                 {
                     _mouseButtons.Remove(mevent.MouseButton);
+                    _upMouseButtons.Add(mevent.MouseButton);
                 }
             }
 
@@ -140,6 +148,7 @@ namespace SolidCode.Atlas.Input
         }
 
 
+        
         public static bool GetKey(Key key)
         {
             return _keys.Contains(key);
@@ -150,6 +159,11 @@ namespace SolidCode.Atlas.Input
             return _downKeys.Contains(key);
         }
 
+        public static bool GetKeyUp(Key key)
+        {
+            return _upKeys.Contains(key);
+        }
+        
         public static bool GetMouseButton(MouseButton button)
         {
             return _mouseButtons.Contains(button);
@@ -159,8 +173,11 @@ namespace SolidCode.Atlas.Input
         {
             return _downMouseButtons.Contains(button);
         }
-        
-        
+
+        public static bool GetMouseButtonUp(MouseButton button)
+        {
+            return _upMouseButtons.Contains(button);
+        }
 
         public static float GetControllerAxis(SDL_GameControllerAxis axis)
         {

@@ -1,16 +1,18 @@
 ﻿using System.Numerics;
 using SolidCode.Atlas.AssetManagement;
-using SolidCode.Atlas.Mathematics;
 using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
 
+/// <summary>
+/// A simple & fast Anti-Aliasing effect
+/// </summary>
 public class FXAAEffect : PostProcessEffect
 {
-    List<ShaderPass> _passes = new List<ShaderPass>();
-    List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();
-    List<TextureView> _textureViews = new List<TextureView>();
-    List<Framebuffer> _frameBuffers = new List<Framebuffer>();
+    List<ShaderPass> _passes = new ();
+    List<Veldrid.Texture> _textures = new ();
+    List<TextureView> _textureViews = new ();
+    List<Framebuffer> _frameBuffers = new ();
 
 
     struct EmptyUniform

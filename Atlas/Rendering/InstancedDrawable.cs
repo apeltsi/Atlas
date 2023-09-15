@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using System.Runtime.InteropServices;
-using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
 using Veldrid;
@@ -74,12 +73,12 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
     
     public void CreateResources()
     {
-        GraphicsDevice _graphicsDevice = Renderer.GraphicsDevice;
+        GraphicsDevice graphicsDevice = Renderer.GraphicsDevice!;
         // Make sure our transform knows us
         if (this.transform != null)
             this.transform.RegisterDrawable(this);
 
-        ResourceFactory factory = _graphicsDevice.ResourceFactory;
+        ResourceFactory factory = graphicsDevice.ResourceFactory;
         vertexBuffer =
             factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(),
                 BufferUsage.VertexBuffer));
@@ -94,12 +93,12 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
         _uniformBuffers.Add("Default Uniform",
             factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(drawableUniform), BufferUsage.UniformBuffer)));
 
-        _graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
+        graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
 
 
-        _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-        _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
-        _graphicsDevice.UpdateBuffer(transformBuffer, 0,
+        graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+        graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
+        graphicsDevice.UpdateBuffer(transformBuffer, 0,
             new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
         // Next lets load textures to the gpu
@@ -265,22 +264,20 @@ public class InstancedDrawable<T, TUniform, TInstanceData> : Drawable
             instanceStart: 0);
     }
 
-    public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value)
+    public override void SetUniformBufferValue<TBufferType>(GraphicsDevice graphicsDevice, TBufferType value)
         where TBufferType : struct
     {
         if (_uniformBuffers.ContainsKey("Default Uniform") && !_uniformBuffers["Default Uniform"].IsDisposed)
-            _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
+            graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
     }
 
-    public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+    public override void SetGlobalMatrix(GraphicsDevice graphicsDevice, Matrix4x4 matrix)
     {
         Matrix4x4 tmat = transform.GetTransformationMatrix();
         Matrix4x4 cmat = Camera.GetTransformMatrix();
         if (transformBuffer != null && !transformBuffer.IsDisposed)
         {
-            // FIXME: This occasionally fails, most likely due to a race-condition of some kind. (try catch did not help!)
-            // Could the transformbuffer be updated during updatebuffer?
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
+            graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
         }
     }
 

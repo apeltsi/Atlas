@@ -27,11 +27,11 @@ namespace SolidCode.Atlas
     public static class Atlas
     {
         public static string AppDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
-        public static string AssetsDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar); // 
+        public static string AssetsDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar); 
         public static string ShaderDirectory = Path.Join(AssetsDirectory, "shaders" + Path.DirectorySeparatorChar);
 
         public static string AssetPackDirectory = Path.Join(AppDirectory, "assetpacks" + Path.DirectorySeparatorChar);
-        public const string Version = "1.0.0-pre.14";
+        public static string Version => FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion ?? "Unknown Version";
         private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
@@ -69,6 +69,7 @@ namespace SolidCode.Atlas
         {
             Window.Close();
         }
+
         /// <summary>
         /// Tells Atlas to initialize the logging system<para/>
         /// Technically optional, but not using this could impact app startup performance or lead to unexpected issues. Especially if you're using multi-process debugging.
@@ -116,14 +117,6 @@ namespace SolidCode.Atlas
             if(AudioEnabled)
                 Audio.Audio.InitializeAudio();
             AssetManager.LoadAssetMap();
-#if DEBUG
-            if (Directory.Exists("./data/shaders"))
-            {
-                // Were running in from the development path. Lets grab our shaders from there instead!
-                ShaderDirectory = "./data/shaders";
-                Debug.Log(LogCategory.Framework, "It looks like Atlas is running from a development environment. Loading shaders from dev environment instead.");
-            }
-#endif
 
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + PrimaryStopwatch.ElapsedMilliseconds + "ms");
             _w = new Window(windowTitle, flags);
@@ -165,7 +158,10 @@ namespace SolidCode.Atlas
             Telescope.Debug.Dispose();
             
         }
-        
+        /// <summary>
+        /// Returns the total time the app has been running, in seconds
+        /// </summary>
+        /// <returns></returns>
         public static float GetTotalUptime()
         {
             if (PrimaryStopwatch == null)

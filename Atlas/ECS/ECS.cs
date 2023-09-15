@@ -1,10 +1,11 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection;
-using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Standard;
 using SolidCode.Atlas.Telescope;
+
 namespace SolidCode.Atlas.ECS
 {
+    /// <summary>
+    /// The main class for the Entity Component System or ECS.
+    /// </summary>
     public static class EntityComponentSystem
     {
         /// <summary>
