@@ -1,8 +1,6 @@
-// TODO: Standard color class
 using System.Globalization;
 using System.Numerics;
-using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Telescope;
+
 namespace SolidCode.Atlas
 {
 

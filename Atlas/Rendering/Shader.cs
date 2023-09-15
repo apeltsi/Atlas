@@ -1,4 +1,3 @@
-using System.Text;
 using SolidCode.Atlas.AssetManagement;
 using Veldrid;
 using Veldrid.SPIRV;

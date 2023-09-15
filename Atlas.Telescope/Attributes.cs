@@ -7,8 +7,5 @@ namespace SolidCode.Atlas.Telescope;
 [AttributeUsage(AttributeTargets.Field)]
 public class HideInInspector : Attribute
 {
-    public HideInInspector()
-    {
-
-    }
+    
 }

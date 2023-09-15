@@ -21,12 +21,10 @@ public class Basic
     public void TestConfirm()
     {
         Atlas.DisableMultiProcessDebugging();
-        Atlas.StartCoreFeatures("Atlas Manual Confirm Test");
+        Atlas.StartCoreFeatures("Basic Test | Manual Confirm Required");
         Extras.StartupAnimations.DefaultSplash(() =>
         {
-            Entity e = new Entity("Test entity");
-            e.AddComponent<UserConfirm>();
-            Util.TextEntity("Space = Pass | Backspace = Fail");
+            Util.ManualConfirm();
             Window.ClearColor = Veldrid.RgbaFloat.Blue;
         });
         Atlas.Start();

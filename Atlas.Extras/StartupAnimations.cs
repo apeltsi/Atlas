@@ -5,7 +5,6 @@ using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Components;
 using SolidCode.Atlas.ECS;
-using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.Standard;
 
 namespace SolidCode.Atlas.Extras;
@@ -34,13 +33,13 @@ public static class StartupAnimations
         Task task = LoadExtras();
         Entity star = new Entity("Star", new Vector2(1.2f, 1.5f), new Vector2(0.5f));
         SpriteRenderer sr = star.AddComponent<SpriteRenderer>();
-        Transform t = star.GetComponent<Transform>();
+        Transform t = star.GetComponent<Transform>()!;
         star.AddComponent<ExecOnStart>().OnStart = () =>
         {
             task.Wait();
             sr.Sprite = AssetManager.GetTexture("Atlas-Star");
 
-            Audio.Audio.Play(AssetManager.GetAsset<AudioTrack>("Atlas-Impact"));
+            Audio.Audio.Play(AssetManager.GetAsset<AudioTrack>("Atlas-Impact")!);
             Animation.Animation.DoTween(new ValueRef<Vector2>(() => t.Position, (val) => t.Position = val), Vector2.Zero, 0.9f, null, TimingFunction.EaseInQuint);
             Animation.Animation.DoTween(new ValueRef<float>(() => t.Rotation, (val) => t.Rotation = val), 360f, 0.9f, () =>
             {
@@ -88,11 +87,11 @@ public static class StartupAnimations
 
     private class ExecOnStart : Component
     {
-        public Action OnStart;
+        public Action? OnStart;
 
         public void Start()
         {
-            OnStart.Invoke();
+            OnStart?.Invoke();
         }
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System.Numerics;
-using Box2DX;
 using Box2DX.Collision;
 using Box2DX.Common;
 using Box2DX.Dynamics;
-using SolidCode.Atlas;
 using SolidCode.Atlas.ECS;
 
 namespace SolidCode.Atlas.Physics;
@@ -70,19 +68,6 @@ public static class Physics
             UpperBound = new Vec2(10f, 10f)
         }, GravitationalAcceleration.AsVec2(), allowSleep);
         World.SetContinuousPhysics(true);
-        BodyDef def = new BodyDef
-        {
-            MassData = default,
-            Position = default,
-            Angle = 0,
-            LinearVelocity = default,
-            AngularVelocity = 0,
-            LinearDamping = 0,
-            AngularDamping = 0,
-            AllowSleep = true,
-            IsSleeping = true,
-            FixedRotation = true
-        };
 
     }
 
@@ -105,7 +90,7 @@ public static class Physics
         for (int i = 0; i < PhysicsObjects.Count; i++)
         {
             PhysicsObject po = PhysicsObjects[i];
-            if (!po.Body.IsSleeping())
+            if (po.Body != null && !po.Body.IsSleeping())
             {
                 po.Update();
             }

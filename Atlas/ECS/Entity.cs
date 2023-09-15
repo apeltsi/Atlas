@@ -2,9 +2,8 @@
 {
     using System.Collections.Concurrent;
     using System.Numerics;
-    using SolidCode.Atlas.Components;
-    using SolidCode.Atlas.Rendering;
-    using SolidCode.Atlas.Telescope;
+    using Rendering;
+    using Telescope;
     public class Entity
     {
 

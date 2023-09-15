@@ -5,7 +5,6 @@ using System.Resources;
 using SolidCode.Atlas.Audio;
 using SolidCode.Atlas.Compute;
 using SolidCode.Atlas.Rendering;
-using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.AssetManagement
 {

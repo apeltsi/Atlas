@@ -1,5 +1,4 @@
 ﻿using Box2DX.Collision;
-using Box2DX.Common;
 using Box2DX.Dynamics;
 using SolidCode.Atlas.ECS;
 using Math = System.Math;
@@ -14,7 +13,7 @@ internal class PhysicsObject
     internal Body? Body;
     private Fixture? _fixture;
     private PhysicsShape _shape;
-    private bool _isStatic = false; 
+    private bool _isStatic; 
     internal Transform Transform;
     private float _mass;
 
@@ -73,6 +72,8 @@ internal class PhysicsObject
 
     public void Update()
     {
+        if (Body == null)
+            return;
         Transform.GlobalPosition = Body.GetPosition().AsVector2();
         Transform.GlobalRotation = Body.GetAngle() * 180f / (float)Math.PI;
     }

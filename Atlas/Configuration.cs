@@ -2,7 +2,7 @@
 
 public struct FrameworkConfiguration
 {
-    public ECSSettings ECS = new ECSSettings();
+    public ECSSettings ECS = new ();
 
     public FrameworkConfiguration()
     {

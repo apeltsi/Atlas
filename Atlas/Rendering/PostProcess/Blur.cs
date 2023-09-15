@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using SolidCode.Atlas.AssetManagement;
+﻿using SolidCode.Atlas.AssetManagement;
 using SolidCode.Atlas.Mathematics;
 using Veldrid;
 
@@ -7,10 +6,10 @@ namespace SolidCode.Atlas.Rendering.PostProcess;
 
 public class BlurEffect : PostProcessEffect
 {
-    List<ShaderPass> _passes = new List<ShaderPass>();
-    List<Veldrid.Texture> _textures = new List<Veldrid.Texture>();
-    List<TextureView> _textureViews = new List<TextureView>();
-    List<Framebuffer> _frameBuffers = new List<Framebuffer>();
+    List<ShaderPass> _passes = new ();
+    List<Veldrid.Texture> _textures = new ();
+    List<TextureView> _textureViews = new ();
+    List<Framebuffer> _frameBuffers = new ();
     private readonly bool _bypass = false;
     private float _quality = 1f;
     private float _intensity = 0.5f;

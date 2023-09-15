@@ -1,7 +1,7 @@
 
 namespace SolidCode.Atlas.Rendering
 {
-    using SolidCode.Atlas.ECS;
+    using ECS;
     using Veldrid;
 
     public class RenderComponent : Component

@@ -11,7 +11,9 @@ using System.Timers;
 using System.Collections.Concurrent;
 class Log
 {
+    // ReSharper disable once InconsistentNaming
     public string type { get; set; }
+    // ReSharper disable once InconsistentNaming
     public string content { get; set; }
 
     public Log(string content)
@@ -24,7 +26,9 @@ class Log
 
 class ProfilerData
 {
+    // ReSharper disable once InconsistentNaming
     public string type { get; set; }
+    // ReSharper disable once InconsistentNaming
     public Dictionary<string,Dictionary<string,float>> times { get; set; }
 
     public ProfilerData(Dictionary<string,Dictionary<string,float>> data)
@@ -36,9 +40,9 @@ class ProfilerData
 
 class DebuggerSocketBehaviour : WebSocketBehavior
 {
-    System.Timers.Timer timer;
-    System.Timers.Timer liveDataTimer;
-    System.Timers.Timer profilerDataTimer;
+    Timer _timer;
+    Timer liveDataTimer;
+    Timer profilerDataTimer;
     public ConcurrentQueue<string> queuedLogs = new ConcurrentQueue<string>();
     int id;
     protected override void OnMessage(MessageEventArgs e)
@@ -53,10 +57,10 @@ class DebuggerSocketBehaviour : WebSocketBehavior
         DebugServer.Connections++;
         id = DebugServer.instance.AddListener(this);
 
-        timer = new System.Timers.Timer(50);
-        timer.Elapsed += new System.Timers.ElapsedEventHandler(SendLogs);
-        timer.AutoReset = true;
-        timer.Start();
+        _timer = new System.Timers.Timer(50);
+        _timer.Elapsed += new System.Timers.ElapsedEventHandler(SendLogs);
+        _timer.AutoReset = true;
+        _timer.Start();
 
         liveDataTimer = new System.Timers.Timer(200);
         liveDataTimer.Elapsed += new System.Timers.ElapsedEventHandler(SendLiveData);
@@ -75,8 +79,8 @@ class DebuggerSocketBehaviour : WebSocketBehavior
     {
         DebugServer.Connections--;
         DebugServer.instance.RemoveListener(id);
-        timer.Stop();
-        timer.Close();
+        _timer.Stop();
+        _timer.Close();
         liveDataTimer.Stop();
         liveDataTimer.Close();
         profilerDataTimer.Stop();
