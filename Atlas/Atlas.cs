@@ -116,14 +116,6 @@ namespace SolidCode.Atlas
             if(AudioEnabled)
                 Audio.Audio.InitializeAudio();
             AssetManager.LoadAssetMap();
-#if DEBUG
-            if (Directory.Exists("./data/shaders"))
-            {
-                // Were running in from the development path. Lets grab our shaders from there instead!
-                ShaderDirectory = "./data/shaders";
-                Debug.Log(LogCategory.Framework, "It looks like Atlas is running from a development environment. Loading shaders from dev environment instead.");
-            }
-#endif
 
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + PrimaryStopwatch.ElapsedMilliseconds + "ms");
             _w = new Window(windowTitle, flags);
