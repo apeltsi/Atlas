@@ -22,6 +22,7 @@
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageTags>2D Graphics DirectX Direct3D Vulkan Game App</PackageTags>
+        <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup Label="Project References">
         <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
