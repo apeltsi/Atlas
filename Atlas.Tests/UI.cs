@@ -17,9 +17,15 @@ public class UI
         RectTransform rt = e.AddComponent<RectTransform>();
         rt.Scale = new RelativeVector(0.5f, 0.5f);
         TextRenderer tr = e.AddComponent<TextRenderer>();
+        tr.HorizontalAlignment = TextAlignment.Left;
+        tr.VerticalAlignment = TextVerticalAlignment.Top;
         tr.Text = "This is a test of multiline text rendering.\nThis should be on a new line. Otherwise the text should just wrap automatically when necessary.";
         Util.ManualConfirm(-0.75f);
         Atlas.Start();
+        if (UserConfirm.Failed)
+        {
+            Assert.Fail("User marked test as failed.");
+        }
     }
 
 }

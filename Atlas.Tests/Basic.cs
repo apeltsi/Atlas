@@ -28,6 +28,10 @@ public class Basic
             Window.ClearColor = Veldrid.RgbaFloat.Blue;
         });
         Atlas.Start();
+        if (UserConfirm.Failed)
+        {
+            Assert.Fail("User marked test as failed.");
+        }
     }
 
 }

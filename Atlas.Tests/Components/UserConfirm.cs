@@ -4,6 +4,7 @@ using SolidCode.Atlas.ECS;
 namespace SolidCode.Atlas.Tests;
 public class UserConfirm : Component
 {
+    public static bool Failed = false;
     public void Update()
     {
         if (Input.Input.GetKeyDown(Veldrid.Key.Space))
@@ -12,7 +13,8 @@ public class UserConfirm : Component
         }
         if (Input.Input.GetKeyDown(Veldrid.Key.BackSpace))
         {
-            Assert.Fail("User marked test as failed.");
+            Failed = true;
+            Window.Close();
         }
     }
 }

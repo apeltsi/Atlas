@@ -5,9 +5,9 @@ namespace SolidCode.Atlas.Tests;
 
 public static class Util
 {
-    public static Entity TextEntity(string text, Vector2? position = null)
+    public static Entity TextEntity(string text, Vector2? position = null, Vector2? scale = null)
     {
-        Entity e = new Entity(text, position, new Vector2(0.3f, 0.3f));
+        Entity e = new Entity(text, position, scale ?? new Vector2(0.5f, 0.5f));
         TextRenderer tr = e.AddComponent<TextRenderer>();
         tr.HorizontalAlignment = TextAlignment.Center;
         tr.Text = text;
@@ -19,7 +19,7 @@ public static class Util
     {
         Entity e = new Entity("Test entity");
         e.AddComponent<UserConfirm>();
-        Util.TextEntity("Space = Pass | Backspace = Fail", new Vector2(0f, y));
+        Util.TextEntity("Space = Pass | Backspace = Fail", new Vector2(0f, y), new Vector2(3f, 1f));
         return e;
     }
 }
