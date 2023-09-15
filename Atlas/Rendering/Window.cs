@@ -13,8 +13,14 @@ namespace SolidCode.Atlas.Rendering
     public class Window
     {
         private static Sdl2Window? _window;
+        /// <summary>
+        /// The maximum framerate the window will render at. Set to 0 to render at VSYNC.
+        /// </summary>
         public static int MaxFramerate { get; set; }
 
+        /// <summary>
+        /// The background color of the window.
+        /// </summary>
         public static RgbaFloat ClearColor = RgbaFloat.Black;
 
         /// <summary>
@@ -193,7 +199,7 @@ namespace SolidCode.Atlas.Rendering
         /// <summary>
         /// Creates a new window with a title. Also initializes rendering
         /// </summary>
-        internal Window(string title = "Atlas/" + Atlas.Version, SDL_WindowFlags flags = 0)
+        internal Window(string title = "Atlas", SDL_WindowFlags flags = 0)
         {
             _title = title;
             string modifiedTitle = GetAdjustedWindowTitle(_title);
@@ -256,6 +262,9 @@ namespace SolidCode.Atlas.Rendering
             Renderer.CreateResources(t);
         }
 
+        /// <summary>
+        /// Closes the window & Atlas
+        /// </summary>
         public static void Close()
         {
             _window?.Close();
@@ -371,21 +380,33 @@ namespace SolidCode.Atlas.Rendering
             BuiltinAssetsTask.Wait();
         }
 
+        /// <summary>
+        /// Makes the window fullscreen
+        /// </summary>
         public static void Fullscreen()
         {
             State = WindowState.FullScreen;
         }
 
+        /// <summary>
+        /// Makes the window borderless fullscreen
+        /// </summary>
         public static void BorderlessFullscreen()
         {
             State = WindowState.BorderlessFullScreen;
         }
 
+        /// <summary>
+        /// Makes the window windowed
+        /// </summary>
         public static void Windowed()
         {
             State = WindowState.Normal;
         }
 
+        /// <summary>
+        /// Moves the window to the front of the screen
+        /// </summary>
         public static void MoveToFront()
         {
             if (_window == null) return;

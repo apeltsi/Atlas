@@ -4,6 +4,9 @@ using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
 
+/// <summary>
+/// A simple & fast blur effect. Supports bypass 
+/// </summary>
 public class BlurEffect : PostProcessEffect
 {
     List<ShaderPass> _passes = new ();

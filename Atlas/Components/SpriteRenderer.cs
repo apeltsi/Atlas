@@ -38,11 +38,16 @@ public class SpriteRenderer : RenderComponent
             _color = value;
             if (drawable != null)
             {
-                drawable.SetUniformBufferValue(Renderer.GraphicsDevice, new ColorUniform(value));
+                drawable.SetUniformBufferValue(Renderer.GraphicsDevice!, new ColorUniform(value));
             }
         }
     }
-    public override Drawable[] StartRender(GraphicsDevice _graphicsDevice)
+    /// <summary>
+    /// THIS METHOD SHOULD ONLY BE CALLED BY THE RENDERER UNLESS YOU KNOW WHAT YOU'RE DOING
+    /// </summary>
+    /// <param name="graphicsDevice">The graphics device</param>
+    /// <returns>A drawable array</returns>
+    public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();
         VertexPositionUV[] quadVertices =

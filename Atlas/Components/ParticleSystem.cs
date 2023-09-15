@@ -3,6 +3,9 @@ using SolidCode.Atlas.Standard;
 
 namespace SolidCode.Atlas.Components;
 
+/// <summary>
+/// A customizable particle system
+/// </summary>
 public class ParticleSystem : InstancedSpriteRenderer
 {
     public class Particle

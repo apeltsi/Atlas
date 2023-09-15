@@ -8,6 +8,9 @@ using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.AssetManagement
 {
+    /// <summary>
+    /// Represents a group of assets loaded from a assetpack file. Assetpack files can be generated with the atlastools utility.
+    /// </summary>
     public class AssetPack
     {
         internal static Dictionary<string, AssetPack> loadedAssetPacks = new Dictionary<string, AssetPack>();

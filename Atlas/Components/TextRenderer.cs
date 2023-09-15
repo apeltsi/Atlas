@@ -27,6 +27,9 @@ public class TextRenderer : RenderComponent
     private float _size = 50f;
     private float _resolutionScale = 1f;
     
+    /// <summary>
+    /// The size of the text
+    /// </summary>
     public float Size
     {
         get => _size;
@@ -41,6 +44,9 @@ public class TextRenderer : RenderComponent
         }
     }
 
+    /// <summary>
+    /// A multiplier for the resolution of the text. 
+    /// </summary>
     public float ResolutionScale
     {
         get => _resolutionScale;
@@ -55,6 +61,9 @@ public class TextRenderer : RenderComponent
     }
     
     private TextAlignment _alignment = TextAlignment.Center;
+    /// <summary>
+    /// The horizontal alignment of the text
+    /// </summary>
     public TextAlignment HorizontalAlignment
     {
         get => _alignment;
@@ -68,6 +77,9 @@ public class TextRenderer : RenderComponent
         }
     } 
     private TextVerticalAlignment _verticalAlignment = TextVerticalAlignment.Center;
+    /// <summary>
+    /// The vertical alignment of the text
+    /// </summary>
     public TextVerticalAlignment VerticalAlignment
     {
         get => _verticalAlignment;
@@ -82,6 +94,9 @@ public class TextRenderer : RenderComponent
     }
     private Color _color = Color.White;
     private FontSet _fontSet = FontSet.GetDefault();
+    /// <summary>
+    /// A set of fonts to use for the text
+    /// </summary>
     public FontSet Fonts
     {
         get => _fontSet;
@@ -92,6 +107,9 @@ public class TextRenderer : RenderComponent
                 _textDrawable.UpdateFontSet(_fontSet);
         }
     }
+    /// <summary>
+    /// The color of the text
+    /// </summary>
     public Color Color
     {
         get
@@ -114,6 +132,9 @@ public class TextRenderer : RenderComponent
             }
         }
     }
+    /// <summary>
+    /// The text content
+    /// </summary>
     public string Text
     {
         get => _text;
@@ -126,12 +147,12 @@ public class TextRenderer : RenderComponent
             }
         }
     }
-
-    public Vector2 Measure()
-    {
-        return _fontSet.MeasureString(Size, _text);
-    }
     
+    /// <summary>
+    /// THIS METHOD SHOULD ONLY BE CALLED BY THE RENDERER UNLESS YOU KNOW WHAT YOU'RE DOING
+    /// </summary>
+    /// <param name="graphicsDevice">The graphics device</param>
+    /// <returns>A drawable array</returns>
     public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();

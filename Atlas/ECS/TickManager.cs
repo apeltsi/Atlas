@@ -4,6 +4,9 @@ using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.ECS;
 
+/// <summary>
+/// Manages multiple tick threads, specified in the FrameworkConfiguration.
+/// </summary>
 public static class TickManager
 {
     private static TickThread[] _threads = Array.Empty<TickThread>();

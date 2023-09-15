@@ -4,6 +4,9 @@ using Veldrid;
 
 namespace SolidCode.Atlas.Rendering.PostProcess;
 
+/// <summary>
+/// A simple & fast Anti-Aliasing effect
+/// </summary>
 public class FXAAEffect : PostProcessEffect
 {
     List<ShaderPass> _passes = new ();

@@ -3,6 +3,9 @@ using SolidCode.Atlas.Telescope;
 
 namespace SolidCode.Atlas.ECS
 {
+    /// <summary>
+    /// The main class for the Entity Component System or ECS.
+    /// </summary>
     public static class EntityComponentSystem
     {
         /// <summary>

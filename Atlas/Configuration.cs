@@ -8,7 +8,9 @@ public struct FrameworkConfiguration
     {
     }
 }
-
+/// <summary>
+/// Settings for the Entity Component System
+/// </summary>
 public struct ECSSettings
 {
     public ECSThreadSettings[] Threads = new[]
@@ -20,7 +22,9 @@ public struct ECSSettings
             Sync = true
         }
     };
-
+    /// <summary>
+    /// Settings for the Entity Component System
+    /// </summary>
     public ECSSettings()
     {
         bool hasMain = false;
