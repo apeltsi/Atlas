@@ -20,6 +20,7 @@
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
     <ItemGroup Label="Project References">
         <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
@@ -55,5 +56,28 @@
             <Link>%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+    <Choose>
+        <When Condition=" '$(Configuration)'=='Debug' ">
+            <PropertyGroup>
+                <PackageIcon>AtlasIconDebug.png</PackageIcon>
+            </PropertyGroup>
+            <ItemGroup Label="Package">
+                <None Include="AtlasIconDebug.png" Pack="true" PackagePath="\"/>
+            </ItemGroup>
+        </When>
+        <When Condition=" '$(Configuration)'=='Release' ">
+            <PropertyGroup>
+                <PackageIcon>AtlasIcon.png</PackageIcon>
+            </PropertyGroup>
+            <ItemGroup Label="Package">
+                <None Include="AtlasIcon.png" Pack="true" PackagePath="\"/>
+            </ItemGroup>
+
+        </When>
+    </Choose>
+
+    <ItemGroup Label="Package">
+        <None Include="$([MSBuild]::GetPathOfFileAbove('README.md', '$(MSBuildThisFileDirectory)../'))" Pack="true" PackagePath="\"/>
     </ItemGroup>
 </Project>
