@@ -6,13 +6,27 @@ using ECS;
 using Rendering;
 using Veldrid;
 
+public enum TextAlignment
+{
+    Left,
+    Center,
+    Right
+}
+
+public enum TextVerticalAlignment
+{
+    Top,
+    Center,
+    Bottom
+}
+
 public class TextRenderer : RenderComponent
 {
     private TextDrawable? _textDrawable;
     private string _text = "Hello World!";
     private float _size = 50f;
     private float _resolutionScale = 1f;
-
+    
     public float Size
     {
         get => _size;
@@ -39,7 +53,33 @@ public class TextRenderer : RenderComponent
             }
         }
     }
-    public bool Centered = true;
+    
+    private TextAlignment _alignment = TextAlignment.Center;
+    public TextAlignment HorizontalAlignment
+    {
+        get => _alignment;
+        set
+        {
+            _alignment = value;
+            if (_textDrawable != null)
+            {
+                _textDrawable.UpdateAlignment(value, _verticalAlignment);
+            }
+        }
+    } 
+    private TextVerticalAlignment _verticalAlignment = TextVerticalAlignment.Center;
+    public TextVerticalAlignment VerticalAlignment
+    {
+        get => _verticalAlignment;
+        set
+        {
+            _verticalAlignment = value;
+            if (_textDrawable != null)
+            {
+                _textDrawable.UpdateAlignment(_alignment, value);
+            }
+        }
+    }
     private Color _color = Color.White;
     private FontSet _fontSet = FontSet.GetDefault();
     public FontSet Fonts
@@ -95,7 +135,7 @@ public class TextRenderer : RenderComponent
     public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();
-        _textDrawable = new TextDrawable(Text, _fontSet, Color, Centered, Size, _resolutionScale, Entity.GetComponent<Transform>(true)!);
+        _textDrawable = new TextDrawable(Text, _fontSet, Color, HorizontalAlignment, VerticalAlignment, Size, _resolutionScale, Entity.GetComponent<Transform>(true)!);
         return new Drawable[] { _textDrawable };
     }
 

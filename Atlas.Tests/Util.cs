@@ -9,7 +9,7 @@ public static class Util
     {
         Entity e = new Entity(text, position, new Vector2(0.3f, 0.3f));
         TextRenderer tr = e.AddComponent<TextRenderer>();
-        tr.Centered = true;
+        tr.HorizontalAlignment = TextAlignment.Center;
         tr.Text = text;
         tr.Color = new Vector4(1, 1, 1, 1);
         return e;

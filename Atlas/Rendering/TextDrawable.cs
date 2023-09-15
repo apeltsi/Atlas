@@ -23,7 +23,8 @@ namespace SolidCode.Atlas.Rendering
         private FontSet _fontSet;
         private FontRenderer _renderer;
         private Matrix4x4 _lastMatrix;
-        private bool _centered;
+        private TextAlignment _horizontalAlignment;
+        private TextVerticalAlignment _verticalAlignment;
         private Vector4 _color;
         private float _resolutionFactor;
         private Vector2 _lastScaleEval = Vector2.Zero;
@@ -40,16 +41,26 @@ namespace SolidCode.Atlas.Rendering
                 }
             }
         }
-        public TextDrawable(string text, FontSet fonts, Vector4 color, bool centered, float size, float _resolutionScale, Transform transform)
+        public TextDrawable(string text, FontSet fonts, Vector4 color, TextAlignment hAlignment, TextVerticalAlignment vAlignment, float size, float _resolutionScale, Transform transform)
         {
             this._text = text;
             this.transform = transform;
             this._fontSet = fonts;
             this._size = size;
-            this._centered = centered;
+            this._horizontalAlignment = hAlignment;
+            this._verticalAlignment = vAlignment;
             this.Color = color;
             _resolutionFactor = _resolutionScale;
             CreateResources();
+        }
+        
+        public void UpdateAlignment(TextAlignment hAlignment, TextVerticalAlignment vAlignment)
+        {
+            if (hAlignment == this._horizontalAlignment && vAlignment == this._verticalAlignment)
+                return; // Lets not waste our precious time updating text that is already up to date
+            this._horizontalAlignment = hAlignment;
+            this._verticalAlignment = vAlignment;
+            _dirty = true;
         }
 
         public void UpdateText(string text, float size, float resolutionScale)
@@ -79,6 +90,7 @@ namespace SolidCode.Atlas.Rendering
         {
             if (transform.GetType() == typeof(RectTransform))
             {
+                // Check if the scale has changed
                 Vector2 eval = ((RectTransform)transform).Scale.Evaluate();
                 if (eval != _lastScaleEval)
                 {
@@ -88,6 +100,7 @@ namespace SolidCode.Atlas.Rendering
             }
             else
             {
+                // Check if the scale has changed
                 Vector2 scale = transform.GlobalScale;
                 if (scale != _lastScaleEval)
                 {
@@ -97,11 +110,14 @@ namespace SolidCode.Atlas.Rendering
             }
             if (_dirty || _transformDirty)
             {
+                // Update text
                 _renderer.ClearAllQuads();
                 DrawText();
                 _dirty = false;
                 _transformDirty = false;
             }
+            
+            // Draw the text
             _renderer.Draw(cl);
         }
 
@@ -123,19 +139,59 @@ namespace SolidCode.Atlas.Rendering
             }
 
             string[] splits = SplitSections(this._text);
-            float totHeights = 0f;
+            float heightSoFar = 0f;
+            Vector2[] lineDimensions = new Vector2[splits.Length];
+            float totalHeight = 0f;
+            // first lets measure our lines
+            if (_horizontalAlignment != TextAlignment.Left || _verticalAlignment != TextVerticalAlignment.Top) // LTR and TTB don't need any extra calculations, so we can skip them
+            {
+                for (int i = 0; i < splits.Length; i++)
+                {
+                    lineDimensions[i] = _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]) *
+                        _size / _resolutionFactor;
+                    totalHeight += lineDimensions[i].Y;
+                }
+            }
+            float yOffset = 0f;
+            switch (_verticalAlignment)
+            {
+                case TextVerticalAlignment.Top:
+                    yOffset = 0f;
+                    break;
+                case TextVerticalAlignment.Center:
+                    yOffset = 20000f * yScale - totalHeight / 2f;
+                    break;
+                case TextVerticalAlignment.Bottom:
+                    yOffset = 40000f * yScale - totalHeight;
+                    break;
+            }
+
             for (int i = 0; i < splits.Length; i++)
             {
-                if (_centered)
-                {
-                    float width = _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).X * _size / _resolutionFactor;
                 
-                    _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(-width / 2f, totHeights - 20000f * yScale),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
-                } else
+                // Next part is kinda nasty, but it works :)
+                switch (_horizontalAlignment)
                 {
-                    _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), new Vector2(-20000f * xScale, totHeights - 20000f * yScale),FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                    case TextAlignment.Center:
+                        _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), 
+                            new Vector2(-lineDimensions[i].X / 2f, heightSoFar - 20000f * yScale + yOffset),
+                            FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                        break;
+                    
+                    case TextAlignment.Left:
+                        _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), 
+                            new Vector2(-20000f * xScale, heightSoFar - 20000f * yScale + yOffset),
+                            FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+                        break;
+                    
+                    case TextAlignment.Right:
+                        _fontSet.System.GetFont(_size * _resolutionFactor).DrawText(_renderer, new StringBuilder(splits[i]), 
+                            new Vector2(20000f * xScale - lineDimensions[i].X, heightSoFar - 20000f * yScale + yOffset),
+                            FSColor.White, new Vector2(_size / _resolutionFactor,_size / _resolutionFactor));
+
+                        break;
                 }
-                totHeights += _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).Y * _size / _resolutionFactor;
+                heightSoFar += _fontSet.System.GetFont(_size * _resolutionFactor).MeasureString(splits[i]).Y * _size / _resolutionFactor;
             }
         }
 
@@ -213,9 +269,9 @@ namespace SolidCode.Atlas.Rendering
             this._renderer.Dispose();
         }
 
-        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public override void SetGlobalMatrix(GraphicsDevice graphicsDevice, Matrix4x4 matrix)
         {
-            _renderer.SetGlobalMatrix(_graphicsDevice, matrix);
+            _renderer.SetGlobalMatrix(graphicsDevice, matrix);
             _lastMatrix = matrix;
         }
 
@@ -331,10 +387,10 @@ namespace SolidCode.Atlas.Rendering
             buffersDirty = true;
         }
 
-        protected void CreateResources(GraphicsDevice _graphicsDevice, Veldrid.Texture texture)
+        protected void CreateResources(GraphicsDevice graphicsDevice, Veldrid.Texture texture)
         {
             Shader shader = AssetManager.GetShader("text");
-            ResourceFactory factory = _graphicsDevice.ResourceFactory;
+            ResourceFactory factory = graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<VertexPositionColorTexture>(), BufferUsage.VertexBuffer));
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
             transformBuffer = factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf<TextTransformStruct>(), BufferUsage.UniformBuffer));
@@ -343,10 +399,10 @@ namespace SolidCode.Atlas.Rendering
 
 
 
-            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4())); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
-            _graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
+            graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
+            graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(new Matrix4x4(), new Matrix4x4(), new Matrix4x4())); // By having zeroed out matrices the text wont "jitter" if a frame is rendered before the matrix has been properly updated
+            graphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(this.Color));
             // Next lets load textures to the gpu
 
             texView = factory.CreateTextureView(texture);
@@ -394,7 +450,7 @@ namespace SolidCode.Atlas.Rendering
             BindableResource[] buffers = new BindableResource[4];
             buffers[0] = transformBuffer;
             buffers[1] = texView;
-            buffers[2] = _graphicsDevice.LinearSampler;
+            buffers[2] = graphicsDevice.LinearSampler;
             buffers[3] = colorBuffer;
 
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
@@ -408,7 +464,7 @@ namespace SolidCode.Atlas.Rendering
                 Renderer.GraphicsDevice.UpdateBuffer(colorBuffer, 0, new TextUniform(color));
         }
 
-        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public override void SetGlobalMatrix(GraphicsDevice graphicsDevice, Matrix4x4 matrix)
         {
             Matrix4x4 tmat = transform.GetTransformationMatrix();
             Matrix4x4 cmat = Matrix4x4.Identity;
@@ -417,7 +473,7 @@ namespace SolidCode.Atlas.Rendering
                 cmat = Camera.GetTransformMatrix();
             if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
-                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, tmat, cmat));
+                graphicsDevice.UpdateBuffer(transformBuffer, 0, new TextTransformStruct(matrix, tmat, cmat));
             }
 
         }
