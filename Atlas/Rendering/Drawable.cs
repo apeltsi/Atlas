@@ -32,11 +32,11 @@ namespace SolidCode.Atlas.Rendering
             Debug.Log(LogCategory.Rendering, "Something went wrong! You shouldn't be disposing an abstract class!");
         }
 
-        public virtual void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public virtual void SetGlobalMatrix(GraphicsDevice graphicsDevice, Matrix4x4 matrix)
         {
         }
 
-        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : unmanaged
+        public virtual void SetUniformBufferValue<TBufferType>(GraphicsDevice graphicsDevice, TBufferType value) where TBufferType : unmanaged
         {
 
         }
@@ -47,7 +47,7 @@ namespace SolidCode.Atlas.Rendering
 
         }
 
-        public virtual void SetScreenSize(GraphicsDevice _graphicsDevice, Vector2 size)
+        public virtual void SetScreenSize(GraphicsDevice graphicsDevice, Vector2 size)
         {
         }
         public virtual void UpdateMeshBuffers()
@@ -126,38 +126,6 @@ namespace SolidCode.Atlas.Rendering
         protected ResourceLayout? _transformTextureResourceLayout;
         protected ResourceLayout? _uniformResourceLayout;
         protected PrimitiveTopology _topology;
-    
-        [Obsolete("This constructor is deprecated and will be removed in a future version of Atlas. Please use the other constructor that takes in DrawableOptions instead.")]
-        public Drawable(GraphicsDevice _graphicsDevice, string shaderPath, Mesh<T> mesh, Transform t, TUniform drawableUniform, ShaderStages uniformShaderStages, List<Texture>? textures = null, ShaderStages transformShaderStages = ShaderStages.Vertex, Sampler? sampler = null, PrimitiveTopology topology = PrimitiveTopology.TriangleStrip)
-        {
-            Debug.Warning("Use of Deprecated Drawable constructor! Please use the other constructor that takes in DrawableOptions instead.");
-            Debug.Warning(new System.Diagnostics.StackTrace().ToString());
-            this._shaders = AssetManager.GetShader(shaderPath).Shaders;
-
-            if (mesh != null)
-                this._mesh = mesh;
-            else
-                this._mesh = new Mesh<T>(new T[0], new ushort[0], new VertexLayoutDescription());
-            if (t == null)
-            {
-                Debug.Error(LogCategory.Rendering, "Drawable is missing a transform. Drawable can not be properly sorted!");
-            }
-
-            _topology = topology;
-            this.transform = t;
-            this.drawableUniform = drawableUniform;
-            this.uniformShaderStages = uniformShaderStages;
-            this.transformShaderStages = transformShaderStages;
-            if (textures == null)
-            {
-                textures = new List<Texture>();
-            }
-            
-            this._textureAssets = textures;
-            this.sampler = sampler;
-            if (mesh != null)
-                CreateResources();
-        }
 
         public Drawable(DrawableOptions<T, TUniform> o)
         {
@@ -185,12 +153,12 @@ namespace SolidCode.Atlas.Rendering
 
         public override void CreateResources()
         {
-            GraphicsDevice _graphicsDevice = Renderer.GraphicsDevice;
+            GraphicsDevice graphicsDevice = Renderer.GraphicsDevice!;
             // Make sure our transform knows us
             if (this.transform != null)
                 this.transform.RegisterDrawable(this);
 
-            ResourceFactory factory = _graphicsDevice.ResourceFactory;
+            ResourceFactory factory = graphicsDevice.ResourceFactory;
             vertexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Vertices.Length * (uint)Marshal.SizeOf<T>(), BufferUsage.VertexBuffer));
             vertexBuffer.Name = "Vertex Buffer";
             indexBuffer = factory.CreateBuffer(new BufferDescription((uint)_mesh.Indices.Length * sizeof(ushort), BufferUsage.IndexBuffer));
@@ -201,12 +169,12 @@ namespace SolidCode.Atlas.Rendering
             // Uniform
             _uniformBuffers.Add("Default Uniform", factory.CreateBuffer(new BufferDescription((uint)Marshal.SizeOf(drawableUniform), BufferUsage.UniformBuffer)));
 
-            _graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
+            graphicsDevice.UpdateBuffer<TUniform>(_uniformBuffers["Default Uniform"], 0, drawableUniform);
 
 
-            _graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
-            _graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
-            _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
+            graphicsDevice.UpdateBuffer(vertexBuffer, 0, _mesh.Vertices);
+            graphicsDevice.UpdateBuffer(indexBuffer, 0, _mesh.Indices);
+            graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(Matrix4x4.Identity, Matrix4x4.Identity, Camera.GetTransformMatrix()));
 
             // Next lets load textures to the gpu
             foreach (Texture texture in _textureAssets)
@@ -270,7 +238,7 @@ namespace SolidCode.Atlas.Rendering
                 buffers[i] = texView;
                 i++;
             }
-            buffers[^1] = this.sampler ?? _graphicsDevice.LinearSampler;
+            buffers[^1] = this.sampler ?? graphicsDevice.LinearSampler;
             _transformSet = factory.CreateResourceSet(new ResourceSetDescription(
                 _transformTextureResourceLayout,
                 buffers));
@@ -333,13 +301,13 @@ namespace SolidCode.Atlas.Rendering
                 instanceStart: 0);
         }
 
-        public override void SetUniformBufferValue<TBufferType>(GraphicsDevice _graphicsDevice, TBufferType value) where TBufferType : struct
+        public override void SetUniformBufferValue<TBufferType>(GraphicsDevice graphicsDevice, TBufferType value) where TBufferType : struct
         {
             if (_uniformBuffers.ContainsKey("Default Uniform") && !_uniformBuffers["Default Uniform"].IsDisposed)
-                _graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
+                graphicsDevice.UpdateBuffer(_uniformBuffers["Default Uniform"], 0, value);
         }
 
-        public override void SetGlobalMatrix(GraphicsDevice _graphicsDevice, Matrix4x4 matrix)
+        public override void SetGlobalMatrix(GraphicsDevice graphicsDevice, Matrix4x4 matrix)
         {
             Matrix4x4 tmat = transform.GetTransformationMatrix();
             Matrix4x4 cmat = Matrix4x4.Identity;
@@ -348,7 +316,7 @@ namespace SolidCode.Atlas.Rendering
                 cmat = Camera.GetTransformMatrix();
             if (transformBuffer != null && !transformBuffer.IsDisposed)
             {
-                _graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
+                graphicsDevice.UpdateBuffer(transformBuffer, 0, new TransformStruct(matrix, tmat, cmat));
             }
         }
 
