@@ -6,12 +6,12 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <RootNamespace>SolidCode.Atlas</RootNamespace>
         <AssemblyName>SolidCode.Atlas</AssemblyName>
-        <TargetFrameworks>net7.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
         <Title>Atlas</Title>
         <Authors>Amos Peltonen</Authors>
         <Copyright>Copyright (c) Amos Peltonen 2023</Copyright>
         <PackageProjectUrl>https://github.com/apeltsi/Atlas</PackageProjectUrl>
-        <PackageLicenseUrl>https://github.com/apeltsi/Atlas/blob/stable/LICENSE</PackageLicenseUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
         <Product>Atlas</Product>
         <AssemblyVersion>1.0.0</AssemblyVersion>
