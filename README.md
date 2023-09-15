@@ -11,7 +11,7 @@ cross-platform, performant and developer friendly. The framework has a
 syntax similar to Unity and uses C# as its primary language, making it
 easy to learn for developers already familiar with Unity.
 
-> Atlas currently targets net7.0
+> Atlas currently targets net6.0 & net7.0
 
 
 ## Getting Started
