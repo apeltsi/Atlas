@@ -51,7 +51,7 @@ public static class AssetBuilder
         string error = result.GetErrors();
         if (error != "")
         {
-            Compiler.Errors.Add("Shader compilation on stage '" + shaderStage +  "' failed: \n" + error);
+            Compiler.Errors.Add("Shader compilation on stage '" + shaderStage +  "' had some error(s): \n" + error);
         }
         return result.GetObjectBytecodeArray();
     }
