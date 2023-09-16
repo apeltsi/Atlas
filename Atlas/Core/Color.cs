@@ -4,20 +4,57 @@ using System.Numerics;
 namespace SolidCode.Atlas
 {
 
+    /// <summary>
+    /// A color, represented by 4 floats.
+    /// The color struct can be implicitly converted to a Vector4, and vice versa.
+    /// </summary>
     public struct Color
     {
+        /// <summary>
+        /// The red channel
+        /// </summary>
         public float R;
+        /// <summary>
+        /// The green channel
+        /// </summary>
         public float G;
+        /// <summary>
+        /// The blue channel
+        /// </summary>
         public float B;
+        /// <summary>
+        /// The alpha channel
+        /// </summary>
         public float A = 1f;
         
         // Default Colors
+        /// <summary>
+        /// Shorthand for Color(1f, 1f, 1f)
+        /// </summary>
         public static Color White => new (1f, 1f, 1f, 1f);
+        /// <summary>
+        /// Shorthand for Color(0f, 0f, 0f)
+        /// </summary>
         public static Color Black => new (0f, 0f, 0f, 1f);
+        /// <summary>
+        /// Shorthand for Color(1f, 0f, 0f)
+        /// </summary>
         public static Color Red => new (1f, 0f, 0f, 1f);
+        /// <summary>
+        /// Shorthand for Color(0f, 1f, 0f)
+        /// </summary>
         public static Color Green => new (0f, 1f, 0f, 1f);
+        /// <summary>
+        /// Shorthand for Color(0f, 0f, 1f)
+        /// </summary>
         public static Color Blue => new (0f, 0f, 1f, 1f);
+        /// <summary>
+        /// Shorthand for Color(1f, 1f, 1f, 0f)
+        /// </summary>
         public static Color TransparentWhite => new (1f, 1f, 1f, 0f);
+        /// <summary>
+        /// Shorthand for Color(0f, 0f, 0f, 0f)
+        /// </summary>
         public static Color TransparentBlack => new (0f, 0f, 0f, 0f);
         /// <summary>
         /// Creates a color from a RGB value
@@ -60,6 +97,12 @@ namespace SolidCode.Atlas
             B = c.B;
             A = c.A;
         }
+        
+        /// <summary>
+        /// Converts a hex string to a color
+        /// </summary>
+        /// <param name="hex">The hex string</param>
+        /// <returns>The color</returns>
         public static Color HexToColor(string hex)
         {
             string fullhex = hex;
@@ -104,6 +147,7 @@ namespace SolidCode.Atlas
             return new Color(v.X, v.Y, v.Z, v.W);
         }
 
+        
         public static bool operator ==(Color a, Color b)
         {
             return a.Equals(b);

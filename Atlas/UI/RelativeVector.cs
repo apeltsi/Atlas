@@ -3,12 +3,30 @@ using SolidCode.Atlas.Rendering;
 
 namespace SolidCode.Atlas.UI;
 
+/// <summary>
+/// A relative vector, used for UI positioning
+/// </summary>
 public class RelativeVector
 {
+    /// <summary>
+    /// The X value
+    /// </summary>
     public float X;
+    /// <summary>
+    /// The Y value
+    /// </summary>
     public float Y;
+    /// <summary>
+    /// If the X axis should be relative
+    /// </summary>
     public bool XRelative;
+    /// <summary>
+    /// If the Y axis should be relative
+    /// </summary>
     public bool YRelative;
+    /// <summary>
+    /// The parent of this relative vector
+    /// </summary>
     public RelativeVector? Parent;
     private double _cacheTime;
     private Vector2 _cachedValue;
@@ -31,6 +49,10 @@ public class RelativeVector
         YRelative = yr;
     }
 
+    /// <summary>
+    /// Evaluates the relative vector
+    /// </summary>
+    /// <returns>The evaluated vector</returns>
     public Vector2 Evaluate()
     {
         if (Time.time.Equals(_cacheTime))
