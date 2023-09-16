@@ -330,6 +330,8 @@ namespace SolidCode.Atlas.Rendering
         {
             // Mby this will help with our problem above
             Renderer.GraphicsDevice.WaitForIdle();
+            if (pipeline == null)
+                return; // Uhhhh? what?
             pipeline.Dispose();
 
             vertexBuffer.Dispose();
@@ -360,7 +362,7 @@ namespace SolidCode.Atlas.Rendering
         {
             // Sanity check
             // We should dispose ourselves if we haven't already, just in case
-            if (!_transformSet.IsDisposed)
+            if (_transformSet != null && !_transformSet.IsDisposed)
             {
                 SoftDispose();
                 Debug.Warning("Drawable wasn't properly disposed! You might have a memory leak");
