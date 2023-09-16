@@ -114,12 +114,16 @@ namespace SolidCode.Atlas.Rendering
         /// </summary>
         public override void Dispose()
         {
-            TickScheduler.RequestTick().Wait();
-            if (TextureData != null && _autoDispose) {
+            if (TextureData != null && _autoDispose)
+            {
+                bool hasTick = TickScheduler.HasTick();
+                if(!hasTick)
+                    TickScheduler.RequestTick().Wait();
                 Renderer.GraphicsDevice!.WaitForIdle();
                 this.TextureData.Dispose();
                 this.IsValid = false;
-                TickScheduler.FreeThreads();
+                if(!hasTick)
+                    TickScheduler.FreeThreads();
             }
         }
         

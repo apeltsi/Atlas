@@ -4,45 +4,91 @@ using SolidCode.Atlas.Rendering.Windows;
 #endif
 namespace SolidCode.Atlas
 {
-    using System.Timers;
     using Rendering;
     using ECS;
     using Veldrid.Sdl2;
     using AssetManagement;
 
+    /// <summary>
+    /// Labels logs as part of a category
+    /// </summary>
     public enum LogCategory
     {
+        /// <summary>
+        /// A general log
+        /// </summary>
         General,
+        /// <summary>
+        /// A framework related log
+        /// </summary>
         Framework,
+        /// <summary>
+        /// A rendering related log
+        /// </summary>
         Rendering,
+        /// <summary>
+        /// A ECS related log
+        /// </summary>
         ECS
     }
 
+    /// <summary>
+    /// Defines how the debugging system should be initialized
+    /// </summary>
     public enum DebuggingMode
     {
+        /// <summary>
+        /// Multi-process debugging will be enabled unless the --disable-multi-process-debugging argument was passed to the app
+        /// </summary>
         Auto,
+        /// <summary>
+        /// Multi-process debugging will be disabled
+        /// </summary>
         Disabled
     }
 
+    /// <summary>
+    /// The main class of Atlas. This is where you start the engine, and access some of the main features.
+    /// </summary>
     public static class Atlas
     {
+        /// <summary>
+        /// The path of the entry assembly directory
+        /// </summary>
         public static string AppDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly()?.Location) ?? "";
+        /// <summary>
+        /// The path of the assets directory
+        /// </summary>
         public static string AssetsDirectory = Path.Join(AppDirectory, "assets" + Path.DirectorySeparatorChar); 
+        /// <summary>
+        /// The path of the shader directory
+        /// </summary>
         public static string ShaderDirectory = Path.Join(AssetsDirectory, "shaders" + Path.DirectorySeparatorChar);
 
+        /// <summary>
+        /// The path of the assetpacks directory
+        /// </summary>
         public static string AssetPackDirectory = Path.Join(AppDirectory, "assetpacks" + Path.DirectorySeparatorChar);
+        /// <summary>
+        /// Returns the active version of Atlas
+        /// </summary>
         public static string Version => FileVersionInfo.GetVersionInfo(System.Reflection.Assembly.GetExecutingAssembly().Location).FileVersion ?? "Unknown Version";
-        private static Timer? _timer;
         internal static Stopwatch? PrimaryStopwatch { get; private set; }
         internal static Stopwatch? ECSStopwatch { get; private set; }
 
         static Window? _w;
-        static bool _doTick = true;
         private static DebuggingMode _mode = DebuggingMode.Auto;
         private static FrameworkConfiguration? _config;
         internal static bool AudioEnabled = true;
+        /// <summary>
+        /// The configuration of the framework
+        /// </summary>
         public static FrameworkConfiguration Configuration => _config ?? new FrameworkConfiguration();
 
+        /// <summary>
+        /// Note: This should be one of the first things called in your app!
+        /// </summary>
+        /// <exception cref="NotSupportedException">This method may throw if the logging system has already started</exception>
         public static void DisableMultiProcessDebugging()
         {
             if (Debug.LogsInitialized && _mode == DebuggingMode.Auto)
@@ -53,7 +99,7 @@ namespace SolidCode.Atlas
         {
             if(_mode != DebuggingMode.Disabled)
                 Telescope.Debug.UseMultiProcessDebugging(Version);
-            Telescope.Debug.StartLogs(new string[] { "General", "Framework", "Rendering", "ECS" });
+            Telescope.Debug.StartLogs(new [] { "General", "Framework", "Rendering", "ECS" });
             Telescope.Debug.RegisterTelescopeAction("showwindow", ShowWindow);
             Telescope.Debug.RegisterTelescopeAction("quit", Quit);
         }
@@ -82,6 +128,11 @@ namespace SolidCode.Atlas
             Debug.CheckLog();
         }
 
+        /// <summary>
+        /// Checks if a startup argument exists
+        /// </summary>
+        /// <param name="argument"></param>
+        /// <returns></returns>
         public static bool StartupArgumentExists(string argument)
         {
             string[] args = Environment.GetCommandLineArgs();
@@ -121,8 +172,6 @@ namespace SolidCode.Atlas
             Debug.Log(LogCategory.Framework, "Core framework functionalities started after " + PrimaryStopwatch.ElapsedMilliseconds + "ms");
             _w = new Window(windowTitle, flags);
             Debug.Log(LogCategory.Framework, "Window created after " + PrimaryStopwatch.ElapsedMilliseconds + "ms");
-            if (_timer != null)
-                _timer.Stop();
         }
 
         /// <summary>
@@ -139,13 +188,12 @@ namespace SolidCode.Atlas
             Debug.Log(LogCategory.Rendering, "Rendering first frame after " + PrimaryStopwatch?.ElapsedMilliseconds + "ms");
             try
             {
-                _w.StartRenderLoop();
+                _w?.StartRenderLoop();
             }
             catch (Exception ex)
             {
                 Debug.Error(LogCategory.Framework, ex.ToString());
             }
-            _doTick = false;
             if(AudioEnabled)
                 Audio.Audio.DisposeAllSources();
             EntityComponentSystem.Dispose();

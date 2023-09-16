@@ -189,6 +189,12 @@ namespace SolidCode.Atlas.ECS
                     Transform? t = Entity.Parent.GetComponent<Transform>(true);
                     if (t != null)
                     {
+                        if (Z == 0)
+                        {
+                            // Lets get the next z level after our parent
+                            // so that we aren't displayed under our parent
+                            return Increment(t.GlobalZ);
+                        }
                         // We have a parent with a transform. Lets get its global z and add it to ours
                         return t.GlobalZ + Z;
                     }
@@ -217,7 +223,18 @@ namespace SolidCode.Atlas.ECS
             }
         }
 
-
+        static unsafe float Increment(float f)
+        {
+            int val = *(int*)&f;
+            if (f > 0)
+                val++;
+            else if (f < 0)
+                val--;
+            else if (f == 0)
+                return float.Epsilon;
+            return *(float*)&val;
+        }
+        
         public Transform(Vector2 position, Vector2 scale)
         {
             this.Position = position;

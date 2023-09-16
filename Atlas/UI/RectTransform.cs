@@ -5,7 +5,7 @@ namespace SolidCode.Atlas.UI;
 
 public class RectTransform : Transform
 {
-    private AnchoredPoint _position = new AnchoredPoint(new RelativeVector(0f, 0f));
+    private AnchoredPoint _position = new AnchoredPoint(new (0f, 0f));
 
     public new AnchoredPoint Position
     {
@@ -16,7 +16,6 @@ public class RectTransform : Transform
             RectTransform? rt = Entity?.Parent.GetComponent<RectTransform>();
             if (rt != null)
             {
-                _position.Position.Parent = rt.Position.Position;
                 _position.Parent = rt;
             }
         }
@@ -43,6 +42,11 @@ public class RectTransform : Transform
     {
         this.Position = _position;
         this.Scale = _scale;
+        // Set parents
+        RectTransform? rt = Entity?.Parent.GetComponent<RectTransform>();
+        _position.Parent = rt;
+        _scale.Parent = rt?.Scale;
+        
 
         Vector2 pos = this.Position.Evaluate();
         Vector2 scale = this.Scale.Evaluate();

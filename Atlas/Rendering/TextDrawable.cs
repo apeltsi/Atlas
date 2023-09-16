@@ -123,6 +123,10 @@ namespace SolidCode.Atlas.Rendering
 
         private void DrawText()
         {
+            if (this._text == "" || this._text == null)
+            {
+                return;
+            }
             float xScale = 0f;
             float yScale = 0f;
             if (transform is RectTransform rectTransform)
@@ -197,6 +201,8 @@ namespace SolidCode.Atlas.Rendering
 
         private string[] SplitSections(string text)
         {
+            if (text == null)
+                text = "";
             List<string> sections = new List<string>();
             int lastSplit = 0;
 
@@ -521,9 +527,9 @@ namespace SolidCode.Atlas.Rendering
 
         public override void Dispose()
         {
-            texView.Dispose();
-            colorBuffer.Dispose();
-            _textResourceLayout.Dispose();
+            texView?.Dispose();
+            colorBuffer?.Dispose();
+            _textResourceLayout?.Dispose();
             base.Dispose();
         }
     }

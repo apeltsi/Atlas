@@ -14,7 +14,28 @@ namespace SolidCode.Atlas
         }
         private static object runningLock = new Object();
         private static bool isRunning = false;
-        public static PriorityQueue<Task, int> tickQueue = new PriorityQueue<Task, int>();
+        private static Thread? _currentLocker = null;
+        public static PriorityQueue<(Task, Thread), int> tickQueue = new PriorityQueue<(Task, Thread), int>();
+
+        /// <summary>
+        /// Checks if the current thread already has a lock on synced tick execution. 
+        /// </summary>
+        public static bool HasTick()
+        {
+            lock (runningLock)
+            {
+                if (_disableScheduling)
+                {
+                    return true;
+                }
+                else if (isRunning && _currentLocker != null && Thread.CurrentThread.ManagedThreadId == _currentLocker.ManagedThreadId)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+        
         /// <summary>
         /// Returns a Task which will complete when no synced (normal) ECS threads are executing
         /// </summary>
@@ -27,12 +48,17 @@ namespace SolidCode.Atlas
             {
                 if (isRunning && !DisableScheduling)
                 {
-                    tickQueue.Enqueue(t, priority);
+                    if (_currentLocker != null && Thread.CurrentThread.ManagedThreadId == _currentLocker.ManagedThreadId)
+                    {
+                        Debug.Error("Thread '" + (_currentLocker.Name ?? _currentLocker.ManagedThreadId.ToString()) + "' Tried to lock a thread from itself!");
+                    }
+                    tickQueue.Enqueue((t, Thread.CurrentThread), priority);
                 }
                 else
                 {
                     isRunning = true;
                     t.Start();
+                    _currentLocker = Thread.CurrentThread;
                 }
             }
             return t;
@@ -59,8 +85,14 @@ namespace SolidCode.Atlas
         {
             if (tickQueue.Count > 0)
             {
-                isRunning = true;
-                tickQueue.Dequeue().Start();
+                isRunning = true; 
+                var next = tickQueue.Dequeue();
+                _currentLocker = next.Item2;
+                next.Item1.Start();
+            }
+            else
+            {
+                _currentLocker = null;
             }
         }
     }
