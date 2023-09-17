@@ -116,14 +116,11 @@ namespace SolidCode.Atlas.Rendering
         {
             if (TextureData != null && _autoDispose)
             {
-                bool hasTick = TickScheduler.HasTick();
-                if(!hasTick)
-                    TickScheduler.RequestTick().Wait();
+                TickScheduler.RequestTick().Wait();
                 Renderer.GraphicsDevice!.WaitForIdle();
                 this.TextureData.Dispose();
                 this.IsValid = false;
-                if(!hasTick)
-                    TickScheduler.FreeThreads();
+                TickScheduler.FreeThreads();
             }
         }
         
