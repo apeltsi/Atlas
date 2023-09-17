@@ -4,6 +4,9 @@ namespace SolidCode.Atlas
     public static class TickScheduler
     {
         private static bool _disableScheduling = false;
+        /// <summary>
+        /// NOT RECOMMENDED: Disables the TickScheduler, allowing all threads to run at once. This will likely lead to stability issues.
+        /// </summary>
         public static bool DisableScheduling 
         {
             get => _disableScheduling;
@@ -12,23 +15,24 @@ namespace SolidCode.Atlas
                 _disableScheduling = value;
             }
         }
-        private static object runningLock = new Object();
-        private static bool isRunning = false;
+        private static object _runningLock = new Object();
+        private static bool _isRunning = false;
         private static Thread? _currentLocker = null;
-        public static PriorityQueue<(Task, Thread), int> tickQueue = new PriorityQueue<(Task, Thread), int>();
+        private static int _currentLocks = 0; // Incremented when a thread tries to schedule multiple times when already having been allotted a tick
+        private static PriorityQueue<(Task, Thread), int> _tickQueue = new PriorityQueue<(Task, Thread), int>();
 
         /// <summary>
         /// Checks if the current thread already has a lock on synced tick execution. 
         /// </summary>
         public static bool HasTick()
         {
-            lock (runningLock)
+            lock (_runningLock)
             {
                 if (_disableScheduling)
                 {
                     return true;
                 }
-                else if (isRunning && _currentLocker != null && Thread.CurrentThread.ManagedThreadId == _currentLocker.ManagedThreadId)
+                else if (_isRunning && _currentLocker != null && Thread.CurrentThread.ManagedThreadId == _currentLocker.ManagedThreadId)
                 {
                     return true;
                 }
@@ -44,19 +48,21 @@ namespace SolidCode.Atlas
         public static Task RequestTick(int priority = 0)
         {
             Task t = new Task(TaskAction);
-            lock (runningLock)
+            lock (_runningLock)
             {
-                if (isRunning && !DisableScheduling)
+                if (_isRunning && !DisableScheduling)
                 {
                     if (_currentLocker != null && Thread.CurrentThread.ManagedThreadId == _currentLocker.ManagedThreadId)
                     {
-                        Debug.Error("Thread '" + (_currentLocker.Name ?? _currentLocker.ManagedThreadId.ToString()) + "' Tried to lock a thread from itself!");
+                        _currentLocks++;
+                        t.Start();
+                        return t;
                     }
-                    tickQueue.Enqueue((t, Thread.CurrentThread), priority);
+                    _tickQueue.Enqueue((t, Thread.CurrentThread), priority);
                 }
                 else
                 {
-                    isRunning = true;
+                    _isRunning = true;
                     t.Start();
                     _currentLocker = Thread.CurrentThread;
                 }
@@ -74,19 +80,23 @@ namespace SolidCode.Atlas
         /// </summary>
         public static void FreeThreads()
         {
-            lock (runningLock)
+            lock (_runningLock)
             {
-                isRunning = false;
+                if (_currentLocks > 0)
+                {
+                    _currentLocks--;
+                }
+                _isRunning = false;
                 RunNextInQueue();
             }
         }
 
         private static void RunNextInQueue()
         {
-            if (tickQueue.Count > 0)
+            if (_tickQueue.Count > 0)
             {
-                isRunning = true; 
-                var next = tickQueue.Dequeue();
+                _isRunning = true; 
+                var next = _tickQueue.Dequeue();
                 _currentLocker = next.Item2;
                 next.Item1.Start();
             }
