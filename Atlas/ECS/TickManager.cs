@@ -35,7 +35,7 @@ public static class TickManager
 
     private static void InitializeTickThread(TickThread t)
     {
-        Debug.Log(LogCategory.Framework, $"Starting tick thread '{t.Name} with a frequency of " + t.Frequency);
+        Debug.Log(LogCategory.Framework, $"Starting tick thread '{t.Name}' with a frequency of " + t.Frequency);
         System.Diagnostics.Stopwatch updateDuration = new System.Diagnostics.Stopwatch();
         while (_isRunning)
         {
