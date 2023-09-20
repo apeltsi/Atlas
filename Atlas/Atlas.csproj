@@ -15,14 +15,14 @@
         <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
         <Product>Atlas</Product>
         <AssemblyVersion>1.0.0</AssemblyVersion>
-        <Version>1.0.0-rc.4</Version>
+        <Version>1.0.0-rc.5</Version>
         <PackRelease>true</PackRelease>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageTags>2D Graphics DirectX Direct3D Vulkan Game App</PackageTags>
-        <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases/tag/v1.0.0-rc.4</PackageReleaseNotes>
+        <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases/tag/v1.0.0-rc.5</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup Label="Project References">
         <PackageReference Include="SolidCode.Atlas.Telescope" Version="1.0.0"/>
@@ -50,15 +50,17 @@
         <EmbeddedResource Include="assetpacks\default-font.assetpack" />
     </ItemGroup>
     <ItemGroup Label="Native Libraries">
-        <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">
-            <Link>%(Filename)%(Extension)</Link>
+        <Content Include="native/openal32.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
             <Pack>true</Pack>
+            <PackagePath>runtimes/win/native</PackagePath>
         </Content>
-        <Content Include="native/libopenal.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
-            <Link>%(Filename)%(Extension)</Link>
+        <Content Include="native/libopenal.so">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Link>%(Filename)%(Extension)</Link>
             <Pack>true</Pack>
+            <PackagePath>runtimes/linux/native</PackagePath>
         </Content>
     </ItemGroup>
     <Choose>
