@@ -15,17 +15,17 @@
         <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
         <Product>Atlas</Product>
         <AssemblyVersion>1.0.0</AssemblyVersion>
-        <Version>1.0.0-rc.3</Version>
+        <Version>1.0.0-rc.4</Version>
         <PackRelease>true</PackRelease>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageTags>2D Graphics DirectX Direct3D Vulkan Game App</PackageTags>
-        <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases/tag/v1.0.0-rc.3</PackageReleaseNotes>
+        <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases/tag/v1.0.0-rc.4</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup Label="Project References">
-        <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
+        <PackageReference Include="SolidCode.Atlas.Telescope" Version="1.0.0"/>
     </ItemGroup>
     <ItemGroup Label="Package References">
         <PackageReference Include="FontStashSharp" Version="1.2.8"/>
@@ -53,10 +53,12 @@
         <Content Include="native/openal32.dll" Condition=" '$(OS)' == 'Windows_NT' ">
             <Link>%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Pack>true</Pack>
         </Content>
         <Content Include="native/libopenal.so" Condition=" '$([System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform($([System.Runtime.InteropServices.OSPlatform]::Linux)))' ">
             <Link>%(Filename)%(Extension)</Link>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Pack>true</Pack>
         </Content>
     </ItemGroup>
     <Choose>
