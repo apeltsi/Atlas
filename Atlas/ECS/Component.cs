@@ -83,9 +83,9 @@ public abstract class Component
     /// <summary>
     /// Gets a component from the entity
     /// </summary>
-    /// <param name="allowInheritedClasses"> Should components that inherit this type be included in the search? </param>
-    /// <typeparam name="T"> The type of component to get </typeparam>
-    /// <returns> The component, if found </returns>
+    /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+    /// <typeparam name="T">The type of component to get </typeparam>
+    /// <returns>The component, if found</returns>
     protected T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
     {
         return Entity.GetComponent<T>(allowInheritedClasses);
@@ -94,8 +94,8 @@ public abstract class Component
     /// <summary>
     /// Adds a component to the entity
     /// </summary>
-    /// <typeparam name="T"> The type of component to add </typeparam>
-    /// <returns> The component </returns>
+    /// <typeparam name="T">The type of component to add </typeparam>
+    /// <returns>The component</returns>
     protected T? AddComponent<T>() where T : Component, new()
     {
         return Entity.AddComponent<T>();
@@ -104,9 +104,9 @@ public abstract class Component
     /// <summary>
     /// Removes a component from an entity
     /// </summary>
-    /// <param name="allowInheritedClasses"> Should components that inherit this type be included in the search? </param>
-    /// <typeparam name="T"> The type of component to be removed </typeparam>
-    /// <returns> This entity </returns>
+    /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+    /// <typeparam name="T">The type of component to be removed </typeparam>
+    /// <returns>This entity</returns>
     protected void RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
     {
         Entity.RemoveComponent<T>(allowInheritedClasses);
@@ -115,8 +115,8 @@ public abstract class Component
     /// <summary>
     /// Removes a component from an entity
     /// </summary>
-    /// <param name="c"> The component to be removed </param>
-    /// <returns> This entity </returns>
+    /// <param name="c">The component to be removed</param>
+    /// <returns>This entity</returns>
     protected void RemoveComponent(Component c)
     {
         Entity.RemoveComponent(c);

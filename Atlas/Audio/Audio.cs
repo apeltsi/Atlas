@@ -21,7 +21,7 @@ public struct PlaybackSettings
     /// <summary>
     /// Creates a new playback settings with the given volume
     /// </summary>
-    /// <param name="volume"> </param>
+    /// <param name="volume"></param>
     public PlaybackSettings(float volume)
     {
         Volume = volume;
@@ -31,8 +31,8 @@ public struct PlaybackSettings
     /// <summary>
     /// Creates a new playback settings with the given volume and pitch
     /// </summary>
-    /// <param name="volume"> </param>
-    /// <param name="pitch"> </param>
+    /// <param name="volume">The volume of the track</param>
+    /// <param name="pitch">The pitch of the track</param>
     public PlaybackSettings(float volume, float pitch)
     {
         Volume = volume;
@@ -112,20 +112,20 @@ public static class Audio
     /// <summary>
     /// Plays the given track once, with the given volume
     /// </summary>
-    /// <param name="track"> The track to play </param>
-    /// <param name="volume"> The volume </param>
-    /// <returns> The currently playing audio as <c> PlayingAudio </c> if successful </returns>
+    /// <param name="track">The track to play</param>
+    /// <param name="volume">The volume</param>
+    /// <returns>The currently playing audio as <c>PlayingAudio</c> if successful</returns>
     public static PlayingAudio? Play(AudioTrack track, float volume)
     {
         return Play(track, new PlaybackSettings(volume));
     }
 
     /// <summary>
-    /// Plays the given track once, with <c> PlaybackSettings </c> if provided.
+    /// Plays the given track once, with <c>PlaybackSettings</c> if provided.
     /// </summary>
-    /// <param name="track"> The track to play </param>
-    /// <param name="settings"> The settings </param>
-    /// <returns> The currently playing audio as <c> PlayingAudio </c> if successful </returns>
+    /// <param name="track">The track to play</param>
+    /// <param name="settings">The settings</param>
+    /// <returns>The currently playing audio as <c>PlayingAudio</c> if successful</returns>
     public static PlayingAudio? Play(AudioTrack track, PlaybackSettings settings = new())
     {
         if (track == null) return null;

@@ -1,9 +1,18 @@
 ﻿namespace SolidCode.Atlas;
 
+/// <summary>
+/// Configuration for the Atlas Framework
+/// </summary>
 public struct FrameworkConfiguration
 {
+    /// <summary>
+    /// Configuration for the Entity Component System
+    /// </summary>
     public ECSSettings ECS = new();
 
+    /// <summary>
+    /// Configuration for the Atlas Framework
+    /// </summary>
     public FrameworkConfiguration()
     {
     }
@@ -14,6 +23,9 @@ public struct FrameworkConfiguration
 /// </summary>
 public struct ECSSettings
 {
+    /// <summary>
+    /// Configuration for the Tick Threads
+    /// </summary>
     public ECSThreadSettings[] Threads =
     {
         new()
@@ -41,6 +53,9 @@ public struct ECSSettings
     }
 }
 
+/// <summary>
+/// Configuration for a Tick Thread
+/// </summary>
 public struct ECSThreadSettings
 {
     /// <summary>
@@ -59,6 +74,9 @@ public struct ECSThreadSettings
     /// </summary>
     public bool Sync = true;
 
+    /// <summary>
+    /// Creates a new Tick Thread Configuration
+    /// </summary>
     public ECSThreadSettings()
     {
     }

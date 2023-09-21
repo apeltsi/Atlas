@@ -106,8 +106,8 @@ public static class TickManager
     /// <summary>
     /// Sets the frequency of a Tick Thread
     /// </summary>
-    /// <param name="thread"> The Name of the thread to update </param>
-    /// <param name="frequency"> The frequency of the thread </param>
+    /// <param name="thread">The Name of the thread to update</param>
+    /// <param name="frequency">The frequency of the thread</param>
     public static void SetTickFrequency(string thread, int frequency)
     {
         foreach (var t in _threads)
@@ -118,7 +118,7 @@ public static class TickManager
     /// <summary>
     /// Sets the frequency of the Main Tick Thread
     /// </summary>
-    /// <param name="frequency"> The frequency of the Main Tick Thread </param>
+    /// <param name="frequency">The frequency of the Main Tick Thread</param>
     public static void SetTickFrequency(int frequency)
     {
         SetTickFrequency("Main", frequency);

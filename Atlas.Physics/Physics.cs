@@ -36,8 +36,8 @@ public static class Physics
     /// <summary>
     /// Initializes the (and if one already exists, disposes the previous) physics world.
     /// </summary>
-    /// <param name="allowSleep"> Should physics items be allowed to sleep </param>
-    /// <param name="tickPhysics"> Should physics be calculated every tick (true) or at every frame (false) </param>
+    /// <param name="allowSleep">Should physics items be allowed to sleep</param>
+    /// <param name="tickPhysics">Should physics be calculated every tick (true) or at every frame (false)</param>
     public static void InitializePhysics(bool allowSleep = true, bool tickPhysics = true)
     {
         if (World != null)

@@ -22,8 +22,8 @@ public class Shader : Asset
     /// <summary>
     /// Loads a shader from disk
     /// </summary>
-    /// <param name="path"> The path to the shader relative to the shader directory </param>
-    /// <param name="name"> The name of the shader </param>
+    /// <param name="path">The path to the shader relative to the shader directory</param>
+    /// <param name="name">The name of the shader</param>
     public override void Load(string path, string name)
     {
         var vertPath = Path.Join(Atlas.ShaderDirectory, path + ".vert");
@@ -71,8 +71,8 @@ public class Shader : Asset
     /// <summary>
     /// Creates a shader from a set of two streams
     /// </summary>
-    /// <param name="streams"> An array of two streams: 0 = Vertex shader 1 = Fragment Shader </param>
-    /// <param name="name"> </param>
+    /// <param name="streams">An array of two streams: 0 = Vertex shader 1 = Fragment Shader</param>
+    /// <param name="name">The name of the asset</param>
     public override void FromStreams(Stream[] streams, string name)
     {
         FromSource(ReadFully(streams[0]), ReadFully(streams[1]));

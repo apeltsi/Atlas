@@ -44,8 +44,8 @@ public static class TickScheduler
     /// <summary>
     /// Returns a Task which will complete when no synced (normal) ECS threads are executing
     /// </summary>
-    /// <param name="priority"> </param>
-    /// <returns> </returns>
+    /// <param name="priority">Priority of the task</param>
+    /// <returns>A task that will complete once the previous tick task has completed.</returns>
     public static Task RequestTick(int priority = 0)
     {
         var t = new Task(TaskAction);

@@ -29,8 +29,8 @@ public class AnchoredPoint
     /// <summary>
     /// Creates a new anchor point
     /// </summary>
-    /// <param name="anchorPoint"> The anchor point value </param>
-    /// <param name="position"> The position relative to the anchor point </param>
+    /// <param name="anchorPoint">The anchor point value</param>
+    /// <param name="position">The position relative to the anchor point</param>
     public AnchoredPoint(Vector2 anchorPoint, Vector2 position)
     {
         AnchorPoint = anchorPoint;
@@ -40,7 +40,7 @@ public class AnchoredPoint
     /// <summary>
     /// Creates a new anchor point at the center
     /// </summary>
-    /// <param name="position"> The position relative to the anchor point </param>
+    /// <param name="position">The position relative to the anchor point</param>
     public AnchoredPoint(Vector2 position)
     {
         Position = position;
@@ -50,7 +50,7 @@ public class AnchoredPoint
     /// <summary>
     /// Evaluates the anchor point
     /// </summary>
-    /// <returns> The evaluated position </returns>
+    /// <returns>The evaluated position</returns>
     public Vector2 Evaluate()
     {
         if (Time.time == _cacheTime)

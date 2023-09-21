@@ -340,8 +340,8 @@ public static class Renderer
     /// the effects are applied in the order they are added.
     /// DO NOT add an effect with a lower layer than a previous effect!
     /// </summary>
-    /// <param name="effect"> The effect to be applied </param>
-    /// <param name="layer"> The layer of the effect, should be larger or equal to the layer of a previous effect </param>
+    /// <param name="effect">The effect to be applied</param>
+    /// <param name="layer">The layer of the effect, should be larger or equal to the layer of a previous effect</param>
     public static void AddPostProcessEffect(PostProcessEffect effect, uint layer = 1)
     {
         effect.Layer = layer;
@@ -364,7 +364,7 @@ public static class Renderer
     /// <summary>
     /// Removes a post process effect from the list of effects to be applied to the scene
     /// </summary>
-    /// <param name="effect"> The effect to be removed </param>
+    /// <param name="effect">The effect to be removed</param>
     public static void RemovePostProcessEffect(PostProcessEffect effect)
     {
         PostProcessEffects.Remove(effect);

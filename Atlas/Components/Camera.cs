@@ -6,10 +6,10 @@ namespace SolidCode.Atlas.Components;
 [SingleInstance]
 public class Camera : Component
 {
-    /// <summary> The camera position in world space </summary>
+    /// <summary>The camera position in world space</summary>
     private static Vector2 _position = Vector2.Zero;
 
-    /// <summary> The camera "size". Think of this like zoom where a smaller number means that the camera is more zoomed in. </summary>
+    /// <summary>The camera "size". Think of this like zoom where a smaller number means that the camera is more zoomed in.</summary>
     private static Vector2 _scale = Vector2.One;
 
     private Transform? _t;

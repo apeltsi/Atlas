@@ -7,7 +7,7 @@ namespace SolidCode.Atlas.ECS;
 /// <summary>
 /// Represents an entity in the Entity Component System.
 /// Entities can have components attached to them, to add functionality & keep track of data.
-/// By default, entities are created with a <c> Transform </c> component attached to them
+/// By default, entities are created with a <c>Transform</c> component attached to them
 /// </summary>
 public class Entity
 {
@@ -18,12 +18,12 @@ public class Entity
     public string Name;
 
     /// <summary>
-    /// Creates a new <c> Entity </c> with a <c> Transform </c> component attached to it. The entity will be added as a child
-    /// of the <c> RootEntity </c>.
+    /// Creates a new <c>Entity</c> with a <c>Transform</c> component attached to it. The entity will be added as a child
+    /// of the <c>RootEntity</c>.
     /// </summary>
-    /// <param name="name"> The name of the entity </param>
-    /// <param name="position"> The position of the entity </param>
-    /// <param name="scale"> The scale of the entity </param>
+    /// <param name="name">The name of the entity</param>
+    /// <param name="position">The position of the entity</param>
+    /// <param name="scale">The scale of the entity</param>
     public Entity(string name, Vector2? position = null, Vector2? scale = null)
     {
         Children = new List<Entity>();
@@ -42,10 +42,10 @@ public class Entity
     }
 
     /// <summary>
-    /// Creates a new <c> Entity </c>
+    /// Creates a new <c>Entity</c>
     /// </summary>
-    /// <param name="name"> The name of the entity </param>
-    /// <param name="transform"> Should the entity be initialized with a transform </param>
+    /// <param name="name">The name of the entity</param>
+    /// <param name="transform">Should the entity be initialized with a transform</param>
     public Entity(string name, bool transform)
     {
         Children = new List<Entity>();
@@ -78,7 +78,6 @@ public class Entity
     /// <summary>
     /// Sets the parent
     /// </summary>
-    /// <param name="e"> </param>
     public void SetParent(Entity e)
     {
         e.AddChildren(this);
@@ -87,7 +86,6 @@ public class Entity
     /// <summary>
     /// Forces the parent to be set. This should only be used internally, unless you know what you're doing.
     /// </summary>
-    /// <param name="e"> </param>
     public void ForceParent(Entity e)
     {
         Parent = e;
@@ -96,8 +94,8 @@ public class Entity
     /// <summary>
     /// Returns the first child with the given name, or null if no child with the given name exists
     /// </summary>
-    /// <param name="childName"> Name of the child, case-sensitive </param>
-    /// <returns> The child entity, if found </returns>
+    /// <param name="childName">Name of the child, case-sensitive</param>
+    /// <returns>The child entity, if found</returns>
     public Entity? GetChildByName(string childName)
     {
         for (var i = 0; i < Children.Count; i++)
@@ -112,8 +110,8 @@ public class Entity
     /// <summary>
     /// Adds a component to the entity
     /// </summary>
-    /// <typeparam name="T"> The type of component to add </typeparam>
-    /// <returns> The component </returns>
+    /// <typeparam name="T">The type of component to add </typeparam>
+    /// <returns>The component</returns>
     public T AddComponent<T>() where T : Component, new()
     {
         var attr = (LimitInstanceCountAttribute?)Attribute.GetCustomAttribute(typeof(T),
@@ -143,8 +141,8 @@ public class Entity
     /// <summary>
     /// Removes a component from an entity
     /// </summary>
-    /// <param name="component"> The component to be removed </param>
-    /// <returns> This entity </returns>
+    /// <param name="component">The component to be removed</param>
+    /// <returns>This entity</returns>
     public Entity RemoveComponent(Component component)
     {
         _componentsToRemove.Enqueue(component);
@@ -155,9 +153,9 @@ public class Entity
     /// <summary>
     /// Removes a component from an entity
     /// </summary>
-    /// <param name="allowInheritedClasses"> Should components that inherit this type be included in the search? </param>
-    /// <typeparam name="T"> The type of component to be removed </typeparam>
-    /// <returns> This entity </returns>
+    /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+    /// <typeparam name="T">The type of component to be removed </typeparam>
+    /// <returns>This entity</returns>
     public Entity RemoveComponent<T>(bool allowInheritedClasses = false) where T : Component
     {
         Component? c = GetComponent<T>(allowInheritedClasses);
@@ -169,9 +167,9 @@ public class Entity
     /// <summary>
     /// Gets a component from the entity
     /// </summary>
-    /// <param name="allowInheritedClasses"> Should components that inherit this type be included in the search? </param>
-    /// <typeparam name="T"> The type of component to get </typeparam>
-    /// <returns> The component, if found </returns>
+    /// <param name="allowInheritedClasses">Should components that inherit this type be included in the search?</param>
+    /// <typeparam name="T">The type of component to get </typeparam>
+    /// <returns>The component, if found</returns>
     public T? GetComponent<T>(bool allowInheritedClasses = false) where T : Component
     {
         var queuedComponents = _componentsToAdd.ToArray();
@@ -202,7 +200,7 @@ public class Entity
     /// <summary>
     /// Assigns children to Entity
     /// </summary>
-    /// <returns> Self </returns>
+    /// <returns>Self</returns>
     public Entity AddChildren(params Entity[] childrenToAdd)
     {
         lock (Children)
@@ -234,7 +232,7 @@ public class Entity
     /// <summary>
     /// Removes children from Entity
     /// </summary>
-    /// <returns> Self </returns>
+    /// <returns>Self</returns>
     public Entity RemoveChildren(params Entity[] childrenToRemove)
     {
         lock (Children)
@@ -250,7 +248,7 @@ public class Entity
     /// <summary>
     /// Destroys children provided
     /// </summary>
-    /// <returns> Self </returns>
+    /// <returns>Self</returns>
     public Entity DestroyChildren(params Entity[] childrenToDestroy)
     {
         lock (Children)
@@ -337,7 +335,7 @@ public class Entity
     /// <summary>
     /// The name of the entity
     /// </summary>
-    /// <returns> </returns>
+    /// <returns></returns>
     public override string ToString()
     {
         return Name;

@@ -40,8 +40,8 @@ public class SpriteRenderer : RenderComponent
     /// <summary>
     /// THIS METHOD SHOULD ONLY BE CALLED BY THE RENDERER UNLESS YOU KNOW WHAT YOU'RE DOING
     /// </summary>
-    /// <param name="graphicsDevice"> The graphics device </param>
-    /// <returns> A drawable array </returns>
+    /// <param name="graphicsDevice">The graphics device</param>
+    /// <returns>A drawable array</returns>
     public override Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
         AssetManager.RequireBuiltinAssets();

@@ -28,11 +28,11 @@ public class Texture : Asset
     /// <summary>
     /// Creates a new texture from a Veldrid.Texture
     /// </summary>
-    /// <param name="textureData"> The texture data </param>
+    /// <param name="textureData">The texture data</param>
     /// <param name="autoDispose">
     /// Should Atlas automatically dispose this texture. (Most likely false if you're working with
     /// custom textures)
-    /// </param>
+    ///</param>
     public Texture(Veldrid.Texture textureData, bool autoDispose = true)
     {
         Path = "";
@@ -54,7 +54,7 @@ public class Texture : Asset
     /// <summary>
     /// Loads the texture from disk
     /// </summary>
-    /// <param name="absolutePath"> The absolute file-system path of the texture </param>
+    /// <param name="absolutePath">The absolute file-system path of the texture</param>
     public void LoadFromDisk(string absolutePath)
     {
         try
@@ -73,8 +73,8 @@ public class Texture : Asset
     /// <summary>
     /// Loads the texture from disk
     /// </summary>
-    /// <param name="path"> The path of the texture </param>
-    /// <param name="name"> The name of the texture </param>
+    /// <param name="path">The path of the texture</param>
+    /// <param name="name">The name of the texture</param>
     public override void Load(string path, string name)
     {
         Path = path + ".ktx";
@@ -95,8 +95,8 @@ public class Texture : Asset
     /// <summary>
     /// Loads a texture from a stream
     /// </summary>
-    /// <param name="streams"> Should be an array of exactly one stream, any other streams are ignored </param>
-    /// <param name="name"> The name of the texture </param>
+    /// <param name="streams">Should be an array of exactly one stream, any other streams are ignored</param>
+    /// <param name="name">The name of the texture</param>
     public override void FromStreams(Stream[] streams, string name)
     {
         Name = name;

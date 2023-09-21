@@ -108,7 +108,7 @@ public static class EntityComponentSystem
     /// <summary>
     /// Registers a action to be invoked at every Tick
     /// </summary>
-    /// <param name="action"> The action to be invoked </param>
+    /// <param name="action">The action to be invoked</param>
     public static void RegisterTickAction(Action action)
     {
         lock (_tickActions)
@@ -120,7 +120,7 @@ public static class EntityComponentSystem
     /// <summary>
     /// Registers a action to be invoked at every Frame. (Before rendering)
     /// </summary>
-    /// <param name="action"> The action to be invoked </param>
+    /// <param name="action">The action to be invoked</param>
     public static void RegisterUpdateAction(Action action)
     {
         lock (_updateActions)
@@ -132,7 +132,7 @@ public static class EntityComponentSystem
     /// <summary>
     /// Unregisters an action from being invoked at every Tick
     /// </summary>
-    /// <param name="action"> </param>
+    /// <param name="action"></param>
     public static void UnregisterTickAction(Action action)
     {
         lock (_tickActions)
@@ -144,7 +144,7 @@ public static class EntityComponentSystem
     /// <summary>
     /// Unregisters an action from being invoked at every Frame.
     /// </summary>
-    /// <param name="action"> </param>
+    /// <param name="action"></param>
     public static void UnregisterUpdateAction(Action action)
     {
         lock (_updateActions)

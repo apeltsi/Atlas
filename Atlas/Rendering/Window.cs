@@ -129,9 +129,8 @@ public class Window
     }
 
     /// <summary>
-    /// Returns or sets the current <c> WindowState </c>.
+    /// Returns or sets the current <c>WindowState</c>.
     /// </summary>
-
     public static WindowState State
     {
         get
@@ -205,7 +204,7 @@ public class Window
     /// The size of the window in pixels.
     /// <para />
     /// Note that this isn't always the resolution everything is rendered at.
-    /// See <see cref="Renderer.ResolutionScale" /> and <see cref="Renderer.RenderResolution" />.
+    /// See <see cref="Renderer.ResolutionScale" />and <see cref="Renderer.RenderResolution" />.
     /// </summary>
     public static Vector2 Size
     {

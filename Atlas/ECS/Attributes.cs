@@ -14,8 +14,8 @@ public class SingleInstanceAttribute : LimitInstanceCountAttribute
 }
 
 /// <summary>
-/// Limits the allowed instance count of a component to <c> count </c>.
-/// The component cannot be added onto a Entity if <c> count </c> of the component already exists in the ECS.
+/// Limits the allowed instance count of a component to <c>count</c>.
+/// The component cannot be added onto a Entity if <c>count</c> of the component already exists in the ECS.
 /// </summary>
 [AttributeUsage(AttributeTargets.Class)]
 public class LimitInstanceCountAttribute : Attribute

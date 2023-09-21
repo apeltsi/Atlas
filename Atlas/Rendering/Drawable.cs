@@ -34,7 +34,6 @@ public abstract class Drawable : IComparable<Drawable>
         return transform.GlobalZ.CompareTo(x.transform.GlobalZ);
     }
 
-
     public virtual void CreateResources()
     {
     }

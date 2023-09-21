@@ -28,12 +28,12 @@ public static class AssetManager
     /// <summary>
     /// Shorthand for GetAsset&lt;Texture>(path, tryLoad)
     /// </summary>
-    /// <param name="path"> The path (excluding the extension) of the asset </param>
+    /// <param name="path">The path (excluding the extension) of the asset</param>
     /// <param name="tryLoad">
     /// Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to
-    /// <c> true </c>
+    /// <c>true</c>
     /// </param>
-    /// <returns> The <c> Texture </c> </returns>
+    /// <returns>The <c>Texture</c></returns>
     public static Texture GetTexture(string path, bool tryLoad = true)
     {
         // We don't return a nullable here because worst case scenario we get the error texture. (Unless the internal AssetPack isn't loaded for whatever reason)
@@ -43,12 +43,12 @@ public static class AssetManager
     /// <summary>
     /// Shorthand for GetAsset&lt;AudioTrack>(path, tryLoad)
     /// </summary>
-    /// <param name="path"> The path (excluding the extension) of the asset </param>
+    /// <param name="path">The path (excluding the extension) of the asset</param>
     /// <param name="tryLoad">
     /// Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to
-    /// <c> true </c>
+    /// <c>true</c>
     /// </param>
-    /// <returns> The <c> AudioTrack </c> </returns>
+    /// <returns>The <c>AudioTrack</c></returns>
     public static AudioTrack? GetAudio(string path, bool tryLoad = true)
     {
         return GetAsset<AudioTrack>(path, tryLoad);
@@ -57,12 +57,12 @@ public static class AssetManager
     /// <summary>
     /// Shorthand for GetAsset&lt;Shader>(path, tryLoad)
     /// </summary>
-    /// <param name="path"> The path (excluding the extension) of the asset </param>
+    /// <param name="path">The path (excluding the extension) of the asset</param>
     /// <param name="tryLoad">
     /// Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to
-    /// <c> true </c>
+    /// <c>true</c>
     /// </param>
-    /// <returns> The <c> Shader </c> </returns>
+    /// <returns>The <c>Shader</c></returns>
     public static Shader? GetShader(string path, bool tryLoad = true)
     {
         return GetAsset<Shader>(path, tryLoad);
@@ -71,13 +71,13 @@ public static class AssetManager
     /// <summary>
     /// Loads an asset into memory and returns it or alternatively if it's already loaded it will return the loaded asset.
     /// </summary>
-    /// <param name="path"> The path (excluding the extension) of the asset </param>
+    /// <param name="path">The path (excluding the extension) of the asset</param>
     /// <param name="tryLoad">
     /// Should the AssetManager try loading the asset if it isn't currently in memory. Defaults to
-    /// <c> true </c>
+    /// <c>true</c>
     /// </param>
-    /// <typeparam name="T"> The type of asset to load </typeparam>
-    /// <returns> The asset </returns>
+    /// <typeparam name="T">The type of asset to load </typeparam>
+    /// <returns>The asset</returns>
     public static T? GetAsset<T>(string path, bool tryLoad = true) where T : Asset, new()
     {
         Asset? asset = null;
@@ -209,8 +209,8 @@ public static class AssetManager
     /// <summary>
     /// Returns true if the asset specified is currently loaded.
     /// </summary>
-    /// <param name="path"> </param>
-    /// <returns> </returns>
+    /// <param name="path">Path of the asset</param>
+    /// <returns>A boolean indicating if the asset is loaded</returns>
     public static bool IsAssetLoaded(string path)
     {
         Cleanup();

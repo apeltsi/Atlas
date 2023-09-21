@@ -101,7 +101,7 @@ public static class Atlas
     /// <summary>
     /// Note: This should be one of the first things called in your app!
     /// </summary>
-    /// <exception cref="NotSupportedException"> This method may throw if the logging system has already started </exception>
+    /// <exception cref="NotSupportedException">This method may throw if the logging system has already started</exception>
     public static void DisableMultiProcessDebugging()
     {
         if (Debug.LogsInitialized && _mode == DebuggingMode.Auto)
@@ -151,8 +151,8 @@ public static class Atlas
     /// <summary>
     /// Checks if a startup argument exists
     /// </summary>
-    /// <param name="argument"> </param>
-    /// <returns> </returns>
+    /// <param name="argument">The startup argument to check for</param>
+    /// <returns>A boolean indicating if the provided startup argument exists</returns>
     public static bool StartupArgumentExists(string argument)
     {
         var args = Environment.GetCommandLineArgs();
@@ -168,9 +168,9 @@ public static class Atlas
     /// Starts the main features in Atlas, without displaying a window. This lets you load assets, and do any preparations
     /// before the window is opened.
     /// </summary>
-    /// <param name="windowTitle"> The window title </param>
-    /// <param name="configuration"> Framework configuration </param>
-    /// <param name="flags"> Any flags for SDL </param>
+    /// <param name="windowTitle">The window title</param>
+    /// <param name="configuration">Framework configuration</param>
+    /// <param name="flags">Any flags for SDL</param>
     public static void StartCoreFeatures(string windowTitle = "Atlas", FrameworkConfiguration? configuration = null,
         SDL_WindowFlags flags = 0)
     {
@@ -199,7 +199,7 @@ public static class Atlas
     /// Actually starts the engine, and displays the window. It's recommended to call StartCoreFeatures() first, giving you
     /// more time to load assets and prepare.
     /// </summary>
-    /// <exception cref="NullReferenceException"> </exception>
+    /// <exception cref="NullReferenceException"></exception>
     public static void Start()
     {
         if (_w == null) StartCoreFeatures();
@@ -232,7 +232,6 @@ public static class Atlas
     /// <summary>
     /// Returns the total time the app has been running, in seconds
     /// </summary>
-    /// <returns> </returns>
     public static float GetTotalUptime()
     {
         if (PrimaryStopwatch == null) return 0f;

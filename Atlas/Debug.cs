@@ -60,8 +60,8 @@ public static class Debug
     /// Places a debug marker at the specified position
     /// (NOT VISIBLE IN A RELEASE BUILD)
     /// </summary>
-    /// <param name="position"> Position of marker </param>
-    /// <param name="color"> Color of marker </param>
+    /// <param name="position">Position of marker</param>
+    /// <param name="color">Color of marker</param>
     public static void Marker(Vector2 position, Vector4? color = null, float scale = 6f)
     {
 #if DEBUG
@@ -75,10 +75,10 @@ public static class Debug
     /// Draws a debug line from start to end.
     /// (NOT VISIBLE IN A RELEASE BUILD)
     /// </summary>
-    /// <param name="start"> Starting point </param>
-    /// <param name="end"> Ending Point </param>
-    /// <param name="color"> Color </param>
-    /// <param name="width"> Width of the line </param>
+    /// <param name="start">Starting point</param>
+    /// <param name="end">Ending Point</param>
+    /// <param name="color">Color</param>
+    /// <param name="width">Width of the line</param>
     public static void Line(Vector2 start, Vector2 end, Vector4? color = null, float width = 6f)
     {
 #if DEBUG

@@ -30,7 +30,7 @@ public class AssetPack
     /// starts with %ASSEMBLY% then it will be the name of the AssetPack resource excluding the extension. So
     /// atlas.assetpack would be "%ASSEMBLY%/atlas".
     /// </param>
-    /// <param name="assembly"> (OPTIONAL! USE ONLY IF LOADING FROM ASSEMBLY) The assembly containing the AssetPack </param>
+    /// <param name="assembly">(OPTIONAL! USE ONLY IF LOADING FROM ASSEMBLY) The assembly containing the AssetPack</param>
     public AssetPack(string relativePath, Assembly? assembly = null)
     {
         this.relativePath = relativePath;

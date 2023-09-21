@@ -36,18 +36,18 @@ public class RelativeVector
     /// </summary>
     public bool YRelative;
 
-    /// <param name="x"> The X value </param>
-    /// <param name="y"> The Y value </param>
+    /// <param name="x">The X value</param>
+    /// <param name="y">The Y value</param>
     public RelativeVector(float x, float y)
     {
         X = x;
         Y = y;
     }
 
-    /// <param name="x"> The X value </param>
-    /// <param name="xr"> If the X axis should be relative </param>
-    /// <param name="y"> The Y value </param>
-    /// <param name="yr"> If the Y axis should be relative </param>
+    /// <param name="x">The X value</param>
+    /// <param name="xr">If the X axis should be relative</param>
+    /// <param name="y">The Y value</param>
+    /// <param name="yr">If the Y axis should be relative</param>
     public RelativeVector(float x, bool xr, float y, bool yr)
     {
         X = x;
@@ -59,7 +59,7 @@ public class RelativeVector
     /// <summary>
     /// Evaluates the relative vector
     /// </summary>
-    /// <returns> The evaluated vector </returns>
+    /// <returns>The evaluated vector</returns>
     public Vector2 Evaluate()
     {
         if (Time.time.Equals(_cacheTime))

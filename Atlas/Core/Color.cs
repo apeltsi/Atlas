@@ -68,9 +68,9 @@ public struct Color
     /// <summary>
     /// Creates a color from a RGB value
     /// </summary>
-    /// <param name="r"> A float representing the red channel </param>
-    /// <param name="g"> A float representing the green channel </param>
-    /// <param name="b"> A float representing the blue channel </param>
+    /// <param name="r">A float representing the red channel</param>
+    /// <param name="g">A float representing the green channel</param>
+    /// <param name="b">A float representing the blue channel</param>
     public Color(float r, float g, float b)
     {
         R = r;
@@ -82,10 +82,10 @@ public struct Color
     /// <summary>
     /// Creates a color from a RGBA value
     /// </summary>
-    /// <param name="r"> A float representing the red channel </param>
-    /// <param name="g"> A float representing the green channel </param>
-    /// <param name="b"> A float representing the blue channel </param>
-    /// <param name="a"> A float representing the alpha channel </param>
+    /// <param name="r">A float representing the red channel</param>
+    /// <param name="g">A float representing the green channel</param>
+    /// <param name="b">A float representing the blue channel</param>
+    /// <param name="a">A float representing the alpha channel</param>
     public Color(float r, float g, float b, float a)
     {
         R = r;
@@ -97,7 +97,7 @@ public struct Color
     /// <summary>
     /// Creates a color from a hex string
     /// </summary>
-    /// <param name="hex"> </param>
+    /// <param name="hex"></param>
     public Color(string hex)
     {
         var c = HexToColor(hex);
@@ -110,8 +110,8 @@ public struct Color
     /// <summary>
     /// Converts a hex string to a color
     /// </summary>
-    /// <param name="hex"> The hex string </param>
-    /// <returns> The color </returns>
+    /// <param name="hex">The hex string</param>
+    /// <returns>The color</returns>
     public static Color HexToColor(string hex)
     {
         var fullhex = hex;
