@@ -1,39 +1,39 @@
+using SolidCode.Atlas.ECS;
+using Veldrid;
 
-namespace SolidCode.Atlas.Rendering
+namespace SolidCode.Atlas.Rendering;
+
+public class RenderComponent : Component
 {
-    using ECS;
-    using Veldrid;
+    private Drawable[] _drawables = Array.Empty<Drawable>();
 
-    public class RenderComponent : Component
+    public virtual Drawable[] StartRender(GraphicsDevice graphicsDevice)
     {
-        private Drawable[] _drawables = Array.Empty<Drawable>();
-        public virtual Drawable[] StartRender(GraphicsDevice graphicsDevice)
+        return new Drawable[0];
+    }
+
+    public void OnDisable()
+    {
+        for (var i = 0; i < _drawables.Length; i++)
         {
-            return new Drawable[0];
+            Renderer.RemoveDrawable(_drawables[i]);
+            _drawables[i].Dispose();
         }
 
-        public void OnDisable()
-        {
-            for (int i = 0; i < this._drawables.Length; i++)
-            {
-                Renderer.RemoveDrawable(this._drawables[i]);
-                this._drawables[i].Dispose();
-            }
-            this._drawables = Array.Empty<Drawable>();
-        }
+        _drawables = Array.Empty<Drawable>();
+    }
 
-        public void OnEnable()
+    public void OnEnable()
+    {
+        try
         {
-            try
-            {
-                this._drawables = StartRender(Renderer.GraphicsDevice);
-                Renderer.AddDrawables(this._drawables);
-            }
-            catch (Exception e)
-            {
-                Debug.Error(LogCategory.Rendering, "Error while creating drawable: " + e.Message);
-                Debug.Error(LogCategory.Rendering, e.StackTrace ?? "Stack trace not available");
-            }
+            _drawables = StartRender(Renderer.GraphicsDevice);
+            Renderer.AddDrawables(_drawables);
+        }
+        catch (Exception e)
+        {
+            Debug.Error(LogCategory.Rendering, "Error while creating drawable: " + e.Message);
+            Debug.Error(LogCategory.Rendering, e.StackTrace ?? "Stack trace not available");
         }
     }
 }

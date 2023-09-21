@@ -1,5 +1,6 @@
-import { createEffect, createSignal, For, Setter } from "solid-js";
+import {createEffect, createSignal, For, Setter} from "solid-js";
 import styles from "./Hierarchy.module.css";
+
 interface IHierarchyElement {
     name: string;
     components: {
@@ -8,6 +9,7 @@ interface IHierarchyElement {
     }[];
     children: IHierarchyElement[];
 }
+
 export default function Hierarchy(props: { hierarchy: IHierarchyElement }) {
     let [selected, setSelected] = createSignal<IHierarchyElement | undefined>();
     let [curHierarchy, setCurHierarchy] = createSignal<IHierarchyElement>(
@@ -46,10 +48,10 @@ export default function Hierarchy(props: { hierarchy: IHierarchyElement }) {
                                                     >
                                                         {
                                                             i.type.split(".")[
-                                                                i.type.split(
-                                                                    "."
-                                                                ).length - 1
-                                                            ]
+                                                            i.type.split(
+                                                                "."
+                                                            ).length - 1
+                                                                ]
                                                         }
                                                     </span>
                                                     <span>{i.value}</span>

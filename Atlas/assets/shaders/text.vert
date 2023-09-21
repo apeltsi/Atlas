@@ -17,6 +17,6 @@ void main()
     translate_rotate[0][0] = 1.0;
     translate_rotate[1][1] = 1.0;
     translate_rotate[2][2] = 1.0;
-    gl_Position = vec4(Position.x / 20000.0 , -Position.y / 20000.0, 0, 1) * translate_rotate * Camera * Matrix;
+    gl_Position = vec4(Position.x / 20000.0, -Position.y / 20000.0, 0, 1) * translate_rotate * Camera * Matrix;
     fsin_UV = UV;
 }  

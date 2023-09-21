@@ -11,17 +11,15 @@ namespace SolidCode.Atlas.Rendering;
 
 public static class Renderer
 {
-    public static Framebuffer PrimaryFramebuffer { get; set; }
     private static Veldrid.Texture _mainColorTexture;
     private static TextureView? _mainColorView;
     private static ShaderPass? _resolvePass;
     private static TextureView? _finalTextureView;
-    public static GraphicsDevice? GraphicsDevice { get; internal set; }
     public static CommandList CommandList = null!;
-    private static ConcurrentDictionary<int, ManualConcurrentList<Drawable>> _layers = new();
+    private static readonly ConcurrentDictionary<int, ManualConcurrentList<Drawable>> _layers = new();
     private static TextureView? _downSampledTextureView;
-    private static bool _resourcesDirty = false;
-    private static object _resourcesLock = new();
+    private static bool _resourcesDirty;
+    private static readonly object _resourcesLock = new();
     private static Matrix4x4 _windowScalingMatrix;
 
     /// <summary>
@@ -29,6 +27,18 @@ public static class Renderer
     /// (Ignores camera scaling)
     /// </summary>
     public static Vector2 UnitScale = Vector2.One;
+
+
+    // Post Process
+    public static bool DoPostProcess = true;
+
+    private static float _resolutionScale = 1f;
+
+
+    private static float _postResolutionScale = 1f;
+    public static Framebuffer PrimaryFramebuffer { get; set; }
+    public static GraphicsDevice? GraphicsDevice { get; internal set; }
+
     /// <summary>
     /// The scale of a single pixel
     /// (Ignores camera scaling)
@@ -39,24 +49,20 @@ public static class Renderer
 
     public static TextureDescription MainTextureDescription { get; set; }
 
-
-    // Post Process
-    public static bool DoPostProcess = true;
-
     /// <summary>
-    /// Describes the scale of one unit. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.  
+    /// Describes the scale of one unit. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.
     /// </summary>
     public static float ScalingIndex { get; internal set; } = 1;
 
     /// <summary>
-    /// Describes the scale of one unit in the Post-Processing step. A scaling index of 1 = 1000px. A scaling index of 2 = 2000px etc etc.
+    /// Describes the scale of one unit in the Post-Processing step. A scaling index of 1 = 1000px. A scaling index of 2 =
+    /// 2000px etc etc.
     /// </summary>
     public static float PostScalingIndex { get; internal set; } = 1;
 
-    private static float _resolutionScale = 1f;
-
     /// <summary>
-    /// Scales the resolution that non-post processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
+    /// Scales the resolution that non-post processed rendering steps are done at. 0.5 = Half the width and height of the
+    /// window resolution.
     /// </summary>
     public static float ResolutionScale
     {
@@ -70,15 +76,13 @@ public static class Renderer
 
     /// <summary>
     /// The actual resolution that non-post processed rendering steps are done at
-    /// To change this please use <see cref="ResolutionScale"/> instead.
+    /// To change this please use <see cref="ResolutionScale" /> instead.
     /// </summary>
     public static Vector2 RenderResolution => Window.Size * ResolutionScale;
 
-
-    private static float _postResolutionScale = 1f;
-
     /// <summary>
-    /// Scales the resolution that post-processed rendering steps are done at. 0.5 = Half the width and height of the window resolution.
+    /// Scales the resolution that post-processed rendering steps are done at. 0.5 = Half the width and height of the
+    /// window resolution.
     /// </summary>
     public static float PostResolutionScale
     {
@@ -92,11 +96,11 @@ public static class Renderer
 
     /// <summary>
     /// The actual resolution that post-processed rendering steps are done at
-    /// To change this please use <see cref="PostResolutionScale"/> instead.
+    /// To change this please use <see cref="PostResolutionScale" /> instead.
     /// </summary>
     public static Vector2 PostRenderResolution => Window.Size * PostResolutionScale;
 
-    public static TextureDescription PostProcessingDescription => new TextureDescription()
+    public static TextureDescription PostProcessingDescription => new()
     {
         Width = (uint)AMath.RoundToInt(PostRenderResolution.X), Height = (uint)AMath.RoundToInt(PostRenderResolution.Y),
         Depth = 1, ArrayLayers = 1, MipLevels = 1, SampleCount = TextureSampleCount.Count1,
@@ -111,10 +115,7 @@ public static class Renderer
 #if DEBUG
         Profiler.StartTimer(Profiler.TickType.Update);
 #endif
-        if (_resourcesDirty)
-        {
-            CreateResources(null);
-        }
+        if (_resourcesDirty) CreateResources(null);
         // We should begin by removing any stray drawables
 
 
@@ -126,11 +127,11 @@ public static class Renderer
 
         // At the beginning of every frame, we clear the screen to black. 
         CommandList.ClearColorTarget(0, Window.ClearColor);
-        int currentLayer = 0;
-        int ppEffectIndex = 0;
+        var currentLayer = 0;
+        var ppEffectIndex = 0;
         while (true)
         {
-            bool skip = true;
+            var skip = true;
             if (_layers.TryGetValue(currentLayer, out var layer))
             {
                 CommandList.InsertDebugMarker("Begin Layer " + currentLayer);
@@ -141,7 +142,7 @@ public static class Renderer
             if (DoPostProcess)
             {
                 // lets draw every effect on this layer in order
-                CommandList.InsertDebugMarker("Post-Process (Layer " + currentLayer +  ")");
+                CommandList.InsertDebugMarker("Post-Process (Layer " + currentLayer + ")");
                 while (PostProcessEffects.Count > ppEffectIndex &&
                        PostProcessEffects[ppEffectIndex].Layer == currentLayer)
                 {
@@ -149,7 +150,6 @@ public static class Renderer
                     ppEffectIndex++;
                     skip = false;
                 }
-
             }
 
             currentLayer++;
@@ -161,7 +161,7 @@ public static class Renderer
         CommandList.InsertDebugMarker("Drawing Debug Markers");
         Debug.RenderMarkers(CommandList, _windowScalingMatrix);
 #endif
-        
+
         CommandList.InsertDebugMarker("Final Resolve shader");
 
         _resolvePass.Draw(CommandList);
@@ -180,10 +180,10 @@ public static class Renderer
         {
             GraphicsDevice.SwapBuffers();
         }
-        catch(VeldridException e)
+        catch (VeldridException e)
         {
-            
         }
+
         TickScheduler.FreeThreads(); // Everything we need should now be free for use!
 #if DEBUG
         Profiler.EndTimer(Profiler.TickType.Update, "Render");
@@ -194,12 +194,9 @@ public static class Renderer
     internal static void RenderDrawables(Matrix4x4 scalingMatrix, ManualConcurrentList<Drawable> drawables)
     {
         drawables.Update();
-        foreach (Drawable drawable in drawables)
+        foreach (var drawable in drawables)
         {
-            if (drawable == null || drawable.transform == null)
-            {
-                continue;
-            }
+            if (drawable == null || drawable.transform == null) continue;
 
             drawable.SetGlobalMatrix(GraphicsDevice, scalingMatrix);
             drawable.SetScreenSize(GraphicsDevice, RenderResolution);
@@ -209,9 +206,9 @@ public static class Renderer
 
     public static void UpdateGetScalingMatrix(Vector2 dimensions)
     {
-        float width = dimensions.X;
-        float height = dimensions.Y;
-        float max = Math.Max(width, height);
+        var width = dimensions.X;
+        var height = dimensions.Y;
+        var max = Math.Max(width, height);
         UnitScale = new Vector2(max / height, max / width);
         ScalingIndex = max / 1000f;
         PostScalingIndex = Math.Max(PostRenderResolution.X, PostRenderResolution.Y) / 1000f;
@@ -226,7 +223,7 @@ public static class Renderer
     {
         foreach (var d in drawables)
         {
-            int layer = (int)d.transform.Layer;
+            var layer = (int)d.transform.Layer;
             if (_layers.TryGetValue(layer, out var layer1))
             {
                 layer1.AddSorted(d);
@@ -244,23 +241,17 @@ public static class Renderer
     {
         uint layerIndex = 0;
         if (itemLayer == null)
-        {
             layerIndex = drawable.transform.Layer;
-        }
         else
-        {
             layerIndex = itemLayer.Value;
-        }
-        bool removed = _layers[(int)layerIndex].Remove(drawable);
+
+        var removed = _layers[(int)layerIndex].Remove(drawable);
         if (!removed)
         {
             foreach (var layer in _layers)
-            {
                 if (layer.Value.Remove(drawable))
-                {
                     return;
-                }
-            }
+
             Debug.Warning(LogCategory.Framework, "Couldn't remove Drawable! ");
         }
     }
@@ -272,12 +263,10 @@ public static class Renderer
         Debug.Log(LogCategory.Rendering, "RELOADING ALL SHADERS...");
         // Next, lets dispose all drawables
         foreach (var layer in _layers)
+        foreach (var d in layer.Value)
         {
-            foreach (var d in layer.Value)
-            {
-                d.Dispose();
-                d.CreateResources();
-            }
+            d.Dispose();
+            d.CreateResources();
         }
 
         CreateResources(null);
@@ -291,38 +280,21 @@ public static class Renderer
         {
             if (GraphicsDevice == null) return;
 
-            ResourceFactory factory = GraphicsDevice.ResourceFactory;
-            if (CommandList is { IsDisposed: false })
-            {
-                CommandList.Dispose();
-            }
+            var factory = GraphicsDevice.ResourceFactory;
+            if (CommandList is { IsDisposed: false }) CommandList.Dispose();
 
             CommandList = factory.CreateCommandList();
-            if (_mainColorTexture is { IsDisposed: false })
-            {
-                _mainColorTexture.Dispose();
-            }
+            if (_mainColorTexture is { IsDisposed: false }) _mainColorTexture.Dispose();
 
-            if (PrimaryFramebuffer is { IsDisposed: false })
-            {
-                PrimaryFramebuffer.Dispose();
-            }
+            if (PrimaryFramebuffer is { IsDisposed: false }) PrimaryFramebuffer.Dispose();
 
 
-            if (_mainColorView is { IsDisposed: false })
-            {
-                _mainColorView.Dispose();
-            }
+            if (_mainColorView is { IsDisposed: false }) _mainColorView.Dispose();
 
             if (_downSampledTextureView != null && _downSampledTextureView.Target is { IsDisposed: false })
-            {
                 _downSampledTextureView.Target.Dispose();
-            }
 
-            if (_downSampledTextureView is { IsDisposed: false })
-            {
-                _downSampledTextureView.Dispose();
-            }
+            if (_downSampledTextureView is { IsDisposed: false }) _downSampledTextureView.Dispose();
 
             _resolvePass?.Dispose();
 
@@ -338,20 +310,18 @@ public static class Renderer
             _mainColorTexture.Name = "Primary Color Texture";
             _mainColorView = factory.CreateTextureView(_mainColorTexture);
             _mainColorView.Name = "Primary Color Texture View";
-            FramebufferDescription fbDesc = new FramebufferDescription(null, _mainColorTexture);
+            var fbDesc = new FramebufferDescription(null, _mainColorTexture);
             PrimaryFramebuffer = factory.CreateFramebuffer(ref fbDesc);
             PrimaryFramebuffer.Name = "Primary Framebuffer";
 
-            TextureView previousView = _mainColorView;
-            
+            var previousView = _mainColorView;
+
             if (DoPostProcess && PostProcessEffects.Count > 0)
-            {
                 foreach (var effect in PostProcessEffects)
                 {
                     effect.Dispose();
                     previousView = effect.CreateResources(previousView);
                 }
-            }
 
             _finalTextureView = previousView;
             _finalTextureView.Name += " - Final Texture View";
@@ -359,70 +329,67 @@ public static class Renderer
             _resolvePass = new ShaderPass<EmptyStruct>("resolve/shader", null);
 
             _resolvePass.CreateResources(GraphicsDevice.SwapchainFramebuffer, new[] { _finalTextureView });
-            
 
-            if (_resourcesDirty)
-            {
-                _resourcesDirty = false;
-            }
+
+            if (_resourcesDirty) _resourcesDirty = false;
         }
     }
 
     /// <summary>
-    /// Adds a post process effect to the list of effects to be applied to the scene. Note that calling order matters, as the effects are applied in the order they are added.
+    /// Adds a post process effect to the list of effects to be applied to the scene. Note that calling order matters, as
+    /// the effects are applied in the order they are added.
     /// DO NOT add an effect with a lower layer than a previous effect!
     /// </summary>
-    /// <param name="effect">The effect to be applied</param>
-    /// <param name="layer">The layer of the effect, should be larger or equal to the layer of a previous effect</param>
-
+    /// <param name="effect"> The effect to be applied </param>
+    /// <param name="layer"> The layer of the effect, should be larger or equal to the layer of a previous effect </param>
     public static void AddPostProcessEffect(PostProcessEffect effect, uint layer = 1)
     {
         effect.Layer = layer;
         foreach (var e in PostProcessEffects)
-        {
             if (e.Layer > effect.Layer)
             {
                 Debug.Error(LogCategory.Rendering,
                     $"Can't add Post Process Effect {effect.GetType().Name}. It has a lower layer than {e.GetType().Name}!");
                 return;
             }
-        }
+
         PostProcessEffects.Add(effect);
 
         lock (_resourcesLock)
+        {
             _resourcesDirty = true;
+        }
     }
 
     /// <summary>
     /// Removes a post process effect from the list of effects to be applied to the scene
     /// </summary>
-    /// <param name="effect">The effect to be removed</param>
+    /// <param name="effect"> The effect to be removed </param>
     public static void RemovePostProcessEffect(PostProcessEffect effect)
     {
         PostProcessEffects.Remove(effect);
         lock (_resourcesLock)
+        {
             _resourcesDirty = true;
-    }
-
-    struct EmptyStruct
-    {
+        }
     }
 
     public static void ResortDrawable(Drawable d, uint? prevLayer = null)
     {
-        
         // Lets just grab out the drawable out of our sorted List and add it back
         lock (_layers)
         {
             RemoveDrawable(d, prevLayer);
-            AddDrawables(new [] { d });
+            AddDrawables(new[] { d });
         }
     }
 
     public static void RequestResourceCreation()
     {
         lock (_resourcesLock)
+        {
             _resourcesDirty = true;
+        }
     }
 
 
@@ -438,27 +405,26 @@ public static class Renderer
             CommandList.Dispose();
             _resolvePass?.Dispose();
             PrimaryFramebuffer.Dispose();
-            
+
             foreach (var layer in _layers)
-            {
-                foreach (Drawable drawable in layer.Value)
-                {
-                    drawable.Dispose();
-                }
-            }
+            foreach (var drawable in layer.Value)
+                drawable.Dispose();
+
             FontSet.DisposeAll();
 
             _downSampledTextureView?.Target.Dispose();
             _downSampledTextureView?.Dispose();
-            foreach (var effect in PostProcessEffects)
-            {
-                effect.Dispose();
-            }
+            foreach (var effect in PostProcessEffects) effect.Dispose();
+
             // Dispose any remaining shaders or textures owned by the asset manager
             AssetManager.Dispose();
             GraphicsDevice.Dispose();
 
             Debug.Log(LogCategory.Rendering, "Disposed all rendering resources");
         }
+    }
+
+    private struct EmptyStruct
+    {
     }
 }

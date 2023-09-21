@@ -1,17 +1,17 @@
-using SolidCode.Atlas;
-using SolidCode.Atlas.Rendering;
 using SolidCode.Atlas.ECS;
+using SolidCode.Atlas.Rendering;
+using Veldrid;
+
 namespace SolidCode.Atlas.Tests;
+
 public class UserConfirm : Component
 {
-    public static bool Failed = false;
+    public static bool Failed;
+
     public void Update()
     {
-        if (Input.Input.GetKeyDown(Veldrid.Key.Space))
-        {
-            Window.Close();
-        }
-        if (Input.Input.GetKeyDown(Veldrid.Key.BackSpace))
+        if (Input.Input.GetKeyDown(Key.Space)) Window.Close();
+        if (Input.Input.GetKeyDown(Key.BackSpace))
         {
             Failed = true;
             Window.Close();

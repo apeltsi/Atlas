@@ -5,14 +5,14 @@ namespace SolidCode.Atlas.Physics;
 
 public abstract class RigidBody : Component
 {
-    protected PhysicsShape Shape = PhysicsShape.Box;
     private PhysicsObject? _physicsObject;
+    protected PhysicsShape Shape = PhysicsShape.Box;
+
     public void OnEnable()
     {
         _physicsObject = new PhysicsObject(false, Shape, Entity.GetComponent<Transform>()!);
     }
 
-    
 
     public void AddForce(Vector2 force)
     {
@@ -34,5 +34,4 @@ public class BoxRigidBody : RigidBody
 public class CircleRigidBody : RigidBody
 {
     protected new PhysicsShape Shape = PhysicsShape.Circle;
-    
 }

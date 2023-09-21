@@ -1,4 +1,3 @@
-
 #version 450
 
 layout(set = 1, binding = 0) uniform ColorUniform

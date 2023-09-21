@@ -8,118 +8,32 @@ namespace SolidCode.Atlas.Components;
 /// </summary>
 public class ParticleSystem : InstancedSpriteRenderer
 {
-    public class Particle
-    {
-        public bool Alive = false;
-        private ParticleSystem _system;
-        private Vector2 _position;
-        public Vector2 Position
-        {
-            get => _position;
-            set
-            {
-                _position = value;
-                if (_system.Instances.Length <= Index) return;
-                InstanceData data = _system.Instances[(int)Index];
-                data.InstancePosition = value;
-                _system.Instances[(int)Index] = data;
-                _system.UpdateData();
-            }
-        }
-        private Vector2 _scale;
-        public Vector2 Scale
-        {
-            get => _scale;
-            set
-            {
-                _scale = value;
-                if (_system.Instances.Length <= Index) return;
-                InstanceData data = _system.Instances[(int)Index];
-                data.InstanceScale = value;
-                _system.Instances[(int)Index] = data;
-                _system.UpdateData();
-            }
-        }
-        private float _rotation;
-        public float Rotation
-        {
-            get => _rotation;
-            set
-            {
-                _rotation = value;
-                if (_system.Instances.Length <= Index) return;
-                InstanceData data = _system.Instances[(int)Index];
-                data.InstanceRotation = value;
-                _system.Instances[(int)Index] = data;
-                _system.UpdateData();
-            }
-        }
-        public Vector2 Velocity;
-        public Vector2 Acceleration;
-        private Color _color;
-        public Color Color
-        {
-            get => _color;
-            set
-            {
-                _color = value;
-                if (_system.Instances.Length <= Index) return;
-                InstanceData data = _system.Instances[(int)Index];
-                data.InstanceColor = value;
-                _system.Instances[(int)Index] = data;
-                _system.UpdateData();
-            }
-        }
-        public uint Index;
-        public float Age;
-        public float Lifetime;
-
-        public Particle(ParticleSystem system, uint index)
-        {
-            this._system = system;
-            this.Index = index;
-    
-            this.Scale = Vector2.Zero;
-            this._scale = _system.InitialScale();
-            
-            this.Color = _system.InitialColor();
-            this.Position = _system.InitialPosition();
-            this.Velocity = _system.InitialVelocity();
-            this.Lifetime = _system.InitialLifetime();
-            this.Rotation = _system.InitialRotation();
-        }
-
-        public void ForceUpdate()
-        {
-            this.Color = _color;
-            this.Position = _position;
-            this.Rotation = _rotation;
-            this.Scale = _scale;
-        }
-    }
-
-    private uint _particleCount = 10;
-    private bool _hasStarted = false;
-    public uint ParticleCount
-    {
-        get => _particleCount;
-        set
-        {
-            _particleCount = value;
-            if(_hasStarted)
-                GenerateInstances();
-        }
-    }
-    private uint _prevParticleCount = 0;
-    private List<Particle> _particles = new();
-
-    public delegate Vector2 Vector2Generator();
-    public delegate Vector4 Vector4Generator();
     public delegate float FloatGenerator();
 
     public delegate void ParticleUpdateMethod(ref Particle particle);
 
-    public List<ParticleUpdateMethod> ParticleUpdates = new List<ParticleUpdateMethod>()
+    public delegate Vector2 Vector2Generator();
+
+    public delegate Vector4 Vector4Generator();
+
+    private readonly Queue<Particle> _deadParticles = new();
+    private readonly List<Particle> _particles = new();
+
+
+    private float _currentPeriod;
+    private bool _hasStarted;
+
+    private uint _particleCount = 10;
+    private uint _prevParticleCount;
+    public bool Burst = false;
+    public Vector4Generator InitialColor = () => new Vector4(1f);
+    public FloatGenerator InitialLifetime = () => 1f;
+    public Vector2Generator InitialPosition = () => ARandom.Vector2();
+    public FloatGenerator InitialRotation = () => 0f;
+    public Vector2Generator InitialScale = () => new Vector2(0.1f, 0.1f);
+    public Vector2Generator InitialVelocity = () => new Vector2(0, 0.75f);
+
+    public List<ParticleUpdateMethod> ParticleUpdates = new()
     {
         (ref Particle particle) =>
         {
@@ -128,35 +42,38 @@ public class ParticleSystem : InstancedSpriteRenderer
         },
         (ref Particle particle) =>
         {
-            particle.Color = new Color(particle.Color.R, particle.Color.G, particle.Color.B, 1f - particle.Age / particle.Lifetime);
+            particle.Color = new Color(particle.Color.R, particle.Color.G, particle.Color.B,
+                1f - particle.Age / particle.Lifetime);
             particle.Scale += new Vector2(0.5f, 0.5f) * (float)Time.deltaTime;
-        } 
+        }
     };
-    public Vector2Generator InitialVelocity = () => new Vector2(0, 0.75f);
-    public Vector4Generator InitialColor = () => new Vector4(1f);
-    public Vector2Generator InitialScale = () => new Vector2(0.1f, 0.1f);
-    public Vector2Generator InitialPosition = () => ARandom.Vector2();
-    public FloatGenerator InitialLifetime = () => 1f;
-    public FloatGenerator InitialRotation = () => 0f;
 
-    
-    private float _currentPeriod = 0f;
+    public uint ParticleCount
+    {
+        get => _particleCount;
+        set
+        {
+            _particleCount = value;
+            if (_hasStarted)
+                GenerateInstances();
+        }
+    }
+
     public void Start()
     {
         GenerateInstances();
         _hasStarted = true;
     }
-    Queue<Particle> _deadParticles = new();
-    public bool Burst = false;
+
     public void Update()
     {
         _currentPeriod += (float)Time.deltaTime;
-        
 
-        float maxLifeTime = InitialLifetime();
-        for (int i = 0; i < _particles.Count; i++)
+
+        var maxLifeTime = InitialLifetime();
+        for (var i = 0; i < _particles.Count; i++)
         {
-            Particle p = _particles[i];
+            var p = _particles[i];
             maxLifeTime = Math.Max(maxLifeTime, p.Lifetime);
             if (p.Alive)
             {
@@ -167,71 +84,147 @@ public class ParticleSystem : InstancedSpriteRenderer
                     _deadParticles.Enqueue(_particles[i]);
                     continue;
                 }
-                foreach (var pu in ParticleUpdates)
-                {
-                    pu(ref p);
-                }
+
+                foreach (var pu in ParticleUpdates) pu(ref p);
             }
-            else if(!Burst)
+            else if (!Burst)
             {
-                if (!_deadParticles.Contains(p))
-                {
-                    _deadParticles.Enqueue(p);
-                }
+                if (!_deadParticles.Contains(p)) _deadParticles.Enqueue(p);
                 if (maxLifeTime / ParticleCount < _currentPeriod)
                 {
-                    Particle dp = _deadParticles.Dequeue();
+                    var dp = _deadParticles.Dequeue();
                     dp.Alive = true;
                     dp.ForceUpdate();
                     _currentPeriod = 0f;
                 }
             }
         }
-        
     }
 
     public void GenerateInstances()
     {
         if (ParticleCount > _prevParticleCount)
         {
-            InstanceData[] instances = new InstanceData[ParticleCount];
-            InstanceData[] oldInstances = Instances;
-            for (int i = 0; i < oldInstances.Length; i++)
-            {
-                instances[i] = oldInstances[i];
-            }
+            var instances = new InstanceData[ParticleCount];
+            var oldInstances = Instances;
+            for (var i = 0; i < oldInstances.Length; i++) instances[i] = oldInstances[i];
 
-            int toAdd = (int)ParticleCount - (int)_prevParticleCount;
-            for (int i = 0; i < toAdd; i++)
+            var toAdd = (int)ParticleCount - (int)_prevParticleCount;
+            for (var i = 0; i < toAdd; i++)
             {
-                Particle p = new Particle(this, (uint)i + _prevParticleCount);
-                if (Burst)
-                {
-                    p.Alive = true;
-                }
-                instances[i + (int)_prevParticleCount] = new InstanceData(p.Position, p.Rotation, Vector2.Zero, p.Color);
+                var p = new Particle(this, (uint)i + _prevParticleCount);
+                if (Burst) p.Alive = true;
+                instances[i + (int)_prevParticleCount] =
+                    new InstanceData(p.Position, p.Rotation, Vector2.Zero, p.Color);
                 _particles.Add(p);
             }
 
             Instances = instances;
-        } else if (ParticleCount < _prevParticleCount)
+        }
+        else if (ParticleCount < _prevParticleCount)
         {
-            InstanceData[] instances = new InstanceData[ParticleCount];
-            for (int i = 0; i < ParticleCount; i++)
-            {
-                instances[i] = Instances[i];
-            }
-            int toRemove = (int)_prevParticleCount - (int)ParticleCount;
-            for (int i = 0; i < toRemove; i++)
-            {
-                _particles.RemoveAt(_particles.Count - 1);
-            }
+            var instances = new InstanceData[ParticleCount];
+            for (var i = 0; i < ParticleCount; i++) instances[i] = Instances[i];
+            var toRemove = (int)_prevParticleCount - (int)ParticleCount;
+            for (var i = 0; i < toRemove; i++) _particles.RemoveAt(_particles.Count - 1);
             Instances = instances;
         }
+
         _prevParticleCount = ParticleCount;
         UpdateData();
-
     }
-    
-    
+
+    public class Particle
+    {
+        private readonly ParticleSystem _system;
+        private Color _color;
+        private Vector2 _position;
+        private float _rotation;
+        private Vector2 _scale;
+        public Vector2 Acceleration;
+        public float Age;
+        public bool Alive;
+        public uint Index;
+        public float Lifetime;
+        public Vector2 Velocity;
+
+        public Particle(ParticleSystem system, uint index)
+        {
+            _system = system;
+            Index = index;
+
+            Scale = Vector2.Zero;
+            _scale = _system.InitialScale();
+
+            Color = _system.InitialColor();
+            Position = _system.InitialPosition();
+            Velocity = _system.InitialVelocity();
+            Lifetime = _system.InitialLifetime();
+            Rotation = _system.InitialRotation();
+        }
+
+        public Vector2 Position
+        {
+            get => _position;
+            set
+            {
+                _position = value;
+                if (_system.Instances.Length <= Index) return;
+                var data = _system.Instances[(int)Index];
+                data.InstancePosition = value;
+                _system.Instances[(int)Index] = data;
+                _system.UpdateData();
+            }
+        }
+
+        public Vector2 Scale
+        {
+            get => _scale;
+            set
+            {
+                _scale = value;
+                if (_system.Instances.Length <= Index) return;
+                var data = _system.Instances[(int)Index];
+                data.InstanceScale = value;
+                _system.Instances[(int)Index] = data;
+                _system.UpdateData();
+            }
+        }
+
+        public float Rotation
+        {
+            get => _rotation;
+            set
+            {
+                _rotation = value;
+                if (_system.Instances.Length <= Index) return;
+                var data = _system.Instances[(int)Index];
+                data.InstanceRotation = value;
+                _system.Instances[(int)Index] = data;
+                _system.UpdateData();
+            }
+        }
+
+        public Color Color
+        {
+            get => _color;
+            set
+            {
+                _color = value;
+                if (_system.Instances.Length <= Index) return;
+                var data = _system.Instances[(int)Index];
+                data.InstanceColor = value;
+                _system.Instances[(int)Index] = data;
+                _system.UpdateData();
+            }
+        }
+
+        public void ForceUpdate()
+        {
+            Color = _color;
+            Position = _position;
+            Rotation = _rotation;
+            Scale = _scale;
+        }
+    }
 }

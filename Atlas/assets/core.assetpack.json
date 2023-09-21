@@ -1,6 +1,10 @@
 {
   "version": "1.0",
   "optimizeFor": "speed",
-  "include": ["shaders/resolve/*.*"],
-  "excludeExtensions": ["png"]
+  "include": [
+    "shaders/resolve/*.*"
+  ],
+  "excludeExtensions": [
+    "png"
+  ]
 }

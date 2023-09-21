@@ -12,12 +12,14 @@
     display: flex;
     flex-direction: column;
 }
+
 .hierarchyList {
     height: 100%;
     overflow: auto;
     display: flex;
     flex-direction: column;
 }
+
 .hierarchyList .hierarchyElement {
     width: 100%;
     height: fit-content;
@@ -27,9 +29,11 @@
     border: 2px solid rgb(116, 116, 116);
     border-bottom: none;
 }
+
 .hierarchyList div:hover {
     background-color: rgb(65, 65, 65);
 }
+
 .elementChildrenList {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -43,10 +47,12 @@
 .inspector {
     width: 100%;
 }
+
 .inspector h4 {
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .field {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
@@ -64,11 +70,13 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
 .fieldType {
     display: block;
     width: fit-content;
     opacity: 0.5;
 }
+
 .component {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;

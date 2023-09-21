@@ -8,7 +8,13 @@ public class MouseTarget : Component
 {
     private static double _lastCalc;
     private static Entity? _currentTarget;
-    private static List<Entity> _currentTargets = new();
+    private static readonly List<Entity> _currentTargets = new();
+    private static readonly List<MouseTarget> _targets = new();
+    private RectTransform _transform;
+
+    public Action? OnMouseEnter;
+    public Action? OnMouseExit;
+
     public static Entity? CurrentTarget
     {
         get
@@ -25,11 +31,6 @@ public class MouseTarget : Component
 
     public bool IsHovered => CurrentTarget == Entity;
     public bool HoverInside => _currentTargets.Contains(Entity);
-    private RectTransform _transform;
-    private static List<MouseTarget> _targets = new List<MouseTarget>();
-
-    public Action? OnMouseEnter;
-    public Action? OnMouseExit;
 
     public void Start()
     {
@@ -53,52 +54,51 @@ public class MouseTarget : Component
 
     protected Vector4 GetBounds()
     {
-        Vector2 pos = _transform.Position.Evaluate() / 2f;
-        Vector2 scale = _transform.Scale.Evaluate();
-        Vector2 lower = pos - scale / 2f;
-        Vector2 higher = pos + scale / 2f;
+        var pos = _transform.Position.Evaluate() / 2f;
+        var scale = _transform.Scale.Evaluate();
+        var lower = pos - scale / 2f;
+        var higher = pos + scale / 2f;
         return new Vector4(lower.X, lower.Y, higher.X, higher.Y);
     }
-    
+
     protected bool IsInside(Vector2 point)
     {
-        Vector4 bounds = GetBounds();
+        var bounds = GetBounds();
         return point.X >= bounds.X && point.X <= bounds.Z && point.Y >= bounds.Y && point.Y <= bounds.W;
     }
 
     private static void CalculateTarget()
     {
         Entity? currentTarget = null;
-        float currentZ = float.MinValue;
-        uint currentLayer = uint.MinValue;
+        var currentZ = float.MinValue;
+        var currentLayer = uint.MinValue;
 
-        Vector2 convertedPos = (Input.Input.MousePosition / Window.Size * new Vector2(1f, -1f)  - new Vector2(0.5f, -0.5f)) * Renderer.UnitScale;
+        var convertedPos = (Input.Input.MousePosition / Window.Size * new Vector2(1f, -1f) - new Vector2(0.5f, -0.5f)) *
+                           Renderer.UnitScale;
         foreach (var target in _targets)
-        {
-            if(target._transform.Layer > currentLayer || (target._transform.GlobalZ > currentZ && target._transform.Layer == currentLayer))
+            if (target._transform.Layer > currentLayer ||
+                (target._transform.GlobalZ > currentZ && target._transform.Layer == currentLayer))
                 if (target.Enabled && target.IsInside(convertedPos))
                 {
                     currentTarget = target.Entity;
                     currentZ = target._transform.GlobalZ;
                     currentLayer = target._transform.Layer;
                 }
-        }
 
         if (currentTarget != _currentTarget)
         {
             currentTarget?.GetComponent<MouseTarget>()?.OnMouseEnter?.Invoke();
             _currentTarget?.GetComponent<MouseTarget>()?.OnMouseExit?.Invoke();
         }
-        
-        
+
 
         _currentTarget = currentTarget;
-        
+
         _currentTargets.Clear();
 
         if (_currentTarget != null)
         {
-            Entity curEntity = _currentTarget;
+            var curEntity = _currentTarget;
             _currentTargets.Add(curEntity);
             while (curEntity != EntityComponentSystem.RootEntity && curEntity.Parent != null)
             {
@@ -106,6 +106,5 @@ public class MouseTarget : Component
                 _currentTargets.Add(curEntity);
             }
         }
-        
     }
 }

@@ -2,45 +2,42 @@
 
 public struct FrameworkConfiguration
 {
-    public ECSSettings ECS = new ();
+    public ECSSettings ECS = new();
 
     public FrameworkConfiguration()
     {
     }
 }
+
 /// <summary>
 /// Settings for the Entity Component System
 /// </summary>
 public struct ECSSettings
 {
-    public ECSThreadSettings[] Threads = new[]
+    public ECSThreadSettings[] Threads =
     {
-        new ECSThreadSettings
+        new()
         {
             Name = "Main",
             Frequency = 100,
             Sync = true
         }
     };
+
     /// <summary>
     /// Settings for the Entity Component System
     /// </summary>
     public ECSSettings()
     {
-        bool hasMain = false;
+        var hasMain = false;
         foreach (var t in Threads)
-        {
             if (t.Name == "Main")
             {
                 hasMain = true;
                 break;
             }
-        }
 
-        if (!hasMain)
-        {
-            throw new Exception("Main thread is required");
-        }
+        if (!hasMain) throw new Exception("Main thread is required");
     }
 }
 
@@ -50,10 +47,12 @@ public struct ECSThreadSettings
     /// The Identifier of ECS Thread
     /// </summary>
     public string Name = "Main";
+
     /// <summary>
     /// Frequency of the thread in Hz
     /// </summary>
     public int Frequency = 100;
+
     /// <summary>
     /// Should this thread be synchronized with other ECS threads with the Sync enabled
     /// (Recommended value is true)

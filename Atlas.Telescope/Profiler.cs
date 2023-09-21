@@ -1,42 +1,22 @@
 #if DEBUG
-using System.Diagnostics;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace SolidCode.Atlas.Telescope;
 
 public static class Profiler
 {
-    public class TickType
-    {
-        private TickType(string value)
-        {
-            Value = value;
-        }
-
-        public string Value { get; private set; }
-        public static readonly TickType Update = new TickType("Update");
-        public static readonly TickType Tick = new TickType("Tick");
-
-        public override string ToString()
-        {
-            return Value;
-        }
-    }
-
-    private static ConcurrentDictionary<TickType, Dictionary<string, float>> curTimes = new();
-    private static ConcurrentDictionary<TickType, Dictionary<string, float>> allTimes = new();
-    private static ConcurrentDictionary<TickType, int> frames = new();
-    private static ConcurrentDictionary<TickType, Stopwatch> watches = new();
+    private static readonly ConcurrentDictionary<TickType, Dictionary<string, float>> curTimes = new();
+    private static readonly ConcurrentDictionary<TickType, Dictionary<string, float>> allTimes = new();
+    private static readonly ConcurrentDictionary<TickType, int> frames = new();
+    private static readonly ConcurrentDictionary<TickType, Stopwatch> watches = new();
 
     public static void StartTimer(TickType tickType)
     {
         if (DebugServer.Connections == 0) return;
         try
         {
-            if (!watches.ContainsKey(tickType))
-            {
-                watches.TryAdd(tickType, new Stopwatch());
-            }
+            if (!watches.ContainsKey(tickType)) watches.TryAdd(tickType, new Stopwatch());
 
             watches[tickType].Restart();
         }
@@ -51,21 +31,14 @@ public static class Profiler
         if (DebugServer.Connections == 0 || !watches.ContainsKey(tickType)) return;
         try
         {
-            Stopwatch sw = watches[tickType];
+            var sw = watches[tickType];
             sw.Stop();
-            if (!curTimes.ContainsKey(tickType))
-            {
-                curTimes.TryAdd(tickType, new());
-            }
+            if (!curTimes.ContainsKey(tickType)) curTimes.TryAdd(tickType, new Dictionary<string, float>());
 
             if (!curTimes[tickType].ContainsKey(p))
-            {
                 curTimes[tickType][p] = (float)sw.Elapsed.TotalMilliseconds;
-            }
             else
-            {
                 curTimes[tickType][p] += (float)sw.Elapsed.TotalMilliseconds;
-            }
         }
         catch (Exception e)
         {
@@ -78,10 +51,7 @@ public static class Profiler
         if (DebugServer.Connections == 0) return;
         try
         {
-            if (!allTimes.ContainsKey(tickType))
-            {
-                allTimes[tickType] = new Dictionary<string, float>();
-            }
+            if (!allTimes.ContainsKey(tickType)) allTimes[tickType] = new Dictionary<string, float>();
 
             if (!curTimes.ContainsKey(tickType)) return;
 
@@ -115,10 +85,7 @@ public static class Profiler
             foreach (var tickTimes in allTimes)
             {
                 Dictionary<string, float> avgTimes = new();
-                foreach (var times in tickTimes.Value)
-                {
-                    avgTimes[times.Key] = times.Value / frames[tickTimes.Key];
-                }
+                foreach (var times in tickTimes.Value) avgTimes[times.Key] = times.Value / frames[tickTimes.Key];
 
                 allAverages[tickTimes.Key.ToString()] = avgTimes;
             }
@@ -131,6 +98,24 @@ public static class Profiler
         {
             // ignored
             return new Dictionary<string, Dictionary<string, float>>();
+        }
+    }
+
+    public class TickType
+    {
+        public static readonly TickType Update = new("Update");
+        public static readonly TickType Tick = new("Tick");
+
+        private TickType(string value)
+        {
+            Value = value;
+        }
+
+        public string Value { get; }
+
+        public override string ToString()
+        {
+            return Value;
         }
     }
 }

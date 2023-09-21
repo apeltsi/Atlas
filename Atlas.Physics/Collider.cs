@@ -4,8 +4,9 @@ namespace SolidCode.Atlas.Physics;
 
 public abstract class Collider : Component
 {
-    protected PhysicsShape Shape = PhysicsShape.Box;
     private PhysicsObject? _physicsObject;
+    protected PhysicsShape Shape = PhysicsShape.Box;
+
     public void OnEnable()
     {
         _physicsObject = new PhysicsObject(true, Shape, Entity.GetComponent<Transform>()!);
@@ -26,5 +27,4 @@ public class BoxCollider : Collider
 public class CircleCollider : Collider
 {
     protected new PhysicsShape Shape = PhysicsShape.Circle;
-    
 }

@@ -44,10 +44,10 @@
         <DefineConstants>Linux</DefineConstants>
     </PropertyGroup>
     <ItemGroup Label="Resources">
-        <EmbeddedResource Include="assetpacks\atlas.assetpack" />
-        <EmbeddedResource Include="assetpacks\atlas-post.assetpack" />
-        <EmbeddedResource Include="assetpacks\core.assetpack" />
-        <EmbeddedResource Include="assetpacks\default-font.assetpack" />
+        <EmbeddedResource Include="assetpacks\atlas.assetpack"/>
+        <EmbeddedResource Include="assetpacks\atlas-post.assetpack"/>
+        <EmbeddedResource Include="assetpacks\core.assetpack"/>
+        <EmbeddedResource Include="assetpacks\default-font.assetpack"/>
     </ItemGroup>
     <ItemGroup Label="Native Libraries">
         <Content Include="native/openal32.dll">

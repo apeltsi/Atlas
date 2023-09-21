@@ -11,29 +11,26 @@ internal static class FileLogs
     {
         try
         {
-            if (!Directory.Exists("Logs"))
-            {
-                Directory.CreateDirectory("logs");
-            }
+            if (!Directory.Exists("Logs")) Directory.CreateDirectory("logs");
 
             _primaryLogWriter = new StreamWriter("logs/All.log");
-        
-            _primaryLogWriter.WriteLine("ATLAS_VERSION: " + version);
-            _primaryLogWriter.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
-        
 
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("LogViewer.html"))))
+            _primaryLogWriter.WriteLine("ATLAS_VERSION: " + version);
+            _primaryLogWriter.WriteLine("RUN_DATE: " + DateTime.Now);
+
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using (var stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames()
+                       .Single(str => str.EndsWith("LogViewer.html"))))
             {
-                using (StreamReader reader = new StreamReader(stream))
+                using (var reader = new StreamReader(stream))
                 {
-                    string result = reader.ReadToEnd();
+                    var result = reader.ReadToEnd();
                     _htmlLogWriter = new StreamWriter("logs/logs.html");
-                
+
                     _htmlLogWriter.Write(result);
                     _htmlLogWriter.WriteLine("ENGINE_VERSION: " + version);
-                    _htmlLogWriter.WriteLine("RUN_DATE: " + DateTime.Now.ToString());
-                
+                    _htmlLogWriter.WriteLine("RUN_DATE: " + DateTime.Now);
                 }
             }
         }
@@ -45,15 +42,8 @@ internal static class FileLogs
 
     internal static void DoLog(string log)
     {
-        try
-        {
-            _primaryLogWriter.WriteLine(log);
-            _htmlLogWriter.WriteLine(log);
-        }
-        finally
-        {
-            
-        }
+        _primaryLogWriter.WriteLine(log);
+        _htmlLogWriter.WriteLine(log);
     }
 
     internal static void Dispose()

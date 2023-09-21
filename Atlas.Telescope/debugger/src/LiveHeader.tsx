@@ -1,5 +1,5 @@
-import { createEffect, createSignal, For } from "solid-js";
-import { liveDataState, SendMessageToServer } from "./App";
+import {For} from "solid-js";
+import {liveDataState, SendMessageToServer} from "./App";
 
 export interface LiveData {
     globalData: string[];

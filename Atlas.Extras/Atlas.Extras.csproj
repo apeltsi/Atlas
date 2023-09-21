@@ -8,10 +8,10 @@
         <AssemblyName>SolidCode.Atlas.Extras</AssemblyName>
     </PropertyGroup>
     <ItemGroup Label="Resources">
-        <EmbeddedResource Include="assetpacks\atlas-extras.assetpack" />
+        <EmbeddedResource Include="assetpacks\atlas-extras.assetpack"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Atlas\Atlas.csproj" />
+        <ProjectReference Include="..\Atlas\Atlas.csproj"/>
     </ItemGroup>
 
 </Project>

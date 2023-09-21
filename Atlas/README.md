@@ -9,7 +9,6 @@ easy to learn for developers already familiar with Unity.
 
 > Atlas currently targets net6.0 and net7.0
 
-
 ## Getting Started
 
 [Check out the Getting Started Tutorial](https://github.com/apeltsi/Atlas/wiki/Getting-Started)
@@ -25,12 +24,12 @@ easy to learn for developers already familiar with Unity.
 - Multithreading
 - Windows & Linux* support
 
-
 \* Currently, there are some issues on certain distros of Linux
 
 ## Portability
 
-Atlas uses the .NET (Core) framework, this together with its support for the Direct3D11 and Vulkan backends makes it compatible with Linux & Windows. 
+Atlas uses the .NET (Core) framework, this together with its support for the Direct3D11 and Vulkan backends makes it
+compatible with Linux & Windows.
 (Compatibility for MacOS and mobile devices is also planned)
 
 ## Flexibility
@@ -49,14 +48,17 @@ Please note that the final compile-size of an Atlas app will change as developme
 
 ## Tools
 
-Any Debug build of Atlas will include the Telescope debugger. A web based interface that seamlessly connects to Atlas giving you useful insights into your app's performance.
+Any Debug build of Atlas will include the Telescope debugger. A web based interface that seamlessly connects to Atlas
+giving you useful insights into your app's performance.
 
 # Development
 
 ## Short-Term Goals
 
-One of the main short-term goals is to split Telescope into its own project. The goal of Telescope is to become a language & framework agnostic library completely separate from Atlas. 
+One of the main short-term goals is to split Telescope into its own project. The goal of Telescope is to become a
+language & framework agnostic library completely separate from Atlas.
 
 ## Long-Term Goals
 
-Currently, Atlas does not feature an editor, or even a scene format for that matter. While one of the goals is for Atlas to be lightweight, I believe that a simple UI & scene editor could be beneficial.
+Currently, Atlas does not feature an editor, or even a scene format for that matter. While one of the goals is for Atlas
+to be lightweight, I believe that a simple UI & scene editor could be beneficial.

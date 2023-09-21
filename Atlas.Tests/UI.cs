@@ -12,20 +12,17 @@ public class UI
         Atlas.DisableMultiProcessDebugging();
         Atlas.StartCoreFeatures("UI Test | Manual Confirm Required");
 
-        Entity e = new Entity("Text");
+        var e = new Entity("Text");
         e.RemoveComponent<Transform>();
-        RectTransform rt = e.AddComponent<RectTransform>();
+        var rt = e.AddComponent<RectTransform>();
         rt.Scale = new RelativeVector(0.5f, 0.5f);
-        TextRenderer tr = e.AddComponent<TextRenderer>();
+        var tr = e.AddComponent<TextRenderer>();
         tr.HorizontalAlignment = TextAlignment.Left;
         tr.VerticalAlignment = TextVerticalAlignment.Top;
-        tr.Text = "This is a test of multiline text rendering.\nThis should be on a new line. Otherwise the text should just wrap automatically when necessary.";
+        tr.Text =
+            "This is a test of multiline text rendering.\nThis should be on a new line. Otherwise the text should just wrap automatically when necessary.";
         Util.ManualConfirm(-0.75f);
         Atlas.Start();
-        if (UserConfirm.Failed)
-        {
-            Assert.Fail("User marked test as failed.");
-        }
+        if (UserConfirm.Failed) Assert.Fail("User marked test as failed.");
     }
-
 }

@@ -16,13 +16,13 @@ layout(location = 1) out vec4 fsin_Color;
 void main()
 {
     mat4 rotMat = mat4(
-        cos(InstanceRotation), -sin(InstanceRotation), 0, 0,
-        sin(InstanceRotation), cos(InstanceRotation), 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
+    cos(InstanceRotation), -sin(InstanceRotation), 0, 0,
+    sin(InstanceRotation), cos(InstanceRotation), 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1
     );
     vec4 rotatedPos = vec4(Position, 0, 1) * rotMat;
-    gl_Position = vec4((rotatedPos.xy * InstanceScale + InstancePosition) , 0, 1) * Transform * Camera * Matrix;
+    gl_Position = vec4((rotatedPos.xy * InstanceScale + InstancePosition), 0, 1) * Transform * Camera * Matrix;
     fsin_UV = vec4(UV.x, UV.y, UV.z, UV.w);
     fsin_Color = InstanceColor;
 } 

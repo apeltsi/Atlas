@@ -1,6 +1,12 @@
 {
-    "version": "1.0",
-    "optimizeFor": "speed",
-    "include": ["assets/error.png", "shaders/*.*", "shaders/instanced-sprite/*.*", "shaders/sprite/*.*", "shaders/color/*.*"],
-    "excludeExtensions": []
+  "version": "1.0",
+  "optimizeFor": "speed",
+  "include": [
+    "assets/error.png",
+    "shaders/*.*",
+    "shaders/instanced-sprite/*.*",
+    "shaders/sprite/*.*",
+    "shaders/color/*.*"
+  ],
+  "excludeExtensions": []
 }

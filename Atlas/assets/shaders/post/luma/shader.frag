@@ -9,5 +9,5 @@ void main()
 {
     vec4 s = texture(sampler2D(Color, Sampler), fsin_UV.xy);
     float luma = clamp(dot(s.rgb * s.a, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
-    fsout_Color = vec4(s.rgb,luma);
+    fsout_Color = vec4(s.rgb, luma);
 }

@@ -9,11 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Box2D.NetStandard" Version="1.0.4" />
+        <PackageReference Include="Box2D.NetStandard" Version="1.0.4"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Atlas\Atlas.csproj" />
+        <ProjectReference Include="..\Atlas\Atlas.csproj"/>
     </ItemGroup>
 
 </Project>

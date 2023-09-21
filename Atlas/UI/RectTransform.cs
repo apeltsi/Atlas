@@ -5,7 +5,9 @@ namespace SolidCode.Atlas.UI;
 
 public class RectTransform : Transform
 {
-    private AnchoredPoint _position = new AnchoredPoint(new (0f, 0f));
+    private AnchoredPoint _position = new(new Vector2(0f, 0f));
+
+    private RelativeVector _scale = new(0f, 0f);
 
     public new AnchoredPoint Position
     {
@@ -13,15 +15,11 @@ public class RectTransform : Transform
         set
         {
             _position = value;
-            RectTransform? rt = Entity?.Parent.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                _position.Parent = rt;
-            }
+            var rt = Entity?.Parent.GetComponent<RectTransform>();
+            if (rt != null) _position.Parent = rt;
         }
     }
-    
-    private RelativeVector _scale = new RelativeVector(0f, 0f);
+
     public new RelativeVector Scale
     {
         get => _scale;
@@ -34,35 +32,35 @@ public class RectTransform : Transform
 
     public void Start()
     {
-        this.Position = _position;
-        this.Scale = _scale;
+        Position = _position;
+        Scale = _scale;
     }
-    
+
     public override Matrix4x4 GetTransformationMatrix()
     {
-        this.Position = _position;
-        this.Scale = _scale;
+        Position = _position;
+        Scale = _scale;
         // Set parents
-        RectTransform? rt = Entity?.Parent.GetComponent<RectTransform>();
+        var rt = Entity?.Parent.GetComponent<RectTransform>();
         _position.Parent = rt;
         _scale.Parent = rt?.Scale;
-        
 
-        Vector2 pos = this.Position.Evaluate();
-        Vector2 scale = this.Scale.Evaluate();
-        float rot = this.GlobalRotation * ((float)Math.PI / 180f);
-        Matrix4x4 scaleMat = new Matrix4x4(
+
+        var pos = Position.Evaluate();
+        var scale = Scale.Evaluate();
+        var rot = GlobalRotation * ((float)Math.PI / 180f);
+        var scaleMat = new Matrix4x4(
             scale.X, 0, 0, 0,
             0, scale.Y, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
         );
-        Matrix4x4 rotation = new Matrix4x4(
+        var rotation = new Matrix4x4(
             (float)Math.Cos(rot), (float)-Math.Sin(rot), 0, 0,
             (float)Math.Sin(rot), (float)Math.Cos(rot), 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1);
-        Matrix4x4 translation = new Matrix4x4(
+        var translation = new Matrix4x4(
             1, 0, 0, pos.X,
             0, 1, 0, pos.Y,
             0, 0, 1, 0,
@@ -70,5 +68,4 @@ public class RectTransform : Transform
 
         return translation * rotation * scaleMat;
     }
-
 }

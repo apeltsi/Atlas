@@ -1,6 +1,6 @@
-﻿namespace SolidCode.Atlas.Components;
+﻿using SolidCode.Atlas.Rendering;
 
-using Rendering;
+namespace SolidCode.Atlas.Components;
 
 /// <summary>
 /// A sprite renderer that uses point sampling instead of linear sampling

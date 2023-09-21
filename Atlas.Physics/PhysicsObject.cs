@@ -1,7 +1,6 @@
 ﻿using Box2DX.Collision;
 using Box2DX.Dynamics;
 using SolidCode.Atlas.ECS;
-using Math = System.Math;
 
 namespace SolidCode.Atlas.Physics;
 
@@ -10,12 +9,12 @@ namespace SolidCode.Atlas.Physics;
 /// </summary>
 internal class PhysicsObject
 {
-    internal Body? Body;
+    private readonly bool _isStatic;
+    private readonly float _mass;
+    private readonly PhysicsShape _shape;
     private Fixture? _fixture;
-    private PhysicsShape _shape;
-    private bool _isStatic; 
+    internal Body? Body;
     internal Transform Transform;
-    private float _mass;
 
     public PhysicsObject(bool isStatic, PhysicsShape shape, Transform transform, float mass = 1f)
     {
@@ -29,25 +28,23 @@ internal class PhysicsObject
     internal void CreateResources()
     {
         if (Physics.World == null)
-        {
             throw new NullReferenceException(
                 "Physics have not been initialized yet. Cannot create PhysicsObject before Physics.InitializePhysics() is called");
-        }
-        
+
         Body = Physics.World.CreateBody(new BodyDef
         {
             MassData = new MassData
             {
-                Mass = _mass,
+                Mass = _mass
             },
             Position = Transform.GlobalPosition.AsVec2(),
             Angle = Transform.GlobalRotation * (float)Math.PI / 180f,
             LinearVelocity = default,
             AllowSleep = _isStatic,
             IsSleeping = _isStatic,
-            FixedRotation = _isStatic,
+            FixedRotation = _isStatic
         });
-        if(_isStatic)
+        if (_isStatic)
             Body.SetStatic();
         FixtureDef fixtureDef;
         if (_shape == PhysicsShape.Box)
@@ -61,13 +58,14 @@ internal class PhysicsObject
             {
                 Radius = Transform.Scale.X / 2f
             };
-
         }
-        
-        
+
+
         _fixture = Body.CreateFixture(fixtureDef);
-        lock(Physics.PhysicsObjects)
+        lock (Physics.PhysicsObjects)
+        {
             Physics.PhysicsObjects.Add(this);
+        }
     }
 
     public void Update()
@@ -82,7 +80,9 @@ internal class PhysicsObject
     {
         _fixture?.Dispose();
         Body?.Dispose();
-        lock(Physics.PhysicsObjects)
+        lock (Physics.PhysicsObjects)
+        {
             Physics.PhysicsObjects.Remove(this);
+        }
     }
 }

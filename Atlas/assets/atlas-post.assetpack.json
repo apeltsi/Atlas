@@ -1,6 +1,10 @@
 {
-    "version": "1.0",
-    "optimizeFor": "speed",
-    "include": ["shaders/post/*/*.*"],
-    "excludeExtensions": ["png"]
+  "version": "1.0",
+  "optimizeFor": "speed",
+  "include": [
+    "shaders/post/*/*.*"
+  ],
+  "excludeExtensions": [
+    "png"
+  ]
 }

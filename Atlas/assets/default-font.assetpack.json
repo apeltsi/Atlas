@@ -1,6 +1,8 @@
 {
   "version": "1.0",
   "optimizeFor": "speed",
-  "include": ["assets/OpenSans-Regular.ttf"],
+  "include": [
+    "assets/OpenSans-Regular.ttf"
+  ],
   "excludeExtensions": []
 }

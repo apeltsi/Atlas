@@ -1,77 +1,80 @@
-namespace SolidCode.Atlas.Telescope;
-
-#if DEBUG
+using System.Collections.Concurrent;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using WebSocketSharp;
-using WebSocketSharp.Server;
 using System.Text.Json;
 using System.Timers;
-using System.Collections.Concurrent;
-class Log
-{
-    // ReSharper disable once InconsistentNaming
-    public string type { get; set; }
-    // ReSharper disable once InconsistentNaming
-    public string content { get; set; }
+using WebSocketSharp;
+using WebSocketSharp.Server;
+using Timer = System.Timers.Timer;
 
+namespace SolidCode.Atlas.Telescope;
+
+#if DEBUG
+
+internal class Log
+{
     public Log(string content)
     {
-        this.type = "log";
+        type = "log";
 
         this.content = content;
     }
-}
 
-class ProfilerData
-{
     // ReSharper disable once InconsistentNaming
     public string type { get; set; }
-    // ReSharper disable once InconsistentNaming
-    public Dictionary<string,Dictionary<string,float>> times { get; set; }
 
-    public ProfilerData(Dictionary<string,Dictionary<string,float>> data)
-    {
-        this.type = "profiler";
-        this.times = data;
-    }
+    // ReSharper disable once InconsistentNaming
+    public string content { get; set; }
 }
 
-class DebuggerSocketBehaviour : WebSocketBehavior
+internal class ProfilerData
 {
-    Timer _timer;
-    Timer liveDataTimer;
-    Timer profilerDataTimer;
-    public ConcurrentQueue<string> queuedLogs = new ConcurrentQueue<string>();
-    int id;
+    public ProfilerData(Dictionary<string, Dictionary<string, float>> data)
+    {
+        type = "profiler";
+        times = data;
+    }
+
+    // ReSharper disable once InconsistentNaming
+    public string type { get; set; }
+
+    // ReSharper disable once InconsistentNaming
+    public Dictionary<string, Dictionary<string, float>> times { get; set; }
+}
+
+internal class DebuggerSocketBehaviour : WebSocketBehavior
+{
+    private Timer _timer;
+    private int id;
+    private Timer liveDataTimer;
+    private Timer profilerDataTimer;
+    public ConcurrentQueue<string> queuedLogs = new();
+
     protected override void OnMessage(MessageEventArgs e)
     {
-        if (Debug.actions.ContainsKey(e.Data))
-        {
-            Debug.actions[e.Data].Invoke();
-        }
+        if (Debug.actions.ContainsKey(e.Data)) Debug.actions[e.Data].Invoke();
     }
+
     protected override void OnOpen()
     {
         DebugServer.Connections++;
         id = DebugServer.instance.AddListener(this);
 
-        _timer = new System.Timers.Timer(50);
-        _timer.Elapsed += new System.Timers.ElapsedEventHandler(SendLogs);
+        _timer = new Timer(50);
+        _timer.Elapsed += SendLogs;
         _timer.AutoReset = true;
         _timer.Start();
 
-        liveDataTimer = new System.Timers.Timer(200);
-        liveDataTimer.Elapsed += new System.Timers.ElapsedEventHandler(SendLiveData);
+        liveDataTimer = new Timer(200);
+        liveDataTimer.Elapsed += SendLiveData;
         liveDataTimer.AutoReset = true;
         liveDataTimer.Start();
 
-        profilerDataTimer = new System.Timers.Timer(250);
+        profilerDataTimer = new Timer(250);
         profilerDataTimer.Elapsed += SendProfilerData;
         profilerDataTimer.AutoReset = true;
         profilerDataTimer.Start();
-
     }
 
 
@@ -89,57 +92,50 @@ class DebuggerSocketBehaviour : WebSocketBehavior
 
     public void SendLiveData(object sender, ElapsedEventArgs e)
     {
-        if (this.State != WebSocketState.Open || Debug.LiveData == null)
-        {
-            return;
-        }
+        if (State != WebSocketState.Open || Debug.LiveData == null) return;
 
-        string jsonString = JsonSerializer.Serialize(Debug.LiveData);
+        var jsonString = JsonSerializer.Serialize(Debug.LiveData);
         try
         {
-
             Send(jsonString);
         }
         catch (Exception ex)
         {
-            Debug.Error(0, "Error in DebuggerSocketBehaviour: " + ex.ToString());
+            Debug.Error(0, "Error in DebuggerSocketBehaviour: " + ex);
         }
     }
 
 
     public void SendProfilerData(object sender, ElapsedEventArgs e)
     {
-        if (this.State != WebSocketState.Open)
-        {
-            return;
-        }
+        if (State != WebSocketState.Open) return;
         try
         {
-            Dictionary<string,Dictionary<string,float>> times = Profiler.GetAverageTimes();
+            var times = Profiler.GetAverageTimes();
 
-            string jsonString = JsonSerializer.Serialize(new ProfilerData(times));
+            var jsonString = JsonSerializer.Serialize(new ProfilerData(times));
 
             Send(jsonString);
         }
         catch (Exception ex)
         {
-            Debug.Error(0, "Error in DebuggerSocketBehaviour: " + ex.ToString());
+            Debug.Error(0, "Error in DebuggerSocketBehaviour: " + ex);
         }
     }
 
     public void SendLogs(object sender, ElapsedEventArgs e)
     {
-        if (this.State != WebSocketState.Open) return;
+        if (State != WebSocketState.Open) return;
         while (queuedLogs.Count > 0)
         {
             string? log = null;
             queuedLogs.TryDequeue(out log);
             if (log != null)
             {
-                string jsonString = JsonSerializer.Serialize(new Log(log));
+                var jsonString = JsonSerializer.Serialize(new Log(log));
                 try
                 {
-                    if (this.State != WebSocketState.Open) return;
+                    if (State != WebSocketState.Open) return;
                     Send(jsonString);
                 }
                 catch (Exception ex)
@@ -149,18 +145,42 @@ class DebuggerSocketBehaviour : WebSocketBehavior
             }
         }
     }
-
 }
-class DebugServer
+
+internal class DebugServer
 {
-    public int Port = 8787;
-    private HttpListener _listener;
-    private byte[] bytesToSend = new byte[0];
     public static DebugServer instance;
-    WebSocketServer? wssv;
-    int listenerID = 0;
-    public static int Connections = 0;
-    ConcurrentDictionary<int, DebuggerSocketBehaviour> listeners = new ConcurrentDictionary<int, DebuggerSocketBehaviour>();
+    public static int Connections;
+    private readonly HttpListener _listener;
+    private readonly byte[] bytesToSend = new byte[0];
+    private readonly ConcurrentDictionary<int, DebuggerSocketBehaviour> listeners = new();
+    private int listenerID;
+    public int Port = 8787;
+    private WebSocketServer? wssv;
+
+    public DebugServer()
+    {
+        _listener = new HttpListener();
+        instance = this;
+        _listener.Prefixes.Add("http://127.0.0.1:" + Port + "/");
+        _listener.Start();
+        var assembly = Assembly.GetExecutingAssembly();
+        using (var stream =
+               assembly.GetManifestResourceStream(assembly.GetManifestResourceNames()
+                   .Single(str => str.EndsWith("LogViewer.html"))))
+        using (var reader = new StreamReader(stream))
+        {
+            var text = reader.ReadToEnd();
+            bytesToSend = Encoding.UTF8.GetBytes(text);
+        }
+
+        var t = new Thread(StartWebsocket);
+        t.Name = "Telescope Server";
+        t.Start();
+
+        Receive();
+    }
+
     private void StartWebsocket()
     {
         wssv = new WebSocketServer(8989);
@@ -173,50 +193,31 @@ class DebugServer
         }
         catch (Exception e)
         {
-            Debug.Error(0, "Couldn't Start Telescope Server! " + e.ToString());
+            Debug.Error(0, "Couldn't Start Telescope Server! " + e);
         }
-    }
-    public DebugServer()
-    {
-        _listener = new HttpListener();
-        instance = this;
-        _listener.Prefixes.Add("http://127.0.0.1:" + Port.ToString() + "/");
-        _listener.Start();
-        Assembly assembly = Assembly.GetExecutingAssembly();
-        using (Stream stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(str => str.EndsWith("LogViewer.html"))))
-        using (StreamReader reader = new StreamReader(stream))
-        {
-            string text = reader.ReadToEnd();
-            bytesToSend = Encoding.UTF8.GetBytes(text);
-        }
-
-        Thread t = new Thread(new ThreadStart(StartWebsocket));
-        t.Name = "Telescope Server";
-        t.Start();
-
-        Receive();
     }
 
 
     public void Log(string log)
     {
-        DebuggerSocketBehaviour[] curlisteners = listeners.Values.ToArray();
-        foreach (DebuggerSocketBehaviour item in curlisteners)
-        {
-            item.queuedLogs.Enqueue(log);
-        }
+        var curlisteners = listeners.Values.ToArray();
+        foreach (var item in curlisteners) item.queuedLogs.Enqueue(log);
     }
 
 
     public int AddListener(DebuggerSocketBehaviour listener)
     {
-        int id = Interlocked.Increment(ref listenerID);
-        listeners.AddOrUpdate(id, (index) => listener, (index, debugger) => { Debug.Error(0, "Websocket listener already exists, updating listener instead."); return listener; });
+        var id = Interlocked.Increment(ref listenerID);
+        listeners.AddOrUpdate(id, index => listener, (index, debugger) =>
+        {
+            Debug.Error(0, "Websocket listener already exists, updating listener instead.");
+            return listener;
+        });
         return id;
     }
+
     public void RemoveListener(int listener)
     {
-
         listeners.TryRemove(listener, out _);
     }
 
@@ -228,7 +229,7 @@ class DebugServer
 
     private void Receive()
     {
-        _listener.BeginGetContext(new AsyncCallback(ListenerCallback), _listener);
+        _listener.BeginGetContext(ListenerCallback, _listener);
     }
 
     private void ListenerCallback(IAsyncResult result)
@@ -252,7 +253,6 @@ class DebugServer
         }
         catch (Exception e)
         {
-
         }
     }
 }

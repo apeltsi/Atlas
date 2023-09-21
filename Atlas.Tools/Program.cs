@@ -1,36 +1,29 @@
 using Atlas.Tools.AssetCompiler;
 
-namespace Atlas.Tools
+namespace Atlas.Tools;
+
+public static class Program
 {
-    public static class Program
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            if (args.Length > 0)
+        if (args.Length > 0)
+            switch (args[0].ToLower())
             {
-                switch (args[0].ToLower())
-                {
-                    case "compile":
-                        Compiler.Compile(args);
-                        break;
-                    default:
-                        ColoredText("Error: Invalid command.", ConsoleColor.Red);
-                        break;
-
-                }
+                case "compile":
+                    Compiler.Compile(args);
+                    break;
+                default:
+                    ColoredText("Error: Invalid command.", ConsoleColor.Red);
+                    break;
             }
-            else
-            {
-                ColoredText("Error: No command was specified.", ConsoleColor.Red);
-            }
-        }
+        else
+            ColoredText("Error: No command was specified.", ConsoleColor.Red);
+    }
 
-        public static void ColoredText(string text, ConsoleColor color)
-        {
-            Console.ForegroundColor = color;
-            Console.WriteLine(text);
-            Console.ResetColor();
-        }
-
+    public static void ColoredText(string text, ConsoleColor color)
+    {
+        Console.ForegroundColor = color;
+        Console.WriteLine(text);
+        Console.ResetColor();
     }
 }

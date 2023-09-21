@@ -1,4 +1,3 @@
-
 #version 450
 
 layout(location = 0) in vec4 fsin_UV;
@@ -15,7 +14,7 @@ void main()
 {
     vec4 color = texture(sampler2D(SurfaceTexture, SurfaceSampler), fsin_UV.xy);
     float brightness = dot(color.rgb * color.a, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness < Values.y) {
+    if (brightness < Values.y) {
         discard;
     }
     color *= color.a;
