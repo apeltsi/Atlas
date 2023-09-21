@@ -25,7 +25,7 @@
         <PackageReleaseNotes>See https://github.com/apeltsi/Atlas/releases/tag/v1.0.0-rc.5</PackageReleaseNotes>
     </PropertyGroup>
     <ItemGroup Label="Project References">
-        <PackageReference Include="SolidCode.Atlas.Telescope" Version="1.0.0"/>
+        <ProjectReference Include="..\Atlas.Telescope\Atlas.Telescope.csproj"/>
     </ItemGroup>
     <ItemGroup Label="Package References">
         <PackageReference Include="FontStashSharp" Version="1.2.8"/>
