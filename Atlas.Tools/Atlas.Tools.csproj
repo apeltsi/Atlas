@@ -6,15 +6,25 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>atlastools</AssemblyName>
-        <Version>1.0.0-rc.1</Version>
-        <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
-        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <Version>1.0.0-rc.2</Version>
+        <PackAsTool>true</PackAsTool>
+        <ToolCommandName>atlastools</ToolCommandName>
+        <PackageOutputPath>./nupkg</PackageOutputPath>
+        <Title>Atlas Tools</Title>
+        <Authors>Amos Peltonen</Authors>
+        <Copyright>Copyright (c) Amos Peltonen 2023</Copyright>
+        <PackageProjectUrl>https://github.com/apeltsi/Atlas</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
+        <Product>Atlas Tools</Product>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
         <PackageReference Include="SharpZipLib" Version="1.4.2"/>
         <PackageReference Include="Vortice.Dxc" Version="3.1.1-beta"/>
         <PackageReference Include="Vortice.SpirvCross" Version="1.2.1-beta"/>
+        <None Update="THIRD-PARTY-NOTICES.TXT" Pack="true" PackagePath="\" CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
     </ItemGroup>
 </Project>

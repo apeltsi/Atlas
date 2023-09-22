@@ -1,0 +1,84 @@
+﻿License notice for Newtonsoft.Json (v13.0.2)
+------------------------------------
+
+https://github.com/JamesNK/Newtonsoft.Json at 4fba53a324c445f06ee08e45a015c346000a7ef2
+
+https://www.newtonsoft.com/json
+
+Copyright © James Newton-King 2008
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for SharpZipLib (v1.4.2)
+------------------------------------
+
+https://github.com/icsharpcode/SharpZipLib at 33f64eb0f28cdd2b084cb822fcc224c7c5aba553
+
+Copyright © 2000-2022 SharpZipLib Contributors
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for Vortice.Dxc (v3.1.1-beta)
+------------------------------------
+
+https://github.com/amerkoleci/Vortice.Windows at 9382ac4615a03eb52b6d658c6ff2e70110f55508
+
+Copyright © Amer Koleci and Contributors
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for Vortice.SpirvCross (v1.2.1-beta)
+------------------------------------
+
+https://github.com/amerkoleci/Vortice.Vulkan at 407096587adb5b863cb76217411766c8f48b8400
+
+Copyright © Amer Koleci and Contributors
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for SharpGen.Runtime (v2.0.0-beta.13)
+------------------------------------
+
+https://github.com/SharpGenTools/SharpGenTools at 461a942deb05c6f82489d11eccfb3c05b2d85def
+
+(c) 2010-2017 Alexandre Mutel, 2017-2018 Jeremy Koritzinsky
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for SharpGen.Runtime.COM (v2.0.0-beta.13)
+------------------------------------
+
+https://github.com/SharpGenTools/SharpGenTools at 461a942deb05c6f82489d11eccfb3c05b2d85def
+
+(c) 2010-2017 Alexandre Mutel, 2017-2018 Jeremy Koritzinsky
+
+Licensed under MIT
+
+Available at https://licenses.nuget.org/MIT
+
+
+License notice for SPIRV-Cross
+------------------------------------
+
+https://github.com/KhronosGroup/SPIRV-Cross
+
+Copyright 2016-2021 The Khronos Group Inc.
+
+Licensed under Apache License 2.0
+
+Available at https://www.apache.org/licenses/LICENSE-2.0
