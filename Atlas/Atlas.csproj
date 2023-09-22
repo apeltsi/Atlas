@@ -15,7 +15,7 @@
         <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
         <Product>Atlas</Product>
         <AssemblyVersion>1.0.0</AssemblyVersion>
-        <Version>1.0.0-rc.5</Version>
+        <Version>1.0.0-rc.6</Version>
         <PackRelease>true</PackRelease>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>

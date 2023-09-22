@@ -28,7 +28,7 @@ public static class Debug
         Log(LogCategory.General, log);
     }
 
-    public static void Log<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
+    internal static void Log<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
     {
         CheckLog();
         Telescope.Debug.Log(category, log);
@@ -39,7 +39,7 @@ public static class Debug
         Warning(LogCategory.General, log);
     }
 
-    public static void Warning<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
+    internal static void Warning<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
     {
         CheckLog();
         Telescope.Debug.Warning(category, log);
@@ -50,7 +50,7 @@ public static class Debug
         Error(LogCategory.General, log);
     }
 
-    public static void Error<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
+    internal static void Error<T>(T category, params string[] log) where T : IComparable, IFormattable, IConvertible
     {
         CheckLog();
         Telescope.Debug.Error(category, log);
