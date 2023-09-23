@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <PackageType>Template</PackageType>
+        <PackageVersion>1.0.0-rc.1</PackageVersion>
+        <PackageId>SolidCode.Atlas.Templates</PackageId>
+        <Title>Atlas Templates</Title>
+        <Authors>Amos Peltonen</Authors>
+        <Description>Templates useful for development with Atlas.</Description>
+        <PackageTags>dotnet-new;templates</PackageTags>
+        <Copyright>Copyright (c) Amos Peltonen 2023</Copyright>
+        <PackageProjectUrl>https://github.com/apeltsi/Atlas</PackageProjectUrl>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/apeltsi/Atlas</RepositoryUrl>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+
+        <TargetFrameworks>net6.0;net7.0</TargetFrameworks>
+
+        <IncludeContentInPack>true</IncludeContentInPack>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <ContentTargetFolders>content</ContentTargetFolders>
+        <NoWarn>$(NoWarn);NU5128</NoWarn>
+        <NoDefaultExcludes>true</NoDefaultExcludes>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="templates\**\*" Exclude="templates\**\bin\**;templates\**\obj\**"/>
+        <None Include="README.md" Pack="true" PackagePath="\"/>
+        <Compile Remove="**\*"/>
+    </ItemGroup>
+</Project>

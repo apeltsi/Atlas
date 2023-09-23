@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "Amos Peltonen",
+  "classifications": [
+    "Console"
+  ],
+  "identity": "SolidCode.Atlas.Templates.EmptyProject",
+  "name": "A simple Atlas project",
+  "shortName": "atlas-empty",
+  "sourceName": "emptyproject",
+  "preferNameDirectory": true,
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "primaryOutputs": [
+    {
+      "path": "emptyproject.csproj"
+    }
+  ],
+  "postActions": [
+    {
+      "id": "restore",
+      "description": "Restore NuGet packages required by this project.",
+      "manualInstructions": [
+        {
+          "text": "Run 'dotnet restore'"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025",
+      "continueOnError": true
+    },
+    {
+      "actionId": "3A7C4B45-1F5D-4A30-959A-51B88E82B5D2",
+      "description": "Compile project assets into assetpacks. (Requires atlastools)",
+      "args": {
+        "executable": "atlastools",
+        "args": "compile",
+        "redirectStandardOutput": false,
+        "redirectStandardError": false
+      },
+      "manualInstructions": [
+        {
+          "text": "Run 'atlastools compile'"
+        }
+      ],
+      "continueOnError": true
+    }
+  ]
+}
