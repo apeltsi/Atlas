@@ -20,7 +20,7 @@ easy to learn for developers already familiar with Unity.
 
 or
 
-[Install the template package](https://www.nuget.org/packages/SolidCode.Atlas.Templates/)
+[Install the template package](https://www.nuget.org/packages/SolidCode.Atlas.Templates/) and [AtlasTools](https://www.nuget.org/packages/atlastools/)
 and run
 ```bash
 dotnet new atlas-empty
