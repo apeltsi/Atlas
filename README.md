@@ -18,6 +18,15 @@ easy to learn for developers already familiar with Unity.
 
 [Check out the Getting Started Tutorial](https://github.com/apeltsi/Atlas/wiki/Getting-Started)
 
+or
+
+[Install the template package](https://www.nuget.org/packages/SolidCode.Atlas.Templates/) and [AtlasTools](https://www.nuget.org/packages/atlastools/)
+and run
+```bash
+dotnet new atlas-empty
+```
+to create a new project.
+
 ## Quick Feature Rundown
 
 - Similar coding experience to Unity
