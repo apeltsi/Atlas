@@ -5,7 +5,7 @@
     "Console"
   ],
   "identity": "SolidCode.Atlas.Templates.EmptyProject",
-  "name": "A simple Atlas project",
+  "name": "Atlas Empty Project",
   "shortName": "atlas-empty",
   "sourceName": "emptyproject",
   "preferNameDirectory": true,

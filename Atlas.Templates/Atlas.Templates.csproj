@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <PackageType>Template</PackageType>
-        <PackageVersion>1.0.0-rc.1</PackageVersion>
+        <PackageVersion>1.0.0-rc.2</PackageVersion>
         <PackageId>SolidCode.Atlas.Templates</PackageId>
         <Title>Atlas Templates</Title>
         <Authors>Amos Peltonen</Authors>
