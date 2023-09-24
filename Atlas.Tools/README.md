@@ -16,4 +16,10 @@ Disable assetmap generation
 atlastools compile --no-map
 ```
 
+Compile and run
+
+```bash
+atlastools run
+```
+
 Read [the wiki for more info about getting started](https://github.com/apeltsi/Atlas/wiki/AssetPacks)

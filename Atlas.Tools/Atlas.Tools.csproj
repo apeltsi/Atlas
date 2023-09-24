@@ -6,7 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>atlastools</AssemblyName>
-        <Version>1.0.0-rc.2</Version>
+        <Version>1.0.0-rc.3</Version>
         <PackAsTool>true</PackAsTool>
         <ToolCommandName>atlastools</ToolCommandName>
         <PackageOutputPath>./nupkg</PackageOutputPath>
